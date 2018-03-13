@@ -4,3 +4,5 @@
 .vs/
 Debug/
 *.suo
+*.meta
+Library/
