@@ -6,7 +6,7 @@ using System.Net.Sockets;
 
 using SharedComponents.Server;
 using SharedComponents.Global;
-using SharedComponents.Global.GameProperties;
+using SharedComponents.Global.Game;
 
 using Extant;
 using Extant.Networking;

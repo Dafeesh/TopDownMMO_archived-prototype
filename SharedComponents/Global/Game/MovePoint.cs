@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SharedComponents.Global.GameProperties
+namespace SharedComponents.Global.Game
 {
     public class MovePoint
     {

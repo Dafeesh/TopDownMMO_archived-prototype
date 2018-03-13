@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-using SharedComponents.Global.GameProperties;
+using SharedComponents.Global.Game.Character;
 
 namespace SharedComponents.Server.Game.Character
 {

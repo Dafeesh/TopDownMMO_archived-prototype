@@ -9,7 +9,8 @@ using System.Collections.Generic;
 using Extant;
 using Extant.Networking;
 
-using SharedComponents.Global.GameProperties;
+using SharedComponents.Global.Game;
+using SharedComponents.Global.Game.Character;
 
 namespace SharedComponents.Global
 {

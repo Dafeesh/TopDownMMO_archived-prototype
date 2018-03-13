@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 
-using SharedComponents.Global.GameProperties;
+using SharedComponents.Global.Game;
 
 using SharedComponents.Server.Game.Map;
 using SharedComponents.Server.Game.Character;
+using SharedComponents.Global.Game.Character;
 
 namespace SharedComponents.Server.Game.World
 {

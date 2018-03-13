@@ -34,6 +34,13 @@
             this.label_static_Clients = new System.Windows.Forms.Label();
             this.checkBox_instServIsConnected = new System.Windows.Forms.CheckBox();
             this.panel_Clients = new System.Windows.Forms.Panel();
+            this.label_ClientAccountType = new System.Windows.Forms.Label();
+            this.label_static_ClientAccountType = new System.Windows.Forms.Label();
+            this.label_ClientState = new System.Windows.Forms.Label();
+            this.label_static_ClientState = new System.Windows.Forms.Label();
+            this.label_ClientName = new System.Windows.Forms.Label();
+            this.label_static_ClientName = new System.Windows.Forms.Label();
+            this.checkBox_ClientConnected = new System.Windows.Forms.CheckBox();
             this.panel_Servers = new System.Windows.Forms.Panel();
             this.label_static_PlayerList = new System.Windows.Forms.Label();
             this.listBox_Instances = new System.Windows.Forms.ListBox();
@@ -41,13 +48,6 @@
             this.listBox_WorldSevers = new System.Windows.Forms.ListBox();
             this.label_InstServName = new System.Windows.Forms.Label();
             this.label_static_InstServName = new System.Windows.Forms.Label();
-            this.label_ClientName = new System.Windows.Forms.Label();
-            this.label_static_ClientName = new System.Windows.Forms.Label();
-            this.checkBox_ClientConnected = new System.Windows.Forms.CheckBox();
-            this.label_ClientState = new System.Windows.Forms.Label();
-            this.label_static_ClientState = new System.Windows.Forms.Label();
-            this.label_ClientAccountType = new System.Windows.Forms.Label();
-            this.label_static_ClientAccountType = new System.Windows.Forms.Label();
             this.panel_Clients.SuspendLayout();
             this.panel_Servers.SuspendLayout();
             this.SuspendLayout();
@@ -113,10 +113,75 @@
             this.panel_Clients.Controls.Add(this.checkBox_ClientConnected);
             this.panel_Clients.Controls.Add(this.listBox_Clients);
             this.panel_Clients.Controls.Add(this.label_static_Clients);
-            this.panel_Clients.Location = new System.Drawing.Point(19, 12);
+            this.panel_Clients.Location = new System.Drawing.Point(12, 12);
             this.panel_Clients.Name = "panel_Clients";
             this.panel_Clients.Size = new System.Drawing.Size(259, 348);
             this.panel_Clients.TabIndex = 7;
+            // 
+            // label_ClientAccountType
+            // 
+            this.label_ClientAccountType.AutoSize = true;
+            this.label_ClientAccountType.Location = new System.Drawing.Point(171, 85);
+            this.label_ClientAccountType.Name = "label_ClientAccountType";
+            this.label_ClientAccountType.Size = new System.Drawing.Size(43, 13);
+            this.label_ClientAccountType.TabIndex = 17;
+            this.label_ClientAccountType.Text = "_Type_";
+            // 
+            // label_static_ClientAccountType
+            // 
+            this.label_static_ClientAccountType.AutoSize = true;
+            this.label_static_ClientAccountType.Location = new System.Drawing.Point(127, 85);
+            this.label_static_ClientAccountType.Name = "label_static_ClientAccountType";
+            this.label_static_ClientAccountType.Size = new System.Drawing.Size(34, 13);
+            this.label_static_ClientAccountType.TabIndex = 16;
+            this.label_static_ClientAccountType.Text = "Type:";
+            // 
+            // label_ClientState
+            // 
+            this.label_ClientState.AutoSize = true;
+            this.label_ClientState.Location = new System.Drawing.Point(171, 63);
+            this.label_ClientState.Name = "label_ClientState";
+            this.label_ClientState.Size = new System.Drawing.Size(44, 13);
+            this.label_ClientState.TabIndex = 15;
+            this.label_ClientState.Text = "_State_";
+            // 
+            // label_static_ClientState
+            // 
+            this.label_static_ClientState.AutoSize = true;
+            this.label_static_ClientState.Location = new System.Drawing.Point(127, 63);
+            this.label_static_ClientState.Name = "label_static_ClientState";
+            this.label_static_ClientState.Size = new System.Drawing.Size(35, 13);
+            this.label_static_ClientState.TabIndex = 14;
+            this.label_static_ClientState.Text = "State:";
+            // 
+            // label_ClientName
+            // 
+            this.label_ClientName.AutoSize = true;
+            this.label_ClientName.Location = new System.Drawing.Point(171, 41);
+            this.label_ClientName.Name = "label_ClientName";
+            this.label_ClientName.Size = new System.Drawing.Size(47, 13);
+            this.label_ClientName.TabIndex = 13;
+            this.label_ClientName.Text = "_Name_";
+            // 
+            // label_static_ClientName
+            // 
+            this.label_static_ClientName.AutoSize = true;
+            this.label_static_ClientName.Location = new System.Drawing.Point(127, 41);
+            this.label_static_ClientName.Name = "label_static_ClientName";
+            this.label_static_ClientName.Size = new System.Drawing.Size(38, 13);
+            this.label_static_ClientName.TabIndex = 12;
+            this.label_static_ClientName.Text = "Name:";
+            // 
+            // checkBox_ClientConnected
+            // 
+            this.checkBox_ClientConnected.AutoSize = true;
+            this.checkBox_ClientConnected.Enabled = false;
+            this.checkBox_ClientConnected.Location = new System.Drawing.Point(132, 21);
+            this.checkBox_ClientConnected.Name = "checkBox_ClientConnected";
+            this.checkBox_ClientConnected.Size = new System.Drawing.Size(78, 17);
+            this.checkBox_ClientConnected.TabIndex = 11;
+            this.checkBox_ClientConnected.Text = "Connected";
+            this.checkBox_ClientConnected.UseVisualStyleBackColor = true;
             // 
             // panel_Servers
             // 
@@ -130,7 +195,7 @@
             this.panel_Servers.Controls.Add(this.listBox_GeneralServers);
             this.panel_Servers.Controls.Add(this.label_static_GSs);
             this.panel_Servers.Controls.Add(this.checkBox_instServIsConnected);
-            this.panel_Servers.Location = new System.Drawing.Point(284, 12);
+            this.panel_Servers.Location = new System.Drawing.Point(277, 12);
             this.panel_Servers.Name = "panel_Servers";
             this.panel_Servers.Size = new System.Drawing.Size(687, 348);
             this.panel_Servers.TabIndex = 8;
@@ -189,76 +254,11 @@
             this.label_static_InstServName.TabIndex = 9;
             this.label_static_InstServName.Text = "Name:";
             // 
-            // label_ClientName
-            // 
-            this.label_ClientName.AutoSize = true;
-            this.label_ClientName.Location = new System.Drawing.Point(171, 41);
-            this.label_ClientName.Name = "label_ClientName";
-            this.label_ClientName.Size = new System.Drawing.Size(47, 13);
-            this.label_ClientName.TabIndex = 13;
-            this.label_ClientName.Text = "_Name_";
-            // 
-            // label_static_ClientName
-            // 
-            this.label_static_ClientName.AutoSize = true;
-            this.label_static_ClientName.Location = new System.Drawing.Point(127, 41);
-            this.label_static_ClientName.Name = "label_static_ClientName";
-            this.label_static_ClientName.Size = new System.Drawing.Size(38, 13);
-            this.label_static_ClientName.TabIndex = 12;
-            this.label_static_ClientName.Text = "Name:";
-            // 
-            // checkBox_ClientConnected
-            // 
-            this.checkBox_ClientConnected.AutoSize = true;
-            this.checkBox_ClientConnected.Enabled = false;
-            this.checkBox_ClientConnected.Location = new System.Drawing.Point(132, 21);
-            this.checkBox_ClientConnected.Name = "checkBox_ClientConnected";
-            this.checkBox_ClientConnected.Size = new System.Drawing.Size(78, 17);
-            this.checkBox_ClientConnected.TabIndex = 11;
-            this.checkBox_ClientConnected.Text = "Connected";
-            this.checkBox_ClientConnected.UseVisualStyleBackColor = true;
-            // 
-            // label_ClientState
-            // 
-            this.label_ClientState.AutoSize = true;
-            this.label_ClientState.Location = new System.Drawing.Point(171, 63);
-            this.label_ClientState.Name = "label_ClientState";
-            this.label_ClientState.Size = new System.Drawing.Size(44, 13);
-            this.label_ClientState.TabIndex = 15;
-            this.label_ClientState.Text = "_State_";
-            // 
-            // label_static_ClientState
-            // 
-            this.label_static_ClientState.AutoSize = true;
-            this.label_static_ClientState.Location = new System.Drawing.Point(127, 63);
-            this.label_static_ClientState.Name = "label_static_ClientState";
-            this.label_static_ClientState.Size = new System.Drawing.Size(35, 13);
-            this.label_static_ClientState.TabIndex = 14;
-            this.label_static_ClientState.Text = "State:";
-            // 
-            // label_ClientAccountType
-            // 
-            this.label_ClientAccountType.AutoSize = true;
-            this.label_ClientAccountType.Location = new System.Drawing.Point(171, 85);
-            this.label_ClientAccountType.Name = "label_ClientAccountType";
-            this.label_ClientAccountType.Size = new System.Drawing.Size(43, 13);
-            this.label_ClientAccountType.TabIndex = 17;
-            this.label_ClientAccountType.Text = "_Type_";
-            // 
-            // label_static_ClientAccountType
-            // 
-            this.label_static_ClientAccountType.AutoSize = true;
-            this.label_static_ClientAccountType.Location = new System.Drawing.Point(127, 85);
-            this.label_static_ClientAccountType.Name = "label_static_ClientAccountType";
-            this.label_static_ClientAccountType.Size = new System.Drawing.Size(34, 13);
-            this.label_static_ClientAccountType.TabIndex = 16;
-            this.label_static_ClientAccountType.Text = "Type:";
-            // 
             // MasterServerWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1072, 387);
+            this.ClientSize = new System.Drawing.Size(975, 372);
             this.Controls.Add(this.panel_Servers);
             this.Controls.Add(this.panel_Clients);
             this.Name = "MasterServerWindow";

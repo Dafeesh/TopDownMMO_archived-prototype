@@ -4,7 +4,8 @@ using System.Data.SQLite;
 using System.Linq;
 
 using SharedComponents.Server;
-using SharedComponents.Global.GameProperties;
+using SharedComponents.Global.Game;
+using SharedComponents.Global.Game.Character;
 
 namespace MasterServer.Database
 {

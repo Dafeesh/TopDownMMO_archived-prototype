@@ -1,7 +1,8 @@
 ﻿using System;
 
-using SharedComponents.Global.GameProperties;
+using SharedComponents.Global.Game;
 using SharedComponents.Server.Game.World;
+using SharedComponents.Global.Game.Character;
 
 namespace SharedComponents.Server
 {

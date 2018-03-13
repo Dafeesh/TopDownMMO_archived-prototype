@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace SharedComponents.Global.GameProperties
+namespace SharedComponents.Global.Game.Character
 {
     public class CharacterVisualLayout
     {

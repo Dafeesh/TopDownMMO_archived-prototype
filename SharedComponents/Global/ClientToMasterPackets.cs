@@ -6,8 +6,9 @@ using System.Text;
 using Extant;
 using Extant.Networking;
 
-using SharedComponents.Global.GameProperties;
+using SharedComponents.Global.Game;
 using System.Net;
+using SharedComponents.Global.Game.Character;
 
 namespace SharedComponents.Global
 {

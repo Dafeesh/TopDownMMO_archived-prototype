@@ -4,7 +4,7 @@ using System.Net;
 
 using Extant;
 
-using SharedComponents.Global.GameProperties;
+using SharedComponents.Global.Game;
 
 namespace MasterServer.Links
 {

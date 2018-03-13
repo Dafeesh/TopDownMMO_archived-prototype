@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-using SharedComponents.Global.GameProperties;
+using SharedComponents.Global.Game;
 
 namespace SharedComponents.Server.Game.World
 {

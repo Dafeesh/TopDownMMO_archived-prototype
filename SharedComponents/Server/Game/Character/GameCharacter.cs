@@ -1,17 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading;
 
 using Extant;
-using Extant.Networking;
 
-using SharedComponents.Global;
-using SharedComponents.Global.GameProperties;
+using SharedComponents.Global.Game;
 using SharedComponents.Server.Game.Instance;
+using SharedComponents.Global.Game.Character;
 
 namespace SharedComponents.Server.Game.Character
 {
-    public abstract partial class GameCharacter : IDisposable , IInstanceTick , ILogging
+    public abstract partial class GameCharacter : IDisposable, IInstanceTick, ILogging
     {
         public const int ID_NULL = -1;
 

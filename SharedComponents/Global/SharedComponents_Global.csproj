@@ -36,14 +36,14 @@
   <ItemGroup>
     <Compile Include="ClientToMasterPackets.cs" />
     <Compile Include="ClientToInstancePackets.cs" />
-    <Compile Include="GameProperties\CharacterStats.cs" />
-    <Compile Include="GameProperties\CharacterEnums.cs" />
-    <Compile Include="GameProperties\CharacterVisualLayout.cs" />
-    <Compile Include="GameProperties\MapDefaults.cs" />
-    <Compile Include="GameProperties\PlayerInfo.cs" />
-    <Compile Include="GameProperties\Position2D.cs" />
-    <Compile Include="GameProperties\MovePoint.cs" />
-    <Compile Include="GameProperties\ZoneID.cs" />
+    <Compile Include="Game\Character\CharacterStats.cs" />
+    <Compile Include="Game\Character\CharacterEnums.cs" />
+    <Compile Include="Game\Character\CharacterVisualLayout.cs" />
+    <Compile Include="Game\MapDefaults.cs" />
+    <Compile Include="Game\PlayerInfo.cs" />
+    <Compile Include="Game\Position2D.cs" />
+    <Compile Include="Game\MovePoint.cs" />
+    <Compile Include="Game\ZoneID.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Version.cs" />
   </ItemGroup>

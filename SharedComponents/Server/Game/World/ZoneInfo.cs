@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 
-using SharedComponents.Global.GameProperties;
 using SharedComponents.Server.Game.Map;
+using SharedComponents.Global.Game;
 
 namespace SharedComponents.Server.Game.World
 {

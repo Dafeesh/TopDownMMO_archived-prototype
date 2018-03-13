@@ -10,16 +10,10 @@ namespace Extant
     /// </summary>
     public class DebugLogger
     {
-        private class _Global : DebugLogger
-        {
-            public _Global()
-                : base("Global")
-            {
-                //this.MessageLogged += Console.WriteLine;
-            }
-        }
         /////////////
-        public static readonly DebugLogger Global = new DebugLogger._Global();
+        public static readonly DebugLogger Global;
+        static DebugLogger()
+        { Global = new DebugLogger("Global"); }
         /////////////
 
         private String sourceName;
@@ -29,6 +23,8 @@ namespace Extant
 
         public delegate void DebugLogMessageDelegate(String message);
         public event DebugLogMessageDelegate MessageLogged;
+        public event DebugLogMessageDelegate WarningMessageLogged;
+        public event DebugLogMessageDelegate ErrorMessageLogged;
 
         public DebugLogger(String sourceName)
         {
@@ -40,14 +36,45 @@ namespace Extant
             if (String.IsNullOrEmpty(s))
                 return;
 
+            _Log(new LogItem(DateTime.Now, sourceName, LogItem.LogItemType.Normal, s));
+        }
+        public void LogWarning(string s)
+        {
+            if (String.IsNullOrEmpty(s))
+                return;
+
+            _Log(new LogItem(DateTime.Now, sourceName, LogItem.LogItemType.Warning, s));
+        }
+
+        public void LogError(string s)
+        {
+            if (String.IsNullOrEmpty(s))
+                return;
+
+            _Log(new LogItem(DateTime.Now, sourceName, LogItem.LogItemType.Error, s));
+        }
+
+        private void _Log(LogItem li)
+        {
             lock (log_lock)
             {
-                LogItem li = new LogItem(DateTime.Now, sourceName, s);
-
                 log.Add(li);
 
                 if (MessageLogged != null)
                     MessageLogged(li.ToString());
+
+                switch (li.LogType)
+                {
+                    case (LogItem.LogItemType.Warning):
+                        if (WarningMessageLogged != null)
+                            WarningMessageLogged(li.ToString());
+                        break;
+
+                    case (LogItem.LogItemType.Error):
+                        if (ErrorMessageLogged != null)
+                            ErrorMessageLogged(li.ToString());
+                        break;
+                }
             }
         }
 
@@ -70,18 +97,37 @@ namespace Extant
     {
         public DateTime Time;
         public String Source;
+        public LogItemType LogType;
         public String Message;
 
-        public LogItem(DateTime time, String source, String message)
+        public LogItem(DateTime time, String source, LogItemType logType, String message)
         {
             this.Time = time;
             this.Source = source;
+            this.LogType = logType;
             this.Message = message;
         }
 
         public override string ToString()
         {
-            return Time.ToString("HH:mm:ss tt") + "[" + Source + "]: " + Message;
+            switch (this.LogType)
+            {
+                default: //Normal
+                    return Time.ToString("HH:mm:ss tt") + "[" + Source + "]: " + Message;
+
+                case (LogItemType.Warning):
+                    return Time.ToString("HH:mm:ss tt") + "<Warning> [" + Source + "]: " + Message;
+
+                case (LogItemType.Error):
+                    return Time.ToString("HH:mm:ss tt") + "<ERROR> [" + Source + "]: " + Message;
+            }
+        }
+
+        public enum LogItemType
+        {
+            Normal,
+            Warning,
+            Error
         }
     }
 

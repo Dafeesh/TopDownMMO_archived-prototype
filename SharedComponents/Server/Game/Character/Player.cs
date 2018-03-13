@@ -8,7 +8,8 @@ using Extant;
 using Extant.Networking;
 
 using SharedComponents.Global;
-using SharedComponents.Global.GameProperties;
+using SharedComponents.Global.Game;
+using SharedComponents.Global.Game.Character;
 
 namespace SharedComponents.Server.Game.Character
 {
