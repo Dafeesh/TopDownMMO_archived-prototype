@@ -18,7 +18,7 @@ namespace GameServer
         private Networking.HostServer hostServer;
 
         public GameHandler(String ip, Int32 port, Int32 numGames)
-            : base("<GameHandler>")
+            : base("GameHandler")
         {
             numberOfGames = numGames;
             games = new HostGame.Game[numberOfGames];

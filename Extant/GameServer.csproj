@@ -51,9 +51,12 @@
     <Compile Include="HostGame\Game.cs" />
     <Compile Include="HostGame\Game_Types.cs" />
     <Compile Include="HostGame\Map.cs" />
+    <Compile Include="HostGame\MapObjects\Character.cs" />
+    <Compile Include="HostGame\MapObjects\Dynamics\CharacterMovement.cs" />
+    <Compile Include="HostGame\MapObjects\MapObject.cs" />
     <Compile Include="Networking\Client.cs" />
     <Compile Include="Networking\HostServer.cs" />
-    <Compile Include="HostGame\Player.cs" />
+    <Compile Include="HostGame\MapObjects\Player.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
@@ -79,9 +82,7 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="HostGame\MapItems\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <ProjectReference Include="..\..\..\ExtantLibrary\ExtantLibrary\ExtantLibrary\ExtantLibrary.csproj">
       <Project>{598bb5ef-795b-478c-ad1f-323be7077beb}</Project>

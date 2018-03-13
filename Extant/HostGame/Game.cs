@@ -14,7 +14,7 @@ namespace GameServer.HostGame
 {
     public abstract partial class Game : ThreadRun
     {
-        protected readonly String gameId;
+        private readonly String gameId;
         private List<Player> players = new List<Player>();
 
         private GameState gameState;
@@ -32,9 +32,8 @@ namespace GameServer.HostGame
 
             this.players.AddRange(players);
 
-            DebugLogger.GlobalDebug.LogGame(gameId, (int)gameTime.Elapsed.TotalMilliseconds, "Game created. (" + this.RunningID + ")");
+            DebugLogger.GlobalDebug.LogGame(gameId, (int)gameTime.Elapsed.TotalMilliseconds, "Game created: " + players);
         }
-
 
         /// Triggered when phase changes in the game.
         protected abstract void OnPhaseChange(DayPhase newPhase);
@@ -47,7 +46,6 @@ namespace GameServer.HostGame
 
         protected override void Begin()
         {
-            //GameState = GameState.Waiting;
             GameState = GameState.Play; //This will be changed later because the hub server will dictate when it is ready.
 
             this.phaseTime.Start();
@@ -162,7 +160,7 @@ namespace GameServer.HostGame
         /// <summary>
         /// Returns the Game Time in milliseconds.
         /// </summary>
-        protected Int32 GameTime
+        public Int32 GameTime
         {
             get
             {

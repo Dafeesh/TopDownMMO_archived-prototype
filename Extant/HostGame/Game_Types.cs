@@ -21,12 +21,12 @@ namespace GameServer.HostGame
 
         protected override void OnPhaseChange(DayPhase newPhase)
         {
-            DebugLogger.GlobalDebug.LogGame(this.gameId, this.GameTime, "DayPhase has changed to " + newPhase.ToString() + ".");
+            DebugLogger.GlobalDebug.LogGame(this.GameID, this.GameTime, "DayPhase has changed to " + newPhase.ToString() + ".");
         }
 
         protected override void OnBegin()
         {
-            DebugLogger.GlobalDebug.LogGame(this.gameId, this.GameTime, "Game has begun!");
+            DebugLogger.GlobalDebug.LogGame(this.GameID, this.GameTime, "Game has begun!");
         }
 
         protected override void OnUpdate()
@@ -36,7 +36,7 @@ namespace GameServer.HostGame
 
         protected override void OnFinish()
         {
-            DebugLogger.GlobalDebug.LogGame(this.gameId, this.GameTime, "Game has ended!");
+            DebugLogger.GlobalDebug.LogGame(this.GameID, this.GameTime, "Game has ended!");
         }
     }
 }
