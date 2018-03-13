@@ -16,10 +16,12 @@ namespace MasterServer.Database
             //Static
             private static string ConnectionString = @"Data Source=C:\Users\Blake\Code & Source\_Game\Databases\AccountsDB.sqlite; Version=3;";
 
+            private static readonly string Table_Accounts = "accounts";
             private static readonly string Column_Accounts_Name = "name";
             private static readonly string Column_Accounts_Password = "password";
             private static readonly string Column_Accounts_Type = "type";
 
+            private static readonly string Table_Characters = "characters";
             private static readonly string Column_Characters_Owner = "owner";
             private static readonly string Column_Characters_Name = "name";
             private static readonly string Column_Characters_Type = "type";
@@ -54,7 +56,7 @@ namespace MasterServer.Database
             {
                 try
                 {
-                    string commandString = "INSERT INTO accounts (" +
+                    string commandString = "INSERT INTO " + Table_Accounts + " (" +
                         Column_Accounts_Name + ", " +
                         Column_Accounts_Password + ", " +
                         Column_Accounts_Type +
@@ -73,11 +75,33 @@ namespace MasterServer.Database
                 }
             }
 
-            public AccountInfo Fetch_AccountInfo(string name, string password)
+            public bool Verify_AccountLogin(string name, string password)
             {
                 try
                 {
-                    string commandString = "SELECT * FROM accounts WHERE UPPER(" + Column_Accounts_Name + ")=UPPER('" + name + "');";
+                    string commandString = "SELECT " + Column_Accounts_Password + " FROM " + Table_Accounts + " WHERE UPPER(" + Column_Accounts_Name + ")=UPPER('" + name + "');";
+                    SQLiteCommand cmd = new SQLiteCommand(commandString, connection);
+                    SQLiteDataReader reader = cmd.ExecuteReader();
+
+                    if (!reader.HasRows)
+                        return false;
+
+                    reader.Read();
+                    string correctPassword = reader[Column_Accounts_Password].ToString();
+
+                    return (password.CompareTo(correctPassword) == 0);
+                }
+                catch (SQLiteException e)
+                {
+                    throw e;
+                }
+            }
+
+            public AccountInfo Fetch_AccountInfo(string name)
+            {
+                try
+                {
+                    string commandString = "SELECT * FROM " + Table_Accounts + " WHERE UPPER(" + Column_Accounts_Name + ")=UPPER('" + name + "');";
                     SQLiteCommand cmd = new SQLiteCommand(commandString, connection);
                     SQLiteDataReader reader = cmd.ExecuteReader();
 
@@ -85,17 +109,14 @@ namespace MasterServer.Database
                         return null;
 
                     reader.Read();
-                    if (reader[Column_Accounts_Password].ToString().CompareTo(password) != 0)
-                        return null;
-                    else
+                    AccountInfo accnt = new AccountInfo(reader[Column_Accounts_Name].ToString(),
+                                            reader[Column_Accounts_Password].ToString(),
+                                            (AccountInfo.AccountType)(Int32)reader[Column_Accounts_Type])
                     {
-                        return new AccountInfo(reader[Column_Accounts_Name].ToString(),
-                                               reader[Column_Accounts_Password].ToString(),
-                                               (AccountInfo.AccountType)(Int32)reader[Column_Accounts_Type])
-                        {
-                            Characters = Fetch_Characters(name)
-                        };
-                    }
+                        Characters = Fetch_Characters(name)
+                    };
+
+                    return accnt;
                 }
                 catch (SQLiteException e)
                 {
@@ -109,7 +130,7 @@ namespace MasterServer.Database
 
                 try
                 {
-                    string commandString = "SELECT * FROM characters WHERE UPPER(" + Column_Characters_Owner + ")=UPPER('" + owner + "');";
+                    string commandString = "SELECT * FROM " + Table_Characters + " WHERE UPPER(" + Column_Characters_Owner + ")=UPPER('" + owner + "');";
                     SQLiteCommand cmd = new SQLiteCommand(commandString, connection);
                     SQLiteDataReader reader = cmd.ExecuteReader();
 

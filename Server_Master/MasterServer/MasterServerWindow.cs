@@ -39,7 +39,7 @@ namespace MasterServer
             }
 
             //Start host
-            this.host = new MasterServerHost(clientAcceptor, new InstanceServerHub(worldServers, instanceServers));
+            this.host = new MasterServerHost(clientAcceptor, new ServerHub(worldServers, instanceServers));
             this.host.Start();
         }
 

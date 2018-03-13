@@ -90,14 +90,6 @@ namespace MasterServer.Links
             activeCharacter = ch;
         }
 
-        public bool IsInGame
-        {
-            get
-            {
-                return (activeCharacter != null);
-            }
-        }
-
         public bool HasConnection
         {
             get

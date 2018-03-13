@@ -185,11 +185,13 @@ namespace MasterServer.Host
                 {
                     using (DBConnections.Accounts dbConnection = new DBConnections.Accounts())
                     {
-                        AcctInfo = dbConnection.Fetch_AccountInfo(p.Username, p.Password);
+                        bool loginSuccess = dbConnection.Verify_AccountLogin(p.Username, p.Password);
 
-                        if (AcctInfo != null)
+                        if (loginSuccess)
                         {
                             Connection.SendPacket(new ClientToMasterPackets.AccountAuthorize_Response_c(ClientToMasterPackets.AccountAuthorize_Response_c.AuthResponse.Success));
+
+                            AcctInfo = dbConnection.Fetch_AccountInfo(p.Username);
                             IsAuthorized = true;
                         }
                         else

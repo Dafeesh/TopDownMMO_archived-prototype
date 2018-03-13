@@ -17,13 +17,13 @@ namespace MasterServer.Host
         public event Delegate_ClientUpdate ClientUpdated;
         public delegate void Delegate_ClientUpdate(ClientLink cLink);
 
-        private GameWorld gameWorld;
+        private ServerHub serverHub;
         private List<ClientLink> clients = new List<ClientLink>();
         private ClientLink.ActionDispersion clients_ActionDispersion;
 
         private ClientAcceptor clientAcceptor;
 
-        public MasterServerHost(ClientAcceptor clientAcceptor, InstanceServerHub serverHub)
+        public MasterServerHost(ClientAcceptor clientAcceptor, ServerHub serverHub)
             : base("MasterServer")
         {
             this.clientAcceptor = clientAcceptor;
@@ -32,7 +32,7 @@ namespace MasterServer.Host
                 OnAction_CharacterListItem_Select = OnAction_CharListItem_Select
             };
 
-            this.gameWorld = new GameWorld(serverHub);
+            this.serverHub = serverHub;
 
             Log.MessageLogged += Console.WriteLine;
         }
@@ -47,7 +47,7 @@ namespace MasterServer.Host
 
         protected override void RunLoop()
         {
-            gameWorld.PollServers();
+            serverHub.PollServers();
 
             HandleClients();
             HandleNewClients();
@@ -55,8 +55,8 @@ namespace MasterServer.Host
 
         protected override void Finish(bool success)
         {
-            clientAcceptor.Stop("MasterServerHost finished.");
-            gameWorld.Dispose();
+            clientAcceptor.Dispose();
+            serverHub.Dispose();
 
             foreach (var c in clients)
             {

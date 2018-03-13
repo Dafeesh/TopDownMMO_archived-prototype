@@ -9,7 +9,7 @@ using MasterServer.Links;
 
 namespace MasterServer.Host
 {
-    public class InstanceServerHub : IDisposable, ILogging
+    public class ServerHub : IDisposable, ILogging
     {
         private WorldServerLink[] worlds;
         private InstanceServerLink[] instances;
@@ -17,7 +17,7 @@ namespace MasterServer.Host
         private DebugLogger _log = new DebugLogger("InstHub");
         private bool _isDisposed = false;
 
-        public InstanceServerHub(WorldServerLink[] worldServers, InstanceServerLink[] instanceServers)
+        public ServerHub(WorldServerLink[] worldServers, InstanceServerLink[] instanceServers)
         {
             this.Log.MessageLogged += Console.WriteLine;
 

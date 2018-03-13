@@ -231,17 +231,6 @@ public class MasterServerConnection : MonoComponent
 
                 if (StateChanged != null)
                     StateChanged(_state);
-
-                if (_state == ConnectionState.NoConnection)
-                {
-                    if (Application.loadedLevelName != ResourceList.Scenes.LoginPage)
-                        Application.LoadLevel(ResourceList.Scenes.LoginPage);
-                }
-                else if (_state == ConnectionState.Connected)
-                {
-                    if (Application.loadedLevelName != ResourceList.Scenes.CharSelect)
-                        Application.LoadLevel(ResourceList.Scenes.CharSelect);
-                }
             }
         }
     }

@@ -8,8 +8,8 @@ using MasterServer.Game;
 using Extant;
 using Extant.Networking;
 
-using SharedComponents.Server;
 using SharedComponents.Global;
+using SharedComponents.Server;
 using SharedComponents.Server.World;
 
 namespace MasterServer.Links
