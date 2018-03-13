@@ -8,11 +8,12 @@ public class UpdateAssembliesMenu : MonoBehaviour
     {
         try
         {
-            string from = @"C:\Users\Blake\Code and Source\_Game\SharedComponents\_Build_Debug\";
-            string to = @"C:\Users\Blake\Code and Source\_Game\Client\Assets\Assemblies\";
+            string from = @"C:\Users\Blake\Code & Source\_Game\SharedComponents\_Build_Debug\";
+            string to = @"C:\Users\Blake\Code & Source\_Game\Client\Assets\Assemblies\";
 
-            string[] files = {"ExtantLibrary.dll",
-                          "ClientToServers.dll"};
+            string[] files = {"Extant__Base.dll",
+                              "Extant_Networking.dll",
+                              "SharedComponents_Global.dll"};
 
             foreach (string f in files)
             {
