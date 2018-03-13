@@ -11,20 +11,19 @@ public class GlobalController : MonoBehaviour
     [SerializeField]
     private GameController gameController;
     [SerializeField]
-    private InterfaceAccessor uiAccessor;
+    private InterfaceController uiController;
 
     private GlobalState state;
-
-    private NetConnection wsConnection;
+    private DebugLogger log = new DebugLogger();
 
 	void Start ()
     {
-        DebugLogger.GlobalDebug.MessageLogged += Debug.Log;
+        log.AnyLogged += Debug.Log;
 
         if (gameController == null)
-            Debug.LogError("GlobalController has no reference to gameController.");
-        if (uiAccessor == null)
-            Debug.LogError("GlobalController has no reference to uiAccessor.");
+            log.LogError("GlobalController has no reference to gameController.");
+        if (uiController == null)
+            log.LogError("GlobalController has no reference to uiAccessor.");
 
         SetState(GlobalState.Login);
 	}
@@ -36,29 +35,10 @@ public class GlobalController : MonoBehaviour
             case (GlobalState.InGame):
                 {
 
-                    if (wsConnection.IsStopped)
-                    {
-                        SetState(GlobalState.Login);
-                        break;
-                    }
-
-                    if (Input.GetKeyUp(KeyCode.A))
-                    {
-                        wsConnection.Stop();
-                        break;
-                    }
                 }
                 break;
         }
 	}
-
-    void OnApplicationQuit()
-    {
-        if (wsConnection != null)
-        {
-            wsConnection.Stop();
-        }
-    }
 
     private void SetState(GlobalState newState)
     {
@@ -68,7 +48,7 @@ public class GlobalController : MonoBehaviour
             case (GlobalState.Login):
                 {
                     gameController.Stop();
-                    Application.LoadLevel("_MainMenu");
+                    Application.LoadLevelAdditive("_MainMenu");
                 }
                 break;
 
@@ -80,13 +60,6 @@ public class GlobalController : MonoBehaviour
         }
 
         state = newState;
-    }
-
-    public void SetWorldServerConnection(NetConnection con)
-    {
-        wsConnection = con;
-        SetState(GlobalState.InGame);
-        gameController.SetWorldServerConnection(con);
     }
 
     public enum GlobalState

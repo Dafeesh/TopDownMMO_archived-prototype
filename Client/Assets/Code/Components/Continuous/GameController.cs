@@ -7,44 +7,46 @@ using UnityEngine;
 public class GameController : MonoBehaviour
 {
     [SerializeField]
-    private InterfaceAccessor uiAccessor;
-
+    private InterfaceController uiController;
     [SerializeField]
-    private int packetCount = 0;
+    private WorldServerConnection wsConnection;
 
-    private NetConnection wsCon;
     private GameTime gameTime;
     private bool isActive;
 
-    private GameObject baseMapObject;
+    private DebugLogger log = new DebugLogger();
+
+    private GameObject sceneManager = null;
 
     void Start()
     {
-        if (uiAccessor == null)
-        {
-            Debug.LogError("GameController was not given an InterfaceAccessor.");
-        }
+        log.AnyLogged += Debug.Log;
+
+        if (uiController == null)
+            log.LogError("GameController was not given an InterfaceAccessor.");
+        if (wsConnection == null)
+            log.LogError("GameController was not given a WorldServerConnection.");
 
         gameTime = new GameTime();
         isActive = false;
-        baseMapObject = null;
+        sceneManager = null;
     }
 
     void Update()
     {
         if (isActive)
         {
-            if (baseMapObject == null)
+            if (sceneManager == null)
             {
-                baseMapObject = GameObject.Find("_SceneBase");
-                if (baseMapObject != null)
+                sceneManager = GameObject.Find("_SceneBase");
+                if (sceneManager != null)
                 {
-                    Debug.Log("GameController found SceneBase.");
+                    log.Log("GameController found SceneBase.");
                 }
             }
             else
             {
-                uiAccessor.GameTime = gameTime.Now;
+                uiController.GameTime = gameTime.Now;
 
                 HandleIncomingPackets();
             }
@@ -54,66 +56,80 @@ public class GameController : MonoBehaviour
     private void HandleIncomingPackets()
     {
         Packet p = null;
-        while ((p = wsCon.GetPacket()) != null)
+        while ((p = wsConnection.GetPacket()) != null)
         {
-            packetCount++;
             switch ((ClientToWorldPackets.PacketType)p.Type)
             {
                 case (ClientToWorldPackets.PacketType.Map_MoveTo_c):
                     {
                         LoadNewMap((MapID)(p as ClientToWorldPackets.Map_MoveTo_c).mapNum);
-                        DebugLogger.GlobalDebug.Log(DebugLogger.LogType.Networking, "WorldServer- LoadMap: " + (MapID)(p as ClientToWorldPackets.Map_MoveTo_c).mapNum);
+                        log.Log("WorldServer- LoadMap: " + (MapID)(p as ClientToWorldPackets.Map_MoveTo_c).mapNum);
                     }
                     break;
 
                 case (ClientToWorldPackets.PacketType.Character_Add_c):
                     {
-                        DebugLogger.GlobalDebug.Log(DebugLogger.LogType.Networking, "WorldServer- Add Character: " + (p as ClientToWorldPackets.Character_Add_c).charId);
+                        log.Log("WorldServer- Add Character: " + (p as ClientToWorldPackets.Character_Add_c).charId);
                     }
                     break;
 
                 case (ClientToWorldPackets.PacketType.Character_Position_c):
                     {
-                        DebugLogger.GlobalDebug.Log(DebugLogger.LogType.Networking, "WorldServer- Character position: " + (p as ClientToWorldPackets.Character_Position_c).charId);
+                        log.Log("WorldServer- Character position: " + (p as ClientToWorldPackets.Character_Position_c).charId);
                     }
                     break;
 
                 case (ClientToWorldPackets.PacketType.Character_Remove_c):
                     {
-                        DebugLogger.GlobalDebug.Log(DebugLogger.LogType.Networking, "WorldServer- Remove Character: " + (p as ClientToWorldPackets.Character_Remove_c).charId);
+                        log.Log("WorldServer- Remove Character: " + (p as ClientToWorldPackets.Character_Remove_c).charId);
                     }
                     break;
 
                 default:
                     {
-                        DebugLogger.GlobalDebug.Log(DebugLogger.LogType.Catch, "WorldServer- Got unknown packet: " + ((ClientToWorldPackets.PacketType)p.Type).ToString());
+                        log.LogWarning("WorldServer- Got unknown packet: " + ((ClientToWorldPackets.PacketType)p.Type).ToString());
                     }
                     break;
             }
         }
     }
 
+    private void DeleteOldMap()
+    {
+        if (sceneManager != null)
+        {
+            Destroy(sceneManager);
+            sceneManager = null;
+            log.Log("Deleted the map.");
+        }
+    }
+
     private void LoadNewMap(MapID id)
     {
+        DeleteOldMap();
+
+        //Load new map
         switch (id)
         {
             case (MapID.TestMap):
                 {
-                    Application.LoadLevel("TestMap");
+                    Application.LoadLevelAdditive("TestMap");
                 }
                 break;
 
             default:
                 {
-                    Debug.Log("GameController could not load map: " + id.ToString());
+                    log.LogError("GameController could not load map: " + id.ToString());
+                    return;
                 }
-                break;
+                //break;
         }
     }
 
     public void Stop()
     {
-        IsActive = false;
+        DeleteOldMap();
+        isActive = false;
     }
 
     public bool IsActive
@@ -122,34 +138,9 @@ public class GameController : MonoBehaviour
         {
             return isActive;
         }
-
-        private set
+        set
         {
             isActive = value;
-
-            if (isActive)
-            {
-                baseMapObject = GameObject.Find("_SceneBase");
-                if (baseMapObject == null)
-                {
-                    Debug.LogError("GameController could not find SceneBase.");
-                }
-            }
-            else
-            {
-                if (baseMapObject != null)
-                {
-                    Debug.Log("GameController deleted SceneBase.");
-                    Destroy(baseMapObject);
-                }
-                baseMapObject = null;
-            }
         }
-    }
-
-    public void SetWorldServerConnection(NetConnection wsc)
-    {
-        wsCon = wsc;
-        IsActive = true;
     }
 }

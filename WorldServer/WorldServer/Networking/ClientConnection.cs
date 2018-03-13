@@ -30,6 +30,7 @@ namespace WorldServer.Networking
             : base("Client")
         {
             connection = new NetConnection(ClientToWorldPackets.ReadBuffer, tcpClient, RECEIVE_TIMEOUT);
+            //connection.SubscribeToLogs(Console.WriteLine);
             connection.Start();
             state = ClientState.Varifying;
         }
@@ -81,7 +82,7 @@ namespace WorldServer.Networking
                             }
                             else
                             {
-                                DebugLogger.GlobalDebug.Log(DebugLogger.LogType.Catch, "Client sent wrong packet when trying to verify: " + this.RunningID + "/" + p.Type.ToString());
+                                DebugLogger.Global.Log("Client sent wrong packet when trying to verify: " + this.RunningID + "/" + p.Type.ToString());
                                 this.Stop();
                                 return;
                             }
@@ -99,7 +100,7 @@ namespace WorldServer.Networking
 
         protected override void Finish(bool success)
         {
-            DebugLogger.GlobalDebug.Log(DebugLogger.LogType.Networking, "Client disconnected. (" + this.RunningID + ")");
+            //DebugLogger.Global.Log("Client disconnected. (" + this.RunningID + ")");
             connection.Stop();
             lifeTimeTimer.Stop();
             state = ClientState.Disconnected;

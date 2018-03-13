@@ -33,7 +33,7 @@ namespace WorldServer.Networking
         {
             listener.Start(TCPLISTENER_MAX_BACKLOG);
 
-            DebugLogger.GlobalDebug.Log(DebugLogger.LogType.Networking, "Started HostServer on: " 
+            DebugLogger.Global.Log("Started HostServer on: " 
                                                   + (listener.Server.LocalEndPoint as IPEndPoint).Address 
                                                   + "/" + (listener.Server.LocalEndPoint as IPEndPoint).Port);
         }
@@ -66,7 +66,7 @@ namespace WorldServer.Networking
                 ClientConnection c = new ClientConnection(listener.AcceptTcpClient());
                 c.Start();
                 newClients.Add(c);
-                DebugLogger.GlobalDebug.Log(DebugLogger.LogType.Networking, "Client joined.");
+                DebugLogger.Global.Log("Client joined.");
             }
         }
 

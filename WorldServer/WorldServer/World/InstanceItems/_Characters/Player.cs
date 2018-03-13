@@ -33,7 +33,7 @@ namespace WorldServer.World.InstanceItems
 
                 client = null;
 
-                DebugLogger.GlobalDebug.Log(DebugLogger.LogType.Networking, "Player created: " + username);
+                DebugLogger.Global.Log("Player created: " + username);
             }
 
             protected override void Dispose(bool blocking)
@@ -46,7 +46,7 @@ namespace WorldServer.World.InstanceItems
                 if (client != null)
                     if (client.IsStopped)
                     {
-                        DebugLogger.GlobalDebug.Log(DebugLogger.LogType.System, "Player disconnected: " + username);
+                        DebugLogger.Global.Log("Player disconnected: " + username);
                         client.Dispose();
                         client = null;
                         loggingOut = true;
@@ -83,9 +83,9 @@ namespace WorldServer.World.InstanceItems
                 if (client != null)
                 {
                     if (client.IsConnectedAndVerified)
-                        DebugLogger.GlobalDebug.Log(DebugLogger.LogType.Networking, "Player connected while already being connected: " + this.username);
+                        DebugLogger.Global.Log("Player connected while already being connected: " + this.username);
                     else
-                        DebugLogger.GlobalDebug.Log(DebugLogger.LogType.Networking, "Player reconnected: " + this.username);
+                        DebugLogger.Global.Log("Player reconnected: " + this.username);
                     client.Dispose();
                 }
                 client = c;
@@ -101,7 +101,6 @@ namespace WorldServer.World.InstanceItems
                 if (client != null)
                 {
                     client.SendPacket(p);
-                    DebugLogger.GlobalDebug.Log(".");
                 }
             }
 

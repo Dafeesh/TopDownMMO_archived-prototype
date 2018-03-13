@@ -38,22 +38,22 @@ namespace WorldServer.World.InstanceItems
 
             public override void Inform_AddCharacterInView(Character newChar)
             {
-                DebugLogger.GlobalDebug.Log(DebugLogger.LogType.Blank, this.GetHashCode() + ": Add- " + newChar.GetHashCode());
+                DebugLogger.Global.Log(this.GetHashCode() + ": Add- " + newChar.GetHashCode());
             }
 
             public override void Inform_RemoveCharacterInView(Character charFrom)
             {
-                DebugLogger.GlobalDebug.Log(DebugLogger.LogType.Blank, this.GetHashCode() + ": Removed- " + charFrom.GetHashCode());
+                DebugLogger.Global.Log(this.GetHashCode() + ": Removed- " + charFrom.GetHashCode());
             }
 
             public override void Inform_CharacterTeleport(Character charFrom, Position2D pos)
             {
-                //DebugLogger.GlobalDebug.Log(DebugLogger.LogType.Blank, this.GetHashCode() + ": Teleport!");
+                //DebugLogger.Global.Log(DebugLogger.LogType.Blank, this.GetHashCode() + ": Teleport!");
             }
 
             public override void Inform_MoveToMap(Map m)
             {
-                DebugLogger.GlobalDebug.Log(DebugLogger.LogType.Blank, this.GetHashCode() + ": Move to map- " + m.Id.ToString());
+                DebugLogger.Global.Log(this.GetHashCode() + ": Move to map- " + m.Id.ToString());
             }
         }
     }

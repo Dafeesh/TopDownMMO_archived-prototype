@@ -72,7 +72,7 @@ namespace WorldServer.Networking
                             worldController.AddPlayer(expectedPlayers[i].PlayerInfo, c);
                             expectedPlayers.Remove(expectedPlayers[i]);
 
-                            DebugLogger.GlobalDebug.Log(DebugLogger.LogType.Networking, "Player logged in: " + c.VerifyUsername);
+                            DebugLogger.Global.Log("Player logged in: " + c.VerifyUsername);
                         }
                         else
                         {
@@ -93,7 +93,7 @@ namespace WorldServer.Networking
             Characters.Player.Info p;
             while ((p = worldController.GetLoggedPlayer()) != null)
             {
-                DebugLogger.GlobalDebug.Log(DebugLogger.LogType.Networking, "Player logged out: " + p.Username);
+                DebugLogger.Global.Log("Player logged out: " + p.Username);
             }
         }
 

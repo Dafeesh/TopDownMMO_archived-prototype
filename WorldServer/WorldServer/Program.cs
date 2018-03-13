@@ -17,7 +17,7 @@ namespace WorldServer
 
         static void Main(string[] args)
         {
-            DebugLogger.GlobalDebug.MessageLogged += Console.WriteLine;
+            DebugLogger.Global.MessageLogged += Console.WriteLine;
 
             host = new WorldHost(new IPEndPoint(IPAddress.Any, 3000));
             host.Start();
