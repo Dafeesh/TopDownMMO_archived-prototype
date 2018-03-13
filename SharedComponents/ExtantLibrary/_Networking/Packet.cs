@@ -3,21 +3,21 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Net.Sockets;
 
-namespace Extant.Networking
+namespace Extant._Networking
 {
     public abstract class NetPacket
     {
         private const Byte BYTE_ENDPACKET = (Byte)23; //End of trans. block
-
+ 
         private Int32 tag;
-        private List<NetPacketItem> items;
-
-        public NetPacket(Int32 tag)
+        protected NetPacketItem[] items;
+ 
+        public NetPacket(Int32 tag, NetPacketItem[] items)
         {
             this.tag = tag;
-            this.items = new List<NetPacketItem>();
+            this.items = items;
         }
-
+ 
         public byte[] CreateSendBuffer()
         {
             List<byte> buffer = new List<byte>();
@@ -29,7 +29,7 @@ namespace Extant.Networking
                         case (TypeCode.Byte):
                             buffer.Add((byte)item.Value);
                             break;
-
+ 
                         case (TypeCode.Int32):
                             buffer.AddRange(BitConverter.GetBytes((Int32)item.Value));
                             break;
@@ -40,23 +40,39 @@ namespace Extant.Networking
             return buffer.ToArray();
         }
     }
-
+ 
     public class NetPacketItem
     {
-        public readonly TypeCode[] SupportedTypes = { TypeCode.Byte, TypeCode.Int32 };
-
-        public Type Type;
-        public object Value;
-
+        public static TypeCode[] SupportedTypes = { TypeCode.Byte, TypeCode.Int32 };
+ 
+        public Type type;
+        public object value;
+ 
         public NetPacketItem(Type type, object value)
         {
             if (SupportedTypes.Contains(Type.GetTypeCode(type)) == false)
             {
                 throw new InvalidOperationException("NetPacket does not support object type '" + type.ToString() + "'.");
             }
+ 
+            this.type = type;
+            this.value = value;
+        }
 
-            Type = type;
-            Value = value;
+        public Type Type
+        {
+            get
+            {
+                return type;
+            }
+        }
+
+        public object Value
+        {
+            get
+            {
+                return value;
+            }
         }
     }
 }

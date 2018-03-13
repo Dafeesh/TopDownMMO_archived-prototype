@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 using Extant;
 
+using SharedComponents;
 using SharedComponents.GameProperties;
 using WorldServer.Networking;
 using WorldServer.World;
@@ -20,7 +21,7 @@ namespace WorldServer.World
         private List<Instance> instances_temp = new List<Instance>();
         private List<Characters.Player> players = new List<Characters.Player>();
 
-        private Queue<Characters.Player.Info> loggedPlayers = new Queue<Characters.Player.Info>();
+        private Queue<Characters.Player.Template> loggedPlayers = new Queue<Characters.Player.Template>();
         private object loggedPlayers_lock = new object();
 
         public WorldController()
@@ -64,7 +65,7 @@ namespace WorldServer.World
                 {
                     lock (loggedPlayers_lock)
                     {
-                        loggedPlayers.Enqueue(new Characters.Player.Info(plr.Username, plr.Password, plr.ZoneLocation));
+                        loggedPlayers.Enqueue(new Characters.Player.Template(plr.Info, plr.Password, plr.ZoneLocation));
                     }
                     return true;
                 }
@@ -83,31 +84,35 @@ namespace WorldServer.World
         private void CreateZones()
         {
             Instances.Zone testZone = new Instances.Zone(Instances.Zone.ZoneIDs.TestZone, maps["TestMap"]);
-            testZone.Start();
-            instances_zone.Add(Instances.Zone.ZoneIDs.TestZone, testZone);
 
+            /*
             Character c1 = new Characters.RandomTeleportingWizard(100, 100);
             Character c2 = new Characters.RandomTeleportingWizard(150, 100);
             testZone.AddCharacterToInstance(c1);
             testZone.AddCharacterToInstance(c2);
+            */
+
+            testZone.Start();
+            instances_zone.Add(Instances.Zone.ZoneIDs.TestZone, testZone);
         }
 
         ////////// Public //////////
-        public void AddPlayer(Characters.Player.Info info, ClientConnection con)
+        public void AddPlayer(Characters.Player.Template template, ClientConnection con)
         {
             this.Invoke(() =>
             {
-                Characters.Player newPlayer = new Characters.Player(info);
+                Characters.Player newPlayer = new Characters.Player(template);
                 newPlayer.SetClient(con);
+                newPlayer.SendPacket(new ClientToWorldPackets.Player_Info_c(newPlayer.Info.Name, newPlayer.Info.Level));
 
                 players.Add(newPlayer);
-                instances_zone[info.Location.Zone].AddCharacterToInstance(newPlayer);
+                instances_zone[template.Location.Zone].AddPlayerToInstance(newPlayer);
             });
         }
 
-        public Characters.Player.Info GetLoggedPlayer()
+        public Characters.Player.Template GetLoggedPlayer()
         {
-            Characters.Player.Info info = null;
+            Characters.Player.Template info = null;
             lock (loggedPlayers_lock)
             {
                 if (loggedPlayers.Count > 0)

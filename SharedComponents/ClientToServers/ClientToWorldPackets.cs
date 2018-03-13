@@ -94,7 +94,7 @@ namespace SharedComponents
                                 break;
 
                             default:
-                                DebugLogger.GlobalDebug.Log(DebugLogger.LogType.Networking, "Invalid packet header: " + packetType + "/" + ((PacketType)packetType).ToString());
+                                DebugLogger.Global.Log("Invalid packet header: " + packetType + "/" + ((PacketType)packetType).ToString());
                                 throw new Packet.InvalidPacketRead();
                         }
 
@@ -105,7 +105,7 @@ namespace SharedComponents
                     }
                     catch (ArgumentOutOfRangeException e) //Not enough data yet to make a full packet.
                     {
-                        DebugLogger.GlobalDebug.Log(DebugLogger.LogType.Networking, "Packet not large enough yet." + e.ToString());
+                        DebugLogger.Global.Log("Packet not large enough yet." + e.ToString());
                         buffer = backupBuffer.ToList();
                         return null;
                     }
@@ -139,7 +139,7 @@ namespace SharedComponents
             public static Packet ReadPacket(ref List<byte> buffer)
             {
 #if DEBUG_PACKETS
-                DebugLogger.GlobalDebug.Log(DebugLogger.LogType.Networking, "Packet In: Ping_c");
+                DebugLogger.Global.Log("Packet In: Ping_c");
 #endif
 
                 return new Ping_c();
@@ -177,7 +177,7 @@ namespace SharedComponents
                 Int32 mn = TakeInt32(ref buffer);
 
 #if DEBUG_PACKETS
-                DebugLogger.GlobalDebug.Log(DebugLogger.LogType.Networking, "Packet In: Ping_c");
+                DebugLogger.Global.Log("Packet In: Ping_c");
 #endif
 
                 return new Map_MoveTo_c(mn);
@@ -215,7 +215,7 @@ namespace SharedComponents
                 Int32 id = TakeInt32(ref buffer);
 
 #if DEBUG_PACKETS
-                DebugLogger.GlobalDebug.Log(DebugLogger.LogType.Networking, "Packet In: Player_SetControl_c - " + id);
+                DebugLogger.Global.Log("Packet In: Player_SetControl_c - " + id);
 #endif
 
                 return new Player_SetControl_c(id);
@@ -261,7 +261,7 @@ namespace SharedComponents
                 Int32 modelNumber = TakeInt32(ref buffer);
 
 #if DEBUG_PACKETS
-                DebugLogger.GlobalDebug.Log(DebugLogger.LogType.Networking, "Packet In: Character_Add_c - " + charId + " - " + charType.ToString() + " / " + modelNumber);
+                DebugLogger.Global.Log("Packet In: Character_Add_c - " + charId + " - " + charType.ToString() + " / " + modelNumber);
 #endif
 
                 return new Character_Add_c(charId, charType, modelNumber);
@@ -299,7 +299,7 @@ namespace SharedComponents
                 Int32 charId = TakeInt32(ref buffer);
 
 #if DEBUG_PACKETS
-                DebugLogger.GlobalDebug.Log(DebugLogger.LogType.Networking, "Packet In: Character_Remove_c - " + charId);
+                DebugLogger.Global.Log("Packet In: Character_Remove_c - " + charId);
 #endif
 
                 return new Character_Remove_c(charId);
@@ -319,10 +319,10 @@ namespace SharedComponents
         public class Character_Position_c : Packet
         {
             public Int32 charId;
-            public Double newx, newy;
+            public Single newx, newy;
 
             public Character_Position_c(Int32 charId,
-                                        Double newx, Double newy)
+                                        Single newx, Single newy)
                 : base((Int32)PacketType.Character_Position_c, ProtocolType.Tcp)
             {
                 this.charId = charId;
@@ -337,8 +337,8 @@ namespace SharedComponents
                     buffer.AddRange(GetBytes_Int32((Int32)type));
 
                     buffer.AddRange(GetBytes_Int32(charId));
-                    buffer.AddRange(GetBytes_Double(newx));
-                    buffer.AddRange(GetBytes_Double(newy));
+                    buffer.AddRange(GetBytes_Single(newx));
+                    buffer.AddRange(GetBytes_Single(newy));
                 }
                 buffer.Add(END_PACKET);
 
@@ -348,11 +348,11 @@ namespace SharedComponents
             public static Packet ReadPacket(ref List<byte> buffer)
             {
                 Int32 charId = TakeInt32(ref buffer);
-                Double newx = TakeDouble(ref buffer);
-                Double newy = TakeDouble(ref buffer);
+                Single newx = TakeSingle(ref buffer);
+                Single newy = TakeSingle(ref buffer);
 
 #if DEBUG_PACKETS
-                DebugLogger.GlobalDebug.Log(DebugLogger.LogType.Networking, "Packet In: Character_Position_c - " + charId + ": (" + newx + "," + newy + ")");
+                DebugLogger.Global.Log("Packet In: Character_Position_c - " + charId + ": (" + newx + "," + newy + ")");
 #endif
 
                 return new Character_Position_c(charId,
@@ -412,7 +412,7 @@ namespace SharedComponents
                 Double speed = TakeDouble(ref buffer);
 
 #if DEBUG_PACKETS
-                DebugLogger.GlobalDebug.Log(DebugLogger.LogType.Networking, "Packet In: Character_Movement_c - " + charId + ": (" + x + "," + y + ") -> (" + newx + "," + newy + ")");
+                DebugLogger.Global.Log("Packet In: Character_Movement_c - " + charId + ": (" + x + "," + y + ") -> (" + newx + "," + newy + ")");
 #endif
 
                 return new Character_Movement_c(charId,
@@ -428,11 +428,13 @@ namespace SharedComponents
         public class Player_Info_c : Packet
         {
             public String username;
+            public Int32 level;
 
-            public Player_Info_c(String username)
+            public Player_Info_c(String username, Int32 level)
                 : base((Int32)PacketType.Player_Info_c, ProtocolType.Tcp)
             {
                 this.username = username;
+                this.level = level;
             }
 
             public override Byte[] CreateSendBuffer()
@@ -442,6 +444,7 @@ namespace SharedComponents
                     buffer.AddRange(GetBytes_Int32((Int32)type));
 
                     buffer.AddRange(GetBytes_String_Unicode(username, STRBYTELENGTH_12));
+                    buffer.AddRange(GetBytes_Int32(level));
                 }
                 buffer.Add(END_PACKET);
 
@@ -451,12 +454,13 @@ namespace SharedComponents
             public static Packet ReadPacket(ref List<byte> buffer)
             {
                 String username = new String(TakeUnicodeChars(ref buffer, STRBYTELENGTH_12));
+                Int32 level = TakeInt32(ref buffer);
 
 #if DEBUG_PACKETS
-                DebugLogger.GlobalDebug.Log(DebugLogger.LogType.Networking, "Packet In: Player_Info_c - ");
+                DebugLogger.Global.Log("Packet In: Player_Info_c - ");
 #endif
 
-                return new Player_Info_c(username);
+                return new Player_Info_c(username, level);
             }
         }
 
@@ -499,7 +503,7 @@ namespace SharedComponents
                 Int32 password = TakeInt32(ref buffer);
 
 #if DEBUG_PACKETS
-                DebugLogger.GlobalDebug.Log(DebugLogger.LogType.Networking, "Packet In: Verify_Details_g - " + username + "/" + password + "/" + build);
+                DebugLogger.Global.Log("Packet In: Verify_Details_g - " + username + "/" + password + "/" + build);
 #endif
 
                 return new Verify_Details_g(build, username, password);
@@ -537,7 +541,7 @@ namespace SharedComponents
                 VerifyReturnCode errorCode = (VerifyReturnCode)TakeInt32(ref buffer);
 
 #if DEBUG_PACKETS
-                DebugLogger.GlobalDebug.Log(DebugLogger.LogType.Networking, "Packet In: Verify_Result_c - " + errorCode.ToString());
+                DebugLogger.Global.Log("Packet In: Verify_Result_c - " + errorCode.ToString());
 #endif
 
                 return new Verify_Result_c(errorCode);

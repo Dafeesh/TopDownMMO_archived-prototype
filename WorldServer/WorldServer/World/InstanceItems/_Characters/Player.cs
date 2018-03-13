@@ -18,27 +18,29 @@ namespace WorldServer.World.InstanceItems
         public class Player : Character
         {
             private ClientConnection client;
-            private String username;
+            private PlayerInfo info;
             private Int32 password;
             private bool newlyConnected = false;
             private bool loggingOut = false;
 
-            private PlayerZoneLocation location = new PlayerZoneLocation();
+            private PlayerZoneLocation location;
 
-            public Player(Info info)
+            public Player(Template template)
                 : base()
             {
-                this.username = info.Username;
-                this.password = info.Password;
+                this.info = template.Info;
+                this.password = template.Password;
+                this.location = template.Location;
 
                 client = null;
 
-                DebugLogger.Global.Log("Player created: " + username);
+                DebugLogger.Global.Log("Player created: " + info.Name);
             }
 
             protected override void Dispose(bool blocking)
             {
-                client.Dispose();
+                if (client != null)
+                    client.Dispose();
             }
 
             public override void Tick()
@@ -46,7 +48,7 @@ namespace WorldServer.World.InstanceItems
                 if (client != null)
                     if (client.IsStopped)
                     {
-                        DebugLogger.Global.Log("Player disconnected: " + username);
+                        DebugLogger.Global.Log("Player disconnected: " + info.Name);
                         client.Dispose();
                         client = null;
                         loggingOut = true;
@@ -69,11 +71,6 @@ namespace WorldServer.World.InstanceItems
                 this.SendPacket(new ClientToWorldPackets.Character_Position_c(charFrom.Id, pos.x, pos.y));
             }
 
-            public override void Inform_MoveToMap(Map m)
-            {
-                this.SendPacket(new ClientToWorldPackets.Map_MoveTo_c((int)m.Id));
-            }
-
             /// <summary>
             /// Sets or replaces a client connect associated with this player.
             /// </summary>
@@ -83,9 +80,9 @@ namespace WorldServer.World.InstanceItems
                 if (client != null)
                 {
                     if (client.IsConnectedAndVerified)
-                        DebugLogger.Global.Log("Player connected while already being connected: " + this.username);
+                        DebugLogger.Global.Log("Player connected while already being connected: " + info.Name);
                     else
-                        DebugLogger.Global.Log("Player reconnected: " + this.username);
+                        DebugLogger.Global.Log("Player reconnected: " + info.Name);
                     client.Dispose();
                 }
                 client = c;
@@ -120,11 +117,11 @@ namespace WorldServer.World.InstanceItems
                 }
             }
 
-            public String Username
+            public PlayerInfo Info
             {
                 get
                 {
-                    return username;
+                    return info;
                 }
             }
 
@@ -150,16 +147,16 @@ namespace WorldServer.World.InstanceItems
                 public Position2D Position { set; get; }
             }
 
-            public class Info
+            public class Template
             {
-                public Info(String username, Int32 password, PlayerZoneLocation location)
+                public Template(PlayerInfo info, Int32 password, PlayerZoneLocation location)
                 {
-                    this.Username = username;
+                    this.Info = info;
                     this.Password = password;
                     this.Location = location;
                 }
 
-                public readonly string Username;
+                public readonly PlayerInfo Info;
                 public readonly int Password;
                 public readonly PlayerZoneLocation Location;
             }

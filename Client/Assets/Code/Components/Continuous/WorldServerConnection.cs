@@ -11,29 +11,32 @@ using SharedComponents;
 public class WorldServerConnection : MonoBehaviour
 {
     [SerializeField]
-    private int CONNECT_TIMEOUT;
+    int CONNECT_TIMEOUT = 5000;
     [SerializeField]
-    private int RECEIVE_TIMEOUT;
-
-    [SerializeField]
-    private int packetCount = 0;
+    int RECEIVE_TIMEOUT = 30000;
 
     [SerializeField]
-    private Text DebugText_State;
+    int packetCount = 0;
 
-    private IPEndPoint remoteEndPoint = null;
-    private NetConnection connection = null;
-    private string username = null;
-    private int password = -1;
+    [SerializeField]
+    DebugInterfaceController debugInterface = null;
 
-    private DebugLogger log = new DebugLogger();
+    IPEndPoint remoteEndPoint = null;
+    NetConnection connection = null;
+    string username = null;
+    int password = -1;
 
-    private ConnectionState state = ConnectionState.Connected;
-    private Queue<Packet> packets = new Queue<Packet>();
+    DebugLogger log = new DebugLogger();
+
+    ConnectionState state = ConnectionState.Connected;
+    Queue<Packet> packets = new Queue<Packet>();
 
     void Start()
     {
         log.AnyLogged += Debug.Log;
+
+        if (debugInterface == null)
+            Debug.LogError("WSCon not given a reference to DebugInterface.");
 
         SetState(ConnectionState.None);
     }
@@ -87,6 +90,7 @@ public class WorldServerConnection : MonoBehaviour
                                 {
                                     log.Log("WSConnection authorized!");
                                     SetState(ConnectionState.Connected);
+                                    Application.LoadLevel(SceneList.GameStart);
                                 }
                                 else
                                 {
@@ -104,11 +108,18 @@ public class WorldServerConnection : MonoBehaviour
                 break;
             case (ConnectionState.Connected):
                 {
-                    Packet p = null;
-                    while ((p = connection.GetPacket()) != null)
+                    if (connection.State != NetConnection.NetworkState.Connected)
                     {
-                        packetCount++;
-                        packets.Enqueue(p);
+                        SetState(ConnectionState.None);
+                    }
+                    else
+                    {
+                        Packet p = null;
+                        while ((p = connection.GetPacket()) != null)
+                        {
+                            packetCount++;
+                            packets.Enqueue(p);
+                        }
                     }
                 }
                 break;
@@ -125,6 +136,10 @@ public class WorldServerConnection : MonoBehaviour
                 case (ConnectionState.None):
                     {
                         ClearConnection();
+                        if (Application.loadedLevelName != "_MainMenu")
+                        {
+                            Application.LoadLevel("_MainMenu");
+                        }
                     }
                     break;
                 case (ConnectionState.Connected):
@@ -133,7 +148,7 @@ public class WorldServerConnection : MonoBehaviour
                     }
                     break;
             }
-            DebugText_State.text = state.ToString();
+            debugInterface.Text_WSConnextion = state.ToString();
         }
     }
 
@@ -166,11 +181,6 @@ public class WorldServerConnection : MonoBehaviour
         connection.Start();
         SetState(ConnectionState.Connecting);
         log.Log("WSConnection set target to " + endPoint.Address.ToString() + ":" + endPoint.Port);
-    }
-
-    public void TEST_Login(string username)
-    {
-        SetTarget(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 3000), username, 111);
     }
 
     public Packet GetPacket()

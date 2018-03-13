@@ -14,16 +14,16 @@ namespace WorldServer.Networking
     {
         private const Int32 TIMEOUT = 10000;
 
-        private Characters.Player.Info info;
+        private Characters.Player.Template info;
         private Stopwatch timeoutTimer = new Stopwatch();
 
-        public ExpectedPlayer(Characters.Player.Info info)
+        public ExpectedPlayer(Characters.Player.Template info)
         {
             this.info = info;
             timeoutTimer.Start();
         }
 
-        public Characters.Player.Info PlayerInfo
+        public Characters.Player.Template PlayerInfo
         {
             get
             {

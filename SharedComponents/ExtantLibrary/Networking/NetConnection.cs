@@ -33,6 +33,8 @@ namespace Extant.Networking
         public delegate Packet ReadBufferFunc(ref List<Byte> bytes);
         private ReadBufferFunc ReadBuffer;
 
+        private DebugLogger log = new DebugLogger();
+
         /// <summary>
         /// Used if connection is not already established.
         /// </summary>
@@ -77,14 +79,14 @@ namespace Extant.Networking
                 // Start connection attempt
                 try
                 {
-                    //DebugLogger.GlobalDebug.LogNetworking("NetConnection: Attempting to connect to " + remoteEndPoint.Address.ToString() + "/" + remoteEndPoint.Port);
+                    //DebugLogger.Global.LogNetworking("NetConnection: Attempting to connect to " + remoteEndPoint.Address.ToString() + "/" + remoteEndPoint.Port);
                     connectResult = this.tcpClient.BeginConnect(remoteEndPoint.Address.ToString(), remoteEndPoint.Port, new AsyncCallback(ConnectCallback), null);
                     connectTimeoutTimer.Start();
                     state = NetworkState.Connecting;
                 }
                 catch (Exception e)
                 {
-                    DebugLogger.GlobalDebug.Log(DebugLogger.LogType.Catch, "NetConnection: Exception while trying to start connecting.\n" + e.ToString());
+                    log.LogWarning("NetConnection: Exception while trying to start connecting.\n" + e.ToString());
                     this.Stop();
                 }
             }
@@ -99,7 +101,7 @@ namespace Extant.Networking
                         if (connectTimeoutTimer.ElapsedMilliseconds > connectTimeout)
                         {
 #if LOG_DEBUG
-                            DebugLogger.GlobalDebug.Log(DebugLogger.LogType.Networking, "NetConnection: Connect timed out.");
+                            log.Log("NetConnection: Connect timed out.");
 #endif
                             this.Stop();
                         }
@@ -107,10 +109,17 @@ namespace Extant.Networking
                     }
                 case (NetworkState.Connected):
                     {
-                        if (receiveTimeoutTimer.ElapsedMilliseconds > receiveTimeout || !tcpClient.Connected)
+                        if (receiveTimeoutTimer.ElapsedMilliseconds > receiveTimeout)
                         {
 #if LOG_DEBUG
-                            DebugLogger.GlobalDebug.Log(DebugLogger.LogType.Networking, "NetConnection: Receive timed out.");
+                            log.Log("NetConnection: Receive timed out.");
+#endif
+                            this.Stop();
+                        }
+                        else if (!tcpClient.Connected)
+                        {
+#if LOG_DEBUG
+                            log.Log("NetConnection: Disconnected.");
 #endif
                             this.Stop();
                         }
@@ -123,7 +132,7 @@ namespace Extant.Networking
                     }
                 default:
                     {
-                        DebugLogger.GlobalDebug.Log(DebugLogger.LogType.Fatal, "NetConnection: Invalid state: " + state.ToString());
+                        log.LogError("NetConnection: Invalid state: " + state.ToString());
                         throw new SocketException((int)SocketError.OperationNotSupported);
                     }
             }
@@ -151,7 +160,7 @@ namespace Extant.Networking
                 if (tcpClient.Connected)
                 {
 #if LOG_DEBUG
-                    DebugLogger.GlobalDebug.Log(DebugLogger.LogType.Networking, "NetConnection: ConnectCallback, connected!");
+                    log.Log("NetConnection: ConnectCallback, connected!");
 #endif
                     this.stream = tcpClient.GetStream();
                     state = NetworkState.Connected;
@@ -163,7 +172,7 @@ namespace Extant.Networking
                 else
                 {
 #if LOG_DEBUG
-                    DebugLogger.GlobalDebug.Log(DebugLogger.LogType.Networking, "NetConnection: ConnectCallback, no connection.");
+                    log.Log("NetConnection: ConnectCallback, no connection.");
 #endif
                     this.Stop();
                 }
@@ -172,7 +181,7 @@ namespace Extant.Networking
 
         private void ReceiveCallback(IAsyncResult ar)
         {
-            //DebugLogger.GlobalDebug.Log("RECEIVED: " + DateTime.Now.ToString());
+            //DebugLogger.Global.Log("RECEIVED: " + DateTime.Now.ToString());
             try
             {
                 Socket client = (Socket)ar.AsyncState;
@@ -181,17 +190,17 @@ namespace Extant.Networking
                 if (numBytes == 0)
                 {
 #if LOG_DEBUG
-                    DebugLogger.GlobalDebug.Log(DebugLogger.LogType.Networking, "NetConnection: Client disconnected.");
+                    log.Log("NetConnection: Client disconnected.");
 #endif
                     this.Stop();
                 }
                 else
                 {
                     receiveBuffer.AddRange(receiveBuffer_temp.Take(numBytes));
-                    InterpretBuffer(receiveBuffer);
+                    InterpretBuffer(ref receiveBuffer);
                     
 #if LOG_DEBUG
-                    DebugLogger.GlobalDebug.Log(DebugLogger.LogType.Networking, "NetConnection: Received bytes- " + numBytes);
+                    log.Log("NetConnection: Received bytes- " + numBytes);
 #endif
                     ByteRecord.GlobalByteRecord_In.Bytes += numBytes;
 
@@ -201,12 +210,12 @@ namespace Extant.Networking
             }
             catch (Exception e)
             {
-                DebugLogger.GlobalDebug.Log(DebugLogger.LogType.Catch, "NetConnection: ReceiveCallback exception ->\n" + e.ToString() + "\n--");
+                log.Log("NetConnection: ReceiveCallback exception ->\n" + e.ToString() + "\n--");
                 this.Stop();
             }
         }
 
-        private void InterpretBuffer(List<byte> buffer)
+        private void InterpretBuffer(ref List<byte> buffer)
         {
             if (buffer.Count > 0)
             {
@@ -247,8 +256,15 @@ namespace Extant.Networking
             }
         }
 
+        public void SubscribeToLogs(DebugLogger.DebugLogMessageDelegate func)
+        {
+            log.MessageLogged += func;
+            log.WarningLogged += func;
+            log.ErrorLogged += func;
+        }
+
         /// <summary>
-        /// Gets and sets the time the connection will wait for a packet.
+        /// Gets and sets the time the connection will wait for a packet. (ms)
         /// </summary>
         public Int32 ReceiveTimeout
         {

@@ -109,10 +109,11 @@ namespace Extant
                 }
                 catch (Exception e)
                 {
-                    DebugLogger.GlobalDebug.Log(DebugLogger.LogType.Catch, "ThreadRun experienced an unexpected Exception! (" + this.RunningID + ")\n" + e.ToString() + "\n-");
+                    DebugLogger.Global.LogWarning("ThreadRun experienced an unexpected Exception! (" + this.RunningID + ")\n" + e.ToString() + "\n-");
                     unhandledException = e;
                     this.Stop();
-                    OnUnhandledException(this, new UnhandledExceptionEventArgs(e, true));
+                    if (OnUnhandledException != null)
+                        OnUnhandledException(this, new UnhandledExceptionEventArgs(e, true));
                 }
                 Thread.Sleep(thisThread_pauseDelay);
             }

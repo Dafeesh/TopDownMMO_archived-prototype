@@ -10,71 +10,61 @@ namespace Extant
     public class DebugLogger
     {
         /////////////
-        public static readonly DebugLogger GlobalDebug = new DebugLogger();
+        public static readonly DebugLogger Global = new DebugLogger();
         /////////////
 
-        public enum LogType
-        {
-            Blank,
-            Networking,
-            System,
-            Catch,
-            Fatal
-        }
-
         private List<String> log = new List<String>();
-        private object thisLock = new object();
+        private object log_lock = new object();
 
         public delegate void DebugLogMessageDelegate(String message);
         public event DebugLogMessageDelegate MessageLogged;
+        public event DebugLogMessageDelegate WarningLogged;
+        public event DebugLogMessageDelegate ErrorLogged;
+        public event DebugLogMessageDelegate AnyLogged;
 
         public DebugLogger()
         {  }
 
-        private void _Log(String title, String s)
+        private String MakeLog(String title, String s)
         {
-            lock (thisLock)
+            String m;
+            lock (log_lock)
             {
-                String m = DateTime.Now.ToString("HH:mm:ss tt");
+                m = DateTime.Now.ToString("HH:mm:ss tt");
                 if (title != String.Empty)
                     m += "[" + title + "]";
                 m += ": " + s;
 
                 log.Add(m);
-
-                if (MessageLogged != null)
-                    MessageLogged(m);
             }
+            return m;
         }
 
         public void Log(string s)
         {
-            Log(LogType.Blank, s);
+            string l = MakeLog(String.Empty, s);
+            if (MessageLogged != null)
+                MessageLogged(l);
+            if (AnyLogged != null)
+                AnyLogged(l);
         }
 
-        public void Log(LogType t, String s)
+        public void LogWarning(string s)
         {
-            switch(t)
-            {
-                case(LogType.Blank):
-                    _Log(String.Empty, s);
-                    break;
-                case(LogType.Catch):
-                    _Log("Catch", s);
-                    break;
-                case(LogType.Fatal):
-                    _Log("Fatal", s);
-                    break;
-                case(LogType.Networking):
-                    _Log("Net", s);
-                    break;
-                case(LogType.System):
-                    _Log("System", s);
-                    break;
-                default:
-                    _Log("LOGERROR", "Unknown LogType: " + t.ToString() + " - \n" + s + "\n-");
-                    break;
-            }
+            string l = MakeLog("Warning", s);
+            if (WarningLogged != null)
+                WarningLogged(l);
+            if (AnyLogged != null)
+                AnyLogged(l);
+        }
+
+        public void LogError(string s)
+        {
+            string l = MakeLog("ERROR", s);
+            if (ErrorLogged != null)
+                ErrorLogged(l);
+            if (AnyLogged != null)
+                AnyLogged(l);
         }
     }
 

@@ -34,10 +34,10 @@ namespace WorldServer.Networking
             worldController.Start();
 
             //TEST
-            expectedPlayers.Add(new ExpectedPlayer(new Characters.Player.Info("Player1", 111, new Characters.Player.PlayerZoneLocation() { Position = new Position2D(10, 10), Zone = Instances.Zone.ZoneIDs.TestZone })));
-            expectedPlayers.Add(new ExpectedPlayer(new Characters.Player.Info("Player2", 111, new Characters.Player.PlayerZoneLocation() { Position = new Position2D(30, 10), Zone = Instances.Zone.ZoneIDs.TestZone })));
-            expectedPlayers.Add(new ExpectedPlayer(new Characters.Player.Info("Player3", 111, new Characters.Player.PlayerZoneLocation() { Position = new Position2D(50, 10), Zone = Instances.Zone.ZoneIDs.TestZone })));
-            expectedPlayers.Add(new ExpectedPlayer(new Characters.Player.Info("Player4", 111, new Characters.Player.PlayerZoneLocation() { Position = new Position2D(70, 10), Zone = Instances.Zone.ZoneIDs.TestZone })));
+            expectedPlayers.Add(new ExpectedPlayer(new Characters.Player.Template(new PlayerInfo("Player1") { Level = 1 }, 111, new Characters.Player.PlayerZoneLocation() { Position = new Position2D(10, 10), Zone = Instances.Zone.ZoneIDs.TestZone })));
+            expectedPlayers.Add(new ExpectedPlayer(new Characters.Player.Template(new PlayerInfo("Player2") { Level = 2 }, 111, new Characters.Player.PlayerZoneLocation() { Position = new Position2D(30, 10), Zone = Instances.Zone.ZoneIDs.TestZone })));
+            expectedPlayers.Add(new ExpectedPlayer(new Characters.Player.Template(new PlayerInfo("Player3") { Level = 3 }, 111, new Characters.Player.PlayerZoneLocation() { Position = new Position2D(50, 10), Zone = Instances.Zone.ZoneIDs.TestZone })));
+            expectedPlayers.Add(new ExpectedPlayer(new Characters.Player.Template(new PlayerInfo("Player4") { Level = 4 }, 111, new Characters.Player.PlayerZoneLocation() { Position = new Position2D(70, 10), Zone = Instances.Zone.ZoneIDs.TestZone })));
             //~
         }
 
@@ -63,7 +63,7 @@ namespace WorldServer.Networking
                 bool found = false;
                 for (int i = 0; i < expectedPlayers.Count; i++)
                 {
-                    if (c.VerifyUsername == expectedPlayers[i].PlayerInfo.Username)
+                    if (c.VerifyUsername == expectedPlayers[i].PlayerInfo.Info.Name)
                     {
                         found = true;
                         if (c.VerifyPassword == expectedPlayers[i].PlayerInfo.Password)
@@ -90,10 +90,10 @@ namespace WorldServer.Networking
 
         private void HandlePlayerLogout()
         {
-            Characters.Player.Info p;
+            Characters.Player.Template p;
             while ((p = worldController.GetLoggedPlayer()) != null)
             {
-                DebugLogger.Global.Log("Player logged out: " + p.Username);
+                DebugLogger.Global.Log("Player logged out: " + p.Info.Name);
             }
         }
 

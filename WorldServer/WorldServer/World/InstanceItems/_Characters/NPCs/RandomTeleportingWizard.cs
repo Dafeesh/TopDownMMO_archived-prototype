@@ -13,7 +13,7 @@ namespace WorldServer.World.InstanceItems
             int direction = 1;
             Stopwatch timer = new Stopwatch();
 
-            public RandomTeleportingWizard(double x, double y)
+            public RandomTeleportingWizard(float x, float y)
                 : base()
             {
                 this.Position.x = x;
@@ -49,11 +49,6 @@ namespace WorldServer.World.InstanceItems
             public override void Inform_CharacterTeleport(Character charFrom, Position2D pos)
             {
                 //DebugLogger.Global.Log(DebugLogger.LogType.Blank, this.GetHashCode() + ": Teleport!");
-            }
-
-            public override void Inform_MoveToMap(Map m)
-            {
-                DebugLogger.Global.Log(this.GetHashCode() + ": Move to map- " + m.Id.ToString());
             }
         }
     }

@@ -53,7 +53,7 @@ namespace SharedComponents
                                 break;
 
                             default:
-                                DebugLogger.GlobalDebug.Log(DebugLogger.LogType.Networking, "Invalid packet header: " + packetType + "/" + ((PacketType)packetType).ToString());
+                                DebugLogger.Global.Log("Invalid packet header: " + packetType + "/" + ((PacketType)packetType).ToString());
                                 throw new Packet.InvalidPacketRead();
                         }
 
@@ -64,7 +64,7 @@ namespace SharedComponents
                     }
                     catch (ArgumentOutOfRangeException e) //Not enough data yet to make a full packet.
                     {
-                        DebugLogger.GlobalDebug.Log(DebugLogger.LogType.Networking, "Packet not large enough yet." + e.ToString());
+                        DebugLogger.Global.Log("Packet not large enough yet." + e.ToString());
                         buffer = backupBuffer.ToList();
                         return null;
                     }
@@ -111,7 +111,7 @@ namespace SharedComponents
                 String password = new String(TakeUnicodeChars(ref buffer, STRBYTELENGTH_25));
 
 #if DEBUG_PACKETS
-                DebugLogger.GlobalDebug.Log(DebugLogger.LogType.Networking, "Packet In: LoginAttempt_m");
+                DebugLogger.Global.Log("Packet In: LoginAttempt_m");
 #endif
 
                 return new LoginAttempt_m(build, username, password);
@@ -152,7 +152,7 @@ namespace SharedComponents
                 Int32 result = TakeInt32(ref buffer);
 
 #if DEBUG_PACKETS
-                DebugLogger.GlobalDebug.Log(DebugLogger.LogType.Networking, "Packet In: LoginResult_c");
+                DebugLogger.Global.Log("Packet In: LoginResult_c");
 #endif
 
                 return new LoginResult_c((LoginResult)result);
@@ -210,7 +210,7 @@ namespace SharedComponents
                 ServerPopulationState popState = (ServerPopulationState)TakeInt32(ref buffer);
 
 #if DEBUG_PACKETS
-                DebugLogger.GlobalDebug.Log(DebugLogger.LogType.Networking, "Packet In: Servers_add_c");
+                DebugLogger.Global.Log("Packet In: Servers_add_c");
 #endif
 
                 return new Servers_add_c(number, name, ip, popState);

@@ -6,17 +6,21 @@ using System.Threading.Tasks;
 
 using Extant;
 
+using SharedComponents;
 using SharedComponents.GameProperties;
 using WorldServer.World.InstanceItems;
 
 namespace WorldServer.World
 {
-    public abstract class Instance : ThreadRun , IInstanceTick
+    public abstract class Instance : ThreadRun, IInstanceTick
     {
         private string name;
         private Map map;
-        private List<Character> characters;
+        private List<Character> characters; //Contains all characters
+        private List<Characters.Player> players; //Contains just player characters
         private int characterID_counter = 1;
+
+        private DebugLogger log;
 
         public Instance(String name, Map map)
             : base("Instance-" + name)
@@ -25,25 +29,38 @@ namespace WorldServer.World
             this.map = map;
 
             characters = new List<Character>();
+            players = new List<Characters.Player>();
+
+            log = new DebugLogger();
+            log.AnyLogged += Console.WriteLine;
         }
 
         sealed protected override void Begin()
         {
-
+            log.Log("Instance started: " + this.name);
         }
 
         sealed protected override void RunLoop()
         {
             this.Tick();
-            for (int i=0; i<characters.Count; i++)
+
+            //Do all Character actions
+            for (int i = characters.Count - 1; i >= 0; i--)
             {
                 Character c = characters[i];
 
                 c.Tick();
+            }
 
-                if (c is Characters.Player)
-                    if ((c as Characters.Player).IsLoggingOut)
-                        RemoveCharacter(c);
+            //Handle players
+            for (int i = players.Count - 1; i >= 0; i--)
+            {
+                Characters.Player p = players[i];
+
+                if (p.IsLoggingOut)
+                {
+                    RemovePlayer(p);
+                }
             }
         }
 
@@ -53,6 +70,7 @@ namespace WorldServer.World
             {
                 c.Dispose();
             }
+            log.Log("Instance finished: " + this.name);
         }
 
         public abstract void Tick();
@@ -68,19 +86,18 @@ namespace WorldServer.World
 
         private void RemoveCharacter(Character c)
         {
-            foreach (Character otherChar in characters)
-            {
-                if (otherChar != c)
-                    c.RemoveSeenByAllOther();
-            }
+            c.RemoveSeenByAllOther();
 
-            characters.RemoveAll((ch) =>
-            {
-                if (ch == c)
-                    return true;
-                else
-                    return false;
-            });
+            characters.Remove(c);
+        }
+
+        private void RemovePlayer(Characters.Player p)
+        {
+            p.RemoveSeenByAllOther();
+
+            characters.Remove(p);
+            players.Remove(p);
+            log.Log("Player left instance. [" + p.Info.Name + " -> " + this.name + "]");
         }
 
         private void UpdateCharacterView(Character c)
@@ -104,6 +121,21 @@ namespace WorldServer.World
             }
         }
 
+        private void AddPlayer(Characters.Player p)
+        {
+            p.SetID(NextCharacterID);
+            characters.Add(p);
+            players.Add(p);
+
+            p.SendPacket(new ClientToWorldPackets.Map_MoveTo_c((int)map.Id));
+            p.SendPacket(new ClientToWorldPackets.Character_Add_c(p.Id, CharacterType.Player, 1));
+            p.SendPacket(new ClientToWorldPackets.Character_Position_c(p.Id, p.Position.x, p.Position.y));
+            p.SendPacket(new ClientToWorldPackets.Player_SetControl_c(p.Id));
+            UpdateCharacterView(p);
+
+            log.Log("Player joined instance. [" + p.Info.Name + " -> " + this.name + "]");
+        }
+
         /////////// Protected ///////////
         protected void AddCharacter(Character c)
         {
@@ -121,7 +153,7 @@ namespace WorldServer.World
             }
         }
 
-        protected List<Character> Characters
+        protected List<Character> CharacterList
         {
             get
             {
@@ -140,6 +172,19 @@ namespace WorldServer.World
             this.Invoke(() =>
             {
                 this.AddCharacter(c);
+            });
+        }
+
+        public void AddPlayerToInstance(Characters.Player p, int entryPoint = -1)
+        {
+            if (entryPoint >= 0)
+            {
+                p.Position.Set(map.EntryPoint(entryPoint));
+            }
+
+            this.Invoke(() =>
+            {
+                this.AddPlayer(p);
             });
         }
 

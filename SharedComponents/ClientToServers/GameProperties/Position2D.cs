@@ -7,8 +7,8 @@ namespace SharedComponents.GameProperties
 {
     public class Position2D
     {
-        public double x { set; get; }
-        public double y { set; get; }
+        public float x { set; get; }
+        public float y { set; get; }
 
         public Position2D()
         {
@@ -16,7 +16,7 @@ namespace SharedComponents.GameProperties
             this.y = 0.0f;
         }
 
-        public Position2D(double x, double y)
+        public Position2D(float x, float y)
         {
             this.x = x;
             this.y = y;
@@ -28,7 +28,7 @@ namespace SharedComponents.GameProperties
             this.y = p.y;
         }
 
-        public void Set(double x, double y)
+        public void Set(float x, float y)
         {
             this.x = x;
             this.y = y;

@@ -1,95 +1,79 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
-using System.Collections;
+﻿#pragma warning disable 
 
-public class InterfaceController : MonoBehaviour 
+using UnityEngine;
+using UnityEngine.UI;
+
+public class InterfaceController : MonoBehaviour
 {
     [SerializeField]
-    private Text gameTime;
-    [SerializeField]
-    private Text zoneName;
-    [SerializeField]
-    private GameObject item_Console;
-    [SerializeField]
-    private GameObject item_Debug;
-    [SerializeField]
-    private GameObject item_ConnectMenu;
+    private Text gameTime_text = null;
+    private GameTime gameTime = new GameTime();
+    private long gameTime_lastSec = 0;
 
-    private UIState state = UIState.ConnectMenu;
+    [SerializeField]
+    private Text mapName_text = null;
+    private string mapName = "";
+
+    [SerializeField]
+    private Text player_name_text = null;
+    [SerializeField]
+    private Text player_level_text = null;
 
     void Start()
     {
-        if (gameTime == null)
-            Debug.LogError("InterfaceAccessor has no reference to GameTime.");
-        if (zoneName == null)
-            Debug.LogError("InterfaceAccessor has no reference to ZoneName.");
-        if (item_Console == null)
-            Debug.LogError("InterfaceAccessor has no reference to item_Console.");
-        if (item_Debug == null)
-            Debug.LogError("InterfaceAccessor has no reference to item_Debug.");
-        if (item_ConnectMenu == null)
-            Debug.LogError("InterfaceAccessor has no reference to item_ConnectMenu.");
+        if (gameTime_text == null)
+            Debug.LogError("InterfaceAccessor has no reference to gameTime_text.");
+        if (mapName_text == null)
+            Debug.LogError("InterfaceAccessor has no reference to mapName_text.");
+        if (player_name_text == null)
+            Debug.LogError("InterfaceAccessor has no reference to player_name_text.");
+        if (player_level_text == null)
+            Debug.LogError("InterfaceAccessor has no reference to player_level_text.");
 
-        GameTime = 0;
-        ZoneName = Application.loadedLevelName;
-
-        SetState(UIState.ConnectMenu);
+        SetMapName(Application.loadedLevelName);
     }
 
-    public void SetState(UIState state)
+    void Update()
     {
-        //Undo old state items
-        switch (this.state)
+        //GameTime
+        long nowSec = gameTime.NowSec;
+        if (nowSec > gameTime_lastSec)
         {
-            case (UIState.ConnectMenu):
-                {
-                    item_ConnectMenu.SetActive(false);
-                }
-                break;
+            gameTime_lastSec = nowSec;
 
-            case (UIState.Play):
-                {
+            string newText = "";
 
-                }
-                break;
-        }
+            if (nowSec / 60 < 10)
+                newText += "0";
+            newText += nowSec / 60 + ":";
 
-        //Enable new state items
-        switch (state)
-        {
-            case (UIState.ConnectMenu):
-                {
-                    item_ConnectMenu.SetActive(true);
-                }
-                break;
+            if (nowSec % 60 < 10)
+                newText += "0";
+            newText += nowSec % 60;
 
-            case (UIState.Play):
-                {
-
-                }
-                break;
+            gameTime_text.text = newText;
         }
     }
 
-    public long GameTime
+    public void SetGameTime(long timeMilliSec)
     {
-        set
-        {
-            gameTime.text = "Time: " + ((float)value / 1000.0f).ToString("F");
-        }
+        gameTime.SetCurrentGameTime(timeMilliSec);
+        gameTime_lastSec = 0;
     }
 
-    public string ZoneName
+    public void SetMapName(string name)
     {
-        set
-        {
-            gameTime.text = "Zone: " + value;
-        }
+        mapName = name;
+        mapName_text.text = mapName;
     }
 
-    public enum UIState
+    public void SetPlayerName(string name)
     {
-        ConnectMenu,
-        Play
+        player_name_text.text = name;
+    }
+
+    public void SetPlayerLevel(int level)
+    {
+        player_level_text.text = level.ToString();
     }
 }

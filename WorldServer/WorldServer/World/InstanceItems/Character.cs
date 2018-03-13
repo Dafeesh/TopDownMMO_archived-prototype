@@ -53,7 +53,7 @@ namespace WorldServer.World.InstanceItems
             this.id = id;
         }
 
-        public void TeleportTo(double x, double y)
+        public void TeleportTo(float x, float y)
         {
             position.x = x;
             position.y = y;
@@ -105,7 +105,6 @@ namespace WorldServer.World.InstanceItems
         public abstract void Inform_CharacterTeleport(Character charFrom, Position2D pos);
         public abstract void Inform_AddCharacterInView(Character newChar);
         public abstract void Inform_RemoveCharacterInView(Character newChar);
-        public abstract void Inform_MoveToMap(Map m);
 
         protected abstract void Dispose(bool blocking);
         #endregion Overrides

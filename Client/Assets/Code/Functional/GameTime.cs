@@ -8,6 +8,7 @@ public class GameTime
 
     public GameTime()
     {
+        gameTime_timer.Start();
         SetCurrentGameTime(0);
     }
 
@@ -16,6 +17,14 @@ public class GameTime
         get
         {
             return gameTime_offset + gameTime_timer.ElapsedMilliseconds;
+        }
+    }
+
+    public long NowSec
+    {
+        get
+        {
+            return (gameTime_offset + gameTime_timer.ElapsedMilliseconds) / 1000;
         }
     }
 

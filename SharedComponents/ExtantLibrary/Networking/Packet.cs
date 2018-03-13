@@ -64,6 +64,17 @@ namespace Extant.Networking
         }
 
         /// <summary>
+        /// Returns a Single (float) that is read and removed from beginning of List of Bytes.
+        /// </summary>
+        /// <param name="buff">The array for data to be taken from.</param>
+        public static Single TakeSingle(ref List<Byte> buff)
+        {
+            Single read = BitConverter.ToSingle(buff.ToArray(), 0);
+            buff = buff.Skip(sizeof(Single)).ToList();
+            return read;
+        }
+
+        /// <summary>
         /// Returns a Double that is read and removed from beginning of List of Bytes.
         /// </summary>
         /// <param name="buff">The array for data to be taken from.</param>
@@ -109,6 +120,14 @@ namespace Extant.Networking
         public static Byte[] GetBytes_Int32(Int32 i)
         {
             return BitConverter.GetBytes(i);
+        }
+
+        /// <summary>
+        /// Returns the Bytes that make up a Single (float).
+        /// </summary>
+        public static Byte[] GetBytes_Single(Single s)
+        {
+            return BitConverter.GetBytes(s);
         }
 
         /// <summary>
