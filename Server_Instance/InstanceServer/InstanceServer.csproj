@@ -7,7 +7,7 @@
     <ProjectGuid>{871276FD-E1D0-464C-9D31-23EC2A5954D9}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>WorldServer</RootNamespace>
+    <RootNamespace>InstanceServer</RootNamespace>
     <AssemblyName>InstanceServer</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -43,39 +43,35 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Control\InstanceItems\GameTime.cs" />
-    <Compile Include="InstanceWatcher.cs">
+    <Compile Include="World\GameTime.cs" />
+    <Compile Include="InstanceServerHostWindow.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="InstanceWatcher.Designer.cs">
-      <DependentUpon>InstanceWatcher.cs</DependentUpon>
+    <Compile Include="InstanceServerHostWindow.Designer.cs">
+      <DependentUpon>InstanceServerHostWindow.cs</DependentUpon>
     </Compile>
-    <Compile Include="Networking\ExpectedPlayer.cs" />
-    <Compile Include="Networking\ClientConnection.cs" />
-    <Compile Include="Networking\ClientAccepter.cs" />
-    <Compile Include="Networking\MasterServerLink.cs" />
-    <Compile Include="Networking\WorldHost.cs" />
+    <Compile Include="Control\ClientAuthConnection.cs" />
+    <Compile Include="Control\ClientAccepter.cs" />
+    <Compile Include="Links\MasterServerLink.cs" />
+    <Compile Include="Control\InstanceServerHost.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Control\InstanceItems\IInstanceTick.cs" />
-    <Compile Include="Control\Instance.cs" />
-    <Compile Include="Control\Zone.cs" />
-    <Compile Include="World\Characters\NPCs\RandomTeleportingWizard.cs" />
-    <Compile Include="World\Characters\Npc.cs" />
-    <Compile Include="World\MapItems\MapLayoutBuilder.cs" />
-    <Compile Include="Control\WorldController.cs" />
-    <Compile Include="World\Character.cs" />
-    <Compile Include="World\Characters\Player.cs" />
-    <Compile Include="World\Map.cs" />
-    <Compile Include="World\MapItems\MapLayout.cs" />
-    <Compile Include="World\MapItems\Terrain.cs" />
+    <Compile Include="World\GameInstance.cs" />
+    <Compile Include="World\Map\Character\NPCs\RandomTeleportingWizard.cs" />
+    <Compile Include="World\Map\Character\Npc.cs" />
+    <Compile Include="World\Map\MapLayoutBuilder.cs" />
+    <Compile Include="World\GameCharacter.cs" />
+    <Compile Include="World\Map\Character\Player.cs" />
+    <Compile Include="World\GameMap.cs" />
+    <Compile Include="World\Map\MapLayout.cs" />
+    <Compile Include="World\Map\Terrain.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="InstanceWatcher.resx">
-      <DependentUpon>InstanceWatcher.cs</DependentUpon>
+    <EmbeddedResource Include="InstanceServerHostWindow.resx">
+      <DependentUpon>InstanceServerHostWindow.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
@@ -87,7 +83,16 @@
       <Project>{598bb5ef-795b-478c-ad1f-323be7077beb}</Project>
       <Name>Extant__Base</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\SharedComponents\Global\SharedComponents_Global.csproj">
+      <Project>{6191cf3c-60b4-4e3f-b194-95c6c8b30edd}</Project>
+      <Name>SharedComponents_Global</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\SharedComponents\Server\SharedComponents_Server.csproj">
+      <Project>{6831c8ae-d11a-499d-b2ba-c095ab29959e}</Project>
+      <Name>SharedComponents_Server</Name>
+    </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

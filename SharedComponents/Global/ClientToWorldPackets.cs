@@ -394,15 +394,15 @@ namespace SharedComponents.Global
         public class Character_Add_c : Packet
         {
             public Int32 charId;
-            public CharacterType charType;
-            public Int32 modelNumber;
+            public CharacterLayout layout;
+            public CharacterType type;
 
-            public Character_Add_c(Int32 charId, CharacterType charType, Int32 modelNumber)
+            public Character_Add_c(Int32 charId, CharacterLayout layout, CharacterType type)
                 : base((Int32)PacketType.Character_Add_c)
             {
                 this.charId = charId;
-                this.charType = charType;
-                this.modelNumber = modelNumber;
+                this.layout = layout;
+                this.type = type;
             }
 
             public override Byte[] CreateSendBuffer()
@@ -412,8 +412,8 @@ namespace SharedComponents.Global
                     buffer.AddRange(GetBytes_Int32((Int32)type));
 
                     buffer.AddRange(GetBytes_Int32(charId));
-                    buffer.AddRange(GetBytes_Int32((Int32)charType));
-                    buffer.AddRange(GetBytes_Int32(modelNumber));
+                    buffer.AddRange(GetBytes_Int32((Int32)layout.Type));
+                    buffer.AddRange(GetBytes_Int32((Int32)type));
                 }
                 buffer.Add(END_PACKET);
 
@@ -423,14 +423,10 @@ namespace SharedComponents.Global
             public static Packet ReadPacket(ref List<byte> buffer)
             {
                 Int32 charId = TakeInt32(ref buffer);
-                CharacterType charType = (CharacterType)TakeInt32(ref buffer);
-                Int32 modelNumber = TakeInt32(ref buffer);
+                CharacterLayout layout = new CharacterLayout((CharacterLayout.VisualType)TakeInt32(ref buffer));
+                CharacterType type = (CharacterType)TakeInt32(ref buffer);
 
-#if DEBUG_PACKETS
-                DebugLogger.Global.Log("Packet In: Character_Add_c - " + charId + " - " + charType.ToString() + " / " + modelNumber);
-#endif
-
-                return new Character_Add_c(charId, charType, modelNumber);
+                return new Character_Add_c(charId, layout, type);
             }
         }
 

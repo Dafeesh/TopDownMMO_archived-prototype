@@ -5,47 +5,18 @@ using System.Windows.Forms;
 
 using Extant;
 
-using WorldServer.Networking;
-using SharedComponents.GameProperties;
+using SharedComponents.Global.GameProperties;
 
-namespace WorldServer
+namespace InstanceServer
 {
     class Program
     {
-        static WorldHost host;
-        static InstanceWatcher watcher = null;
-
-        static void Main(string[] args)
+        [STAThread]
+        static void Main()
         {
-            DebugLogger.Global.MessageLogged += Console.WriteLine;
-
-            host = new WorldHost(new IPEndPoint(IPAddress.Any, 3000));
-            host.Start();
-
-            while(!host.IsStopped)
-            {
-                if (Console.KeyAvailable)
-                    if (Console.ReadKey(true).KeyChar == ' ')
-                        if (!RunWatcher())
-                            host.Dispose();
-                Thread.Sleep(100);
-            }
-
-            //Console.WriteLine("\nPress any key to continue...");
-            //Console.ReadKey();
-        }
-
-        static bool RunWatcher()
-        {
-            if (watcher == null)
-            {
-                watcher = new InstanceWatcher(host.WorldController);
-                Application.Run(watcher);
-                watcher.Dispose();
-                watcher = null;
-                return false;
-            }
-            return true;
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+            Application.Run(new InstanceServerHostWindow());
         }
     }
 }

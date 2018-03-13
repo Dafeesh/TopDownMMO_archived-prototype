@@ -1,13 +1,13 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
-using Extant;
-using SharedComponents.GameProperties;
 
-public class MapController : MonoBehaviour, ILogging
+using Extant;
+
+using SharedComponents.Global.GameProperties;
+
+public class MapController : MonoComponent
 {
     GameObject[,] terrainBlocks;
-
-    DebugLogger log = new DebugLogger("MapController");
 
     void Start()
     {
@@ -29,7 +29,7 @@ public class MapController : MonoBehaviour, ILogging
             }
         }
 
-        Object terrainBlockObject = Resources.Load("Map/TerrainBlock");
+        Object terrainBlockObject = Resources.Load(ResourceList.Map.TerrainBlock);
 
         terrainBlocks = new GameObject[newNumBlocksX, newNumBlocksY];
         for (int i = 0; i < newNumBlocksX; i++)
@@ -53,20 +53,20 @@ public class MapController : MonoBehaviour, ILogging
         terrain.transform.position = new Vector3(0, 0, 0);
          * */
 
-        log.Log("Reset map to size: [" + newNumBlocksX + "," + newNumBlocksY + "]");
+        Log.Log("Reset map to size: [" + newNumBlocksX + "," + newNumBlocksY + "]");
     }
 
     public void SetTerrainBlock(int i, int j, float[,] heightMap)
     {
 
-        log.Log("Set terrain block: [" + i + "," + j + "]");
+        Log.Log("Set terrain block: [" + i + "," + j + "]");
     }
 
     public DebugLogger Log
     {
         get
         {
-            return log;
+            return Log;
         }
     }
 }

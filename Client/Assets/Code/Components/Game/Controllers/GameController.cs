@@ -1,10 +1,12 @@
-﻿using Extant;
-using Extant.Networking;
-using SharedComponents;
-using SharedComponents.GameProperties;
-using UnityEngine;
+﻿using UnityEngine;
 
-public class GameController : MonoBehaviour , ILogging
+using Extant;
+using Extant.Networking;
+
+using SharedComponents.Global;
+using SharedComponents.Global.GameProperties;
+
+public class GameController : MonoComponent
 {
     [SerializeField]
     InterfaceController uiController = null;
@@ -15,8 +17,7 @@ public class GameController : MonoBehaviour , ILogging
     [SerializeField]
     PlayerController plrController = null;
 
-    WorldServerConnection wsConnection;
-    DebugLogger log;
+    InstanceServerConnection wsConnection;
 
     //GameMap map = new GameMap();
     PlayerInfo playerInfo = new PlayerInfo();
@@ -24,7 +25,6 @@ public class GameController : MonoBehaviour , ILogging
 
     void Start()
     {
-        log = new DebugLogger("GameController");
         //log.AnyLogged += Debug.Log;
 
         if (uiController == null)
@@ -38,7 +38,7 @@ public class GameController : MonoBehaviour , ILogging
 
         try
         {
-            wsConnection = GameObject.Find("Connections").GetComponent<WorldServerConnection>();
+            wsConnection = GameObject.Find("Connections").GetComponent<InstanceServerConnection>();
         }
         finally
         {
@@ -57,7 +57,8 @@ public class GameController : MonoBehaviour , ILogging
     private void HandleIncomingPackets()
     {
         Packet p = null;
-        while ((p = wsConnection.GetPacket()) != null)
+        //while ((p = wsConnection.GetPacket()) != null)
+        while (p != null)
         {
             switch ((ClientToWorldPackets.PacketType)p.Type)
             {
@@ -66,7 +67,7 @@ public class GameController : MonoBehaviour , ILogging
                         ClientToWorldPackets.Error_c pp = p as ClientToWorldPackets.Error_c;
 
                         Debug.LogError("ERROR from WorldServer: " + pp.error.ToString());
-                        log.Log("ERROR: " + pp.error.ToString());
+                        Log.Log("ERROR: " + pp.error.ToString());
                     }
                     break;
 
@@ -80,7 +81,7 @@ public class GameController : MonoBehaviour , ILogging
                         uiController.SetPlayerName(pp.username);
                         uiController.SetPlayerLevel(pp.level);
 
-                        log.Log("Got player info: " + playerInfo.Name + "/" + playerInfo.Level);
+                        Log.Log("Got player info: " + playerInfo.Name + "/" + playerInfo.Level);
                     }
                     break;
 
@@ -90,7 +91,7 @@ public class GameController : MonoBehaviour , ILogging
 
                         plrController.SetCharacterControlled(charListController.GetControllerFromId(pp.id));
 
-                        log.Log("Set control of char: " + pp.id);
+                        Log.Log("Set control of char: " + pp.id);
                     }
                     break;
 
@@ -100,7 +101,7 @@ public class GameController : MonoBehaviour , ILogging
 
                         mapController.ResetMap(pp.newNumBlocksX, pp.newNumBlocksY);
 
-                        log.Log("Reset Map.");
+                        Log.Log("Reset Map.");
                     }
                     break;
 
@@ -110,7 +111,7 @@ public class GameController : MonoBehaviour , ILogging
 
                         mapController.SetTerrainBlock(pp.blockX, pp.blockY, pp.heightMap);
 
-                        log.Log("Terrain Block.");
+                        Log.Log("Terrain Block.");
                     }
                     break;
 
@@ -118,9 +119,10 @@ public class GameController : MonoBehaviour , ILogging
                     {
                         ClientToWorldPackets.Character_Add_c pp = p as ClientToWorldPackets.Character_Add_c;
 
-                        charListController.AddCharacter(pp.charId, pp.charType, pp.modelNumber);
+                        //FIX
+                        //charListController.AddCharacter(pp.charId, pp.charType, pp.modelNumber);
 
-                        log.Log("Add Character: " + pp.charId);
+                        Log.Log("Add Character: " + pp.charId);
                     }
                     break;
 
@@ -130,7 +132,7 @@ public class GameController : MonoBehaviour , ILogging
 
                         charListController.SetCharacter_Position(pp.charId, pp.newx, pp.newy);
 
-                        log.Log("Character position: " + pp.charId);
+                        Log.Log("Character position: " + pp.charId);
                     }
                     break;
 
@@ -140,7 +142,7 @@ public class GameController : MonoBehaviour , ILogging
 
                         charListController.SetCharacter_MovePoint(pp.charId, pp.movePoint);
 
-                        log.Log("Character movement: " + pp.charId + "- " + pp.movePoint.start.ToString() + "->" + pp.movePoint.end.ToString());
+                        Log.Log("Character movement: " + pp.charId + "- " + pp.movePoint.start.ToString() + "->" + pp.movePoint.end.ToString());
                     }
                     break;
 
@@ -150,7 +152,7 @@ public class GameController : MonoBehaviour , ILogging
 
                         charListController.RemoveCharacter(pp.charId);
 
-                        log.Log("Remove Character: " + pp.charId);
+                        Log.Log("Remove Character: " + pp.charId);
                     }
                     break;
 
@@ -160,29 +162,22 @@ public class GameController : MonoBehaviour , ILogging
 
                         charListController.SetCharacter_Stats(pp.charId, pp.stats);
 
-                        log.Log("Character stats: " + pp.charId);
+                        Log.Log("Character stats: " + pp.charId);
                     }
                     break;
 
                 default:
                     {
-                        log.Log("Got unknown packet: " + ((ClientToWorldPackets.PacketType)p.Type).ToString());
+                        Log.Log("Got unknown packet: " + ((ClientToWorldPackets.PacketType)p.Type).ToString());
                     }
                     break;
             }
         }
     }
 
-    public DebugLogger Log
-    {
-        get
-        {
-            return log;
-        }
-    }
-
     public void Command_MoveTo(float x, float y)
     {
-        wsConnection.SendPacket(new ClientToWorldPackets.Player_MovementRequest_w(x, y));
+        throw new System.NotImplementedException("Need to implement ability to contact InstCon.");
+        //wsConnection.SendPacket(new ClientToWorldPackets.Player_MovementRequest_w(x, y));
     }
 }

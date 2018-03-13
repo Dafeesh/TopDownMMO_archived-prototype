@@ -3,8 +3,10 @@
 public enum ConnectionState
 {
     Null,
-    None,
+    NoConnection,
     Connecting,
     Authorizing,
     Connected
 }
+
+public delegate void Delegate_ConnectionStateChange(ConnectionState state);

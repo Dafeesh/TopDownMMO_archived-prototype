@@ -1,14 +1,14 @@
 ﻿using UnityEngine;
 
 using Extant;
-using SharedComponents.GameProperties;
+using SharedComponents.Global.GameProperties;
 
-public class GameCharacterController : MonoBehaviour, ILogging
+public class GameCharacterController : MonoComponent
 {
-    string name;
-    CharacterType type;
-    CharacterThreat threat;
-    CharacterStats stats;
+    string _name;
+    CharacterLayout _layout;
+    CharacterThreat _threat;
+    CharacterStats _stats;
 
     Position2D position = new Position2D();
     Position2D moveToPoint = null;
@@ -17,21 +17,15 @@ public class GameCharacterController : MonoBehaviour, ILogging
     Animator animationController = null;
     AnimationState animState = AnimationState.Null;
 
-    DebugLogger log = new DebugLogger("CharObjContr");
-
     void Start()
     {
         if (animationController == null)
             Debug.LogError("GameCharacterController does not have reference to animationController.");
 
-        if (string.IsNullOrEmpty(Name))
-            Name = "NULL";
-        if (Type == null)
-            Type = CharacterType.Npc;
-        if (Threat == null)
-            Threat = CharacterThreat.Neutral;
-        if (Stats == null)
-            Stats = new CharacterStats();
+        this.Name = "NULL";
+        this.Layout = new CharacterLayout(CharacterVisualType.Null);
+        this.Threat = CharacterThreat.Neutral;
+        this.Stats = new CharacterStats();
 
         SetAnimState(AnimationState.Idle);
     }
@@ -43,7 +37,7 @@ public class GameCharacterController : MonoBehaviour, ILogging
             Quaternion lookAtAngle = Quaternion.LookRotation(new Vector3(moveToPoint.x - position.x, 0, moveToPoint.y - position.y));
             this.gameObject.transform.rotation = Quaternion.Lerp(this.transform.rotation, lookAtAngle, 5.0f * Time.deltaTime);
 
-            SetPosition(CalculateMove(position, moveToPoint, stats.MoveSpeed * Time.deltaTime));
+            SetPosition(CalculateMove(position, moveToPoint, Stats.MoveSpeed * Time.deltaTime));
         }
     }
 
@@ -104,7 +98,7 @@ public class GameCharacterController : MonoBehaviour, ILogging
 
                 case (AnimationState.WalkForward):
                     {
-                        animationController.SetFloat("RunningSpeed", stats.MoveSpeed);
+                        animationController.SetFloat("RunningSpeed", Stats.MoveSpeed);
                     }
                     break;
             }
@@ -135,7 +129,7 @@ public class GameCharacterController : MonoBehaviour, ILogging
     {
         set
         {
-            name = value;
+            _name = value;
         }
         get
         {
@@ -143,15 +137,15 @@ public class GameCharacterController : MonoBehaviour, ILogging
         }
     }
 
-    public CharacterType Type
+    public CharacterLayout Layout
     {
         set
         {
-            type = value;
+            _layout = value;
         }
         get
         {
-            return type;
+            return _layout;
         }
     }
 
@@ -159,9 +153,9 @@ public class GameCharacterController : MonoBehaviour, ILogging
     {
         set
         {
-            threat = value;
+            _threat = value;
 
-            switch (threat)
+            switch (_threat)
             {
                 case (CharacterThreat.Neutral):
                     {
@@ -181,13 +175,13 @@ public class GameCharacterController : MonoBehaviour, ILogging
                     }
                     break;
                 default:
-                    Debug.LogWarning("CharacterObjectController does not support CharacterThread: " + threat.ToString());
+                    Debug.LogWarning("CharacterObjectController does not support CharacterThread: " + _threat.ToString());
                     break;
             }
         }
         get
         {
-            return threat;
+            return _threat;
         }
     }
 
@@ -195,20 +189,12 @@ public class GameCharacterController : MonoBehaviour, ILogging
     {
         get
         {
-            return stats;
+            return _stats;
         }
 
         set
         {
-            stats = value;
-        }
-    }
-
-    public DebugLogger Log
-    {
-        get
-        {
-            return log;
+            _stats = value;
         }
     }
 

@@ -1,8 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+
+using SharedComponents.Global;
+using SharedComponents.Server;
+using MasterServer.Host;
+using MasterServer.Links;
 
 namespace MasterServer
 {
@@ -16,7 +22,32 @@ namespace MasterServer
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new MasterServerWindow());
+            Application.Run(new MasterServerWindow(InitializeHost()));
+        }
+
+        static MasterServerHost InitializeHost()
+        {
+            //ClientAcceptor
+            ClientAcceptor clientAcceptor = new ClientAcceptor(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 3000));
+
+            //Zone servers
+            InstanceServerLink[] zoneServers = new InstanceServerLink[]
+            {
+                   new InstanceServerLink(1, "ZoneServer0", new IPEndPoint(IPAddress.Parse("127.0.0.1"), 4000), new IPEndPoint(IPAddress.Parse("127.0.0.1"), 4000)),
+                   new InstanceServerLink(2, "ZoneServer1", new IPEndPoint(IPAddress.Parse("127.0.0.1"), 4001), new IPEndPoint(IPAddress.Parse("127.0.0.1"), 4001))
+            };
+
+            //Instance servers
+            InstanceServerLink[] instanceServers = new InstanceServerLink[]
+            {
+                   new InstanceServerLink(3, "InstServer0", new IPEndPoint(IPAddress.Parse("127.0.0.1"), 4500), new IPEndPoint(IPAddress.Parse("127.0.0.1"), 4500)),
+                   new InstanceServerLink(4, "InstServer1", new IPEndPoint(IPAddress.Parse("127.0.0.1"), 4501), new IPEndPoint(IPAddress.Parse("127.0.0.1"), 4501))
+            };
+
+            //Host
+            MasterServerHost host = new MasterServerHost(clientAcceptor, zoneServers, instanceServers);
+
+            return host;
         }
     }
 }

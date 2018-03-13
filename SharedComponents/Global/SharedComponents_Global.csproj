@@ -34,10 +34,11 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ClientToForwardPackets.cs" />
+    <Compile Include="ClientToMasterPackets.cs" />
     <Compile Include="ClientToWorldPackets.cs" />
     <Compile Include="GameProperties\CharacterStats.cs" />
-    <Compile Include="GameProperties\Enums.cs" />
+    <Compile Include="GameProperties\CharacterLayout.cs" />
+    <Compile Include="GameProperties\CharacterEnums.cs" />
     <Compile Include="GameProperties\MapDefaults.cs" />
     <Compile Include="GameProperties\PlayerInfo.cs" />
     <Compile Include="GameProperties\Position2D.cs" />

@@ -3,8 +3,8 @@ using System.Collections;
 
 public class DontDestroyThisOnLoad : MonoBehaviour 
 {
-	void Start () 
+    void Start () 
     {
         DontDestroyOnLoad(this);
-	}
+    }
 }

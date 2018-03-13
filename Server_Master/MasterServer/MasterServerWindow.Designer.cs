@@ -30,8 +30,8 @@
         {
             this.listBox_InstServers = new System.Windows.Forms.ListBox();
             this.label_static_ISs = new System.Windows.Forms.Label();
-            this.listBox_Players = new System.Windows.Forms.ListBox();
-            this.label_static_Players = new System.Windows.Forms.Label();
+            this.listBox_Clients = new System.Windows.Forms.ListBox();
+            this.label_static_Clients = new System.Windows.Forms.Label();
             this.label_static_ISID = new System.Windows.Forms.Label();
             this.label_InstServerID = new System.Windows.Forms.Label();
             this.checkBox_instServIsConnected = new System.Windows.Forms.CheckBox();
@@ -39,9 +39,6 @@
             this.panel2 = new System.Windows.Forms.Panel();
             this.label_InstName = new System.Windows.Forms.Label();
             this.label_static_InstName = new System.Windows.Forms.Label();
-            this.panel3 = new System.Windows.Forms.Panel();
-            this.checkBox_fwdIsConnected = new System.Windows.Forms.CheckBox();
-            this.label_static_FwdServer = new System.Windows.Forms.Label();
             this.panel4 = new System.Windows.Forms.Panel();
             this.label_ZoneName = new System.Windows.Forms.Label();
             this.label_static_nameName = new System.Windows.Forms.Label();
@@ -52,7 +49,6 @@
             this.label_static_ZSID = new System.Windows.Forms.Label();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
-            this.panel3.SuspendLayout();
             this.panel4.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -74,23 +70,23 @@
             this.label_static_ISs.TabIndex = 1;
             this.label_static_ISs.Text = "Instance Servers:";
             // 
-            // listBox_Players
+            // listBox_Clients
             // 
-            this.listBox_Players.FormattingEnabled = true;
-            this.listBox_Players.Location = new System.Drawing.Point(6, 21);
-            this.listBox_Players.Name = "listBox_Players";
-            this.listBox_Players.Size = new System.Drawing.Size(120, 251);
-            this.listBox_Players.TabIndex = 2;
-            this.listBox_Players.SelectedIndexChanged += new System.EventHandler(this.listBox_Players_SelectedIndexChanged);
+            this.listBox_Clients.FormattingEnabled = true;
+            this.listBox_Clients.Location = new System.Drawing.Point(6, 21);
+            this.listBox_Clients.Name = "listBox_Clients";
+            this.listBox_Clients.Size = new System.Drawing.Size(120, 251);
+            this.listBox_Clients.TabIndex = 2;
+            this.listBox_Clients.SelectedIndexChanged += new System.EventHandler(this.listBox_Clients_SelectedIndexChanged);
             // 
-            // label_static_Players
+            // label_static_Clients
             // 
-            this.label_static_Players.AutoSize = true;
-            this.label_static_Players.Location = new System.Drawing.Point(3, 5);
-            this.label_static_Players.Name = "label_static_Players";
-            this.label_static_Players.Size = new System.Drawing.Size(44, 13);
-            this.label_static_Players.TabIndex = 3;
-            this.label_static_Players.Text = "Players:";
+            this.label_static_Clients.AutoSize = true;
+            this.label_static_Clients.Location = new System.Drawing.Point(3, 5);
+            this.label_static_Clients.Name = "label_static_Clients";
+            this.label_static_Clients.Size = new System.Drawing.Size(41, 13);
+            this.label_static_Clients.TabIndex = 3;
+            this.label_static_Clients.Text = "Clients:";
             // 
             // label_static_ISID
             // 
@@ -123,8 +119,8 @@
             // 
             // panel1
             // 
-            this.panel1.Controls.Add(this.listBox_Players);
-            this.panel1.Controls.Add(this.label_static_Players);
+            this.panel1.Controls.Add(this.listBox_Clients);
+            this.panel1.Controls.Add(this.label_static_Clients);
             this.panel1.Location = new System.Drawing.Point(532, 55);
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(229, 341);
@@ -161,35 +157,6 @@
             this.label_static_InstName.Size = new System.Drawing.Size(38, 13);
             this.label_static_InstName.TabIndex = 9;
             this.label_static_InstName.Text = "Name:";
-            // 
-            // panel3
-            // 
-            this.panel3.Controls.Add(this.checkBox_fwdIsConnected);
-            this.panel3.Controls.Add(this.label_static_FwdServer);
-            this.panel3.Location = new System.Drawing.Point(12, 12);
-            this.panel3.Name = "panel3";
-            this.panel3.Size = new System.Drawing.Size(185, 37);
-            this.panel3.TabIndex = 9;
-            // 
-            // checkBox_fwdIsConnected
-            // 
-            this.checkBox_fwdIsConnected.AutoSize = true;
-            this.checkBox_fwdIsConnected.Enabled = false;
-            this.checkBox_fwdIsConnected.Location = new System.Drawing.Point(92, 5);
-            this.checkBox_fwdIsConnected.Name = "checkBox_fwdIsConnected";
-            this.checkBox_fwdIsConnected.Size = new System.Drawing.Size(78, 17);
-            this.checkBox_fwdIsConnected.TabIndex = 10;
-            this.checkBox_fwdIsConnected.Text = "Connected";
-            this.checkBox_fwdIsConnected.UseVisualStyleBackColor = true;
-            // 
-            // label_static_FwdServer
-            // 
-            this.label_static_FwdServer.AutoSize = true;
-            this.label_static_FwdServer.Location = new System.Drawing.Point(4, 5);
-            this.label_static_FwdServer.Name = "label_static_FwdServer";
-            this.label_static_FwdServer.Size = new System.Drawing.Size(82, 13);
-            this.label_static_FwdServer.TabIndex = 0;
-            this.label_static_FwdServer.Text = "Forward Server:";
             // 
             // panel4
             // 
@@ -276,7 +243,6 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(771, 408);
             this.Controls.Add(this.panel4);
-            this.Controls.Add(this.panel3);
             this.Controls.Add(this.panel2);
             this.Controls.Add(this.panel1);
             this.Name = "MasterServerWindow";
@@ -286,8 +252,6 @@
             this.panel1.PerformLayout();
             this.panel2.ResumeLayout(false);
             this.panel2.PerformLayout();
-            this.panel3.ResumeLayout(false);
-            this.panel3.PerformLayout();
             this.panel4.ResumeLayout(false);
             this.panel4.PerformLayout();
             this.ResumeLayout(false);
@@ -298,16 +262,13 @@
 
         private System.Windows.Forms.ListBox listBox_InstServers;
         private System.Windows.Forms.Label label_static_ISs;
-        private System.Windows.Forms.ListBox listBox_Players;
-        private System.Windows.Forms.Label label_static_Players;
+        private System.Windows.Forms.ListBox listBox_Clients;
+        private System.Windows.Forms.Label label_static_Clients;
         private System.Windows.Forms.Label label_static_ISID;
         private System.Windows.Forms.Label label_InstServerID;
         private System.Windows.Forms.CheckBox checkBox_instServIsConnected;
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.Panel panel2;
-        private System.Windows.Forms.Panel panel3;
-        private System.Windows.Forms.CheckBox checkBox_fwdIsConnected;
-        private System.Windows.Forms.Label label_static_FwdServer;
         private System.Windows.Forms.Panel panel4;
         private System.Windows.Forms.ListBox listBox_ZoneSevers;
         private System.Windows.Forms.Label label_static_ZoneServers;

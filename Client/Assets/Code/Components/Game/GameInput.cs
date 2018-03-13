@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System;
 
-class GameInput : MonoBehaviour
+class GameInput : MonoComponent
 {
     [SerializeField]
     MainCameraController camera = null;

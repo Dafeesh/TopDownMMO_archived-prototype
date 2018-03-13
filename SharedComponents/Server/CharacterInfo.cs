@@ -1,14 +1,24 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
+using SharedComponents.Global.GameProperties;
 
 namespace SharedComponents.Server
 {
     public class CharacterInfo
     {
-        public string Name;
-        public Int32 ServerId;
+        public readonly string Owner;
+        public readonly string Name;
+
+        public CharacterLayout Layout;
+        public Int32 Level;
+        public Int32 Level_Progress;
+        public Int32 Credits;
+
+        public CharacterInfo(string owner, string name)
+        {
+            this.Owner = owner;
+            this.Name = name;
+        }
     }
+
 }

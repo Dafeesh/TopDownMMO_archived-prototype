@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-class PlayerController : MonoBehaviour
+class PlayerController : MonoComponent
 {
     [SerializeField]
     MainCameraController mainCamera = null;

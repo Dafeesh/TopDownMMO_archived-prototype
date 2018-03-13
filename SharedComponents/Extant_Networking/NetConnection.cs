@@ -78,6 +78,10 @@ namespace Extant.Networking
 
         protected override void Begin()
         {
+#if DEBUG_CONNECTION
+            Log.
+#endif
+
             if (state == NetworkState.Waiting)
             {
                 // Start connection attempt

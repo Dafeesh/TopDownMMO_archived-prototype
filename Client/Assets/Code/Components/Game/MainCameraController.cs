@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class MainCameraController : MonoBehaviour
+public class MainCameraController : MonoComponent
 {
     const float MAX_FOLLOW_DISTANCE = 20.0f;
     const float MIN_FOLLOW_DISTANCE = 2.0f;
@@ -12,17 +12,17 @@ public class MainCameraController : MonoBehaviour
     float cameraFollowDistance = 12.0f;
     GameObject followObject = null;
     Vector3 followObject_offSet = new Vector3(0, 1.5f, 0);
-	
-	void Start()
-	{
+    
+    void Start()
+    {
         if (thisCamera == null)
             Debug.LogError("MainCameraController was not given reference to its Camera.");
 
         this.transform.rotation = Quaternion.Euler(new Vector3(45, 45, 0));
-	}
-	
-	void Update()
-	{
+    }
+    
+    void Update()
+    {
         if (followObject != null)
         {
             this.transform.position = Vector3.Lerp(
@@ -33,7 +33,7 @@ public class MainCameraController : MonoBehaviour
             Quaternion rotation = Quaternion.LookRotation((followObject.transform.position + followObject_offSet) - this.transform.position);
             this.transform.rotation = Quaternion.Lerp(this.transform.rotation, rotation, 1.0f * Time.deltaTime);
         }
-	}
+    }
 
     public Camera Camera
     {

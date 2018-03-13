@@ -43,11 +43,10 @@
   <ItemGroup>
     <Compile Include="AccountInfo.cs" />
     <Compile Include="CharacterInfo.cs" />
-    <Compile Include="ClientIDPacketPair.cs" />
-    <Compile Include="ForwardToMasterPackets.cs" />
-    <Compile Include="ServerBuild.cs" />
     <Compile Include="InstanceToMasterPackets.cs" />
+    <Compile Include="ServerBuild.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="World\WorldZones.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Extant_Networking\Extant_Networking.csproj">
@@ -57,6 +56,10 @@
     <ProjectReference Include="..\Extant__Base\Extant__Base.csproj">
       <Project>{598bb5ef-795b-478c-ad1f-323be7077beb}</Project>
       <Name>Extant__Base</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Global\SharedComponents_Global.csproj">
+      <Project>{6191cf3c-60b4-4e3f-b194-95c6c8b30edd}</Project>
+      <Name>SharedComponents_Global</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -3,18 +3,24 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Extant;
-using SharedComponents.GameProperties;
+using SharedComponents.Global.GameProperties;
 
-public class CharacterListController : MonoBehaviour
+public class CharacterListController : MonoComponent
 {
+    //
+    public static CharacterListController Main = null;
+    //
+
     Dictionary<int, GameCharacterController> characters = new Dictionary<int, GameCharacterController>();
 
-    DebugLogger log;
+    void Awake()
+    {
+        Main = this;
+    }
 
     void Start()
     {
-        log = new DebugLogger("CharListController");
-        log.MessageLogged += Debug.Log;
+        Log.MessageLogged += Debug.Log;
     }
 
     void Update()
@@ -31,7 +37,7 @@ public class CharacterListController : MonoBehaviour
         characters.Clear();
     }
 
-    public void AddCharacter(int id, CharacterType charType, int modelNum)
+    public void AddCharacter(int id, CharacterLayout layout)
     {
         if (characters.ContainsKey(id))
         {
@@ -39,16 +45,12 @@ public class CharacterListController : MonoBehaviour
             Debug.LogWarning("CharacterListController added character that already existed.");
         }
 
-        GameObject newChar;
-        if (modelNum == 1)
-            newChar = (GameObject)GameObject.Instantiate(Resources.Load("Character_Robot"));
-        else
-            newChar = (GameObject)GameObject.Instantiate(Resources.Load("Character_Robot"));
+        GameObject newChar = (GameObject)GameObject.Instantiate(Resources.Load(ResourceList.Characters.Robot));
         newChar.transform.parent = this.transform;
 
         characters.Add(id, newChar.GetComponent<GameCharacterController>());
 
-        log.Log("CharacterListController added character: " + id);
+        Log.Log("CharacterListController added character: " + id);
     }
 
     public void RemoveCharacter(int id)
@@ -57,8 +59,8 @@ public class CharacterListController : MonoBehaviour
         {
             GameObject.Destroy(characters[id]);
             characters.Remove(id);
-            
-            log.Log("CharacterListController removed character: " + id);
+
+            Log.Log("CharacterListController removed character: " + id);
         }
         else
         {
@@ -112,7 +114,7 @@ public class CharacterListController : MonoBehaviour
         }
         else
         {
-            log.Log("CharListController could not get controller from id: " + id);
+            Log.Log("CharListController could not get controller from id: " + id);
             return null;
         }
     }

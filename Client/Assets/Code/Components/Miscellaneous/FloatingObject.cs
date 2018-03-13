@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class FloatingObject : MonoBehaviour
+public class FloatingObject : MonoComponent
 {
     private Vector3 floatPos = new Vector3();
     private Quaternion floatRot = new Quaternion();
