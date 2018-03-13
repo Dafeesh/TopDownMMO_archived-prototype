@@ -15,8 +15,8 @@ public class FloatingObject : MonoBehaviour
         yStart = this.transform.position.y;
         yrStart = this.transform.rotation.y;
 
-        GameObject.Find("_MainCamera").camera.transform.position = new Vector3(-1.0f, 3.0f, 5.0f);
-        GameObject.Find("_MainCamera").camera.transform.rotation = Quaternion.Euler(41, 160, 0);
+        GameObject.Find("_MainCamera").GetComponent<Camera>().transform.position = new Vector3(-1.0f, 3.0f, 5.0f);
+        GameObject.Find("_MainCamera").GetComponent<Camera>().transform.rotation = Quaternion.Euler(41, 160, 0);
     }
 
     void Update()

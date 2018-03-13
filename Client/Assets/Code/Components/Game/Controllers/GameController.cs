@@ -11,13 +11,15 @@ public class GameController : MonoBehaviour , ILogging
     [SerializeField]
     CharacterListController charListController = null;
     [SerializeField]
+    MapController mapController = null;
+    [SerializeField]
     PlayerController plrController = null;
 
     WorldServerConnection wsConnection;
     DebugLogger log;
 
     //GameMap map = new GameMap();
-    PlayerInfo playerInfo = new PlayerInfo("NULL");
+    PlayerInfo playerInfo = new PlayerInfo();
     GameTime gameTime;
 
     void Start()
@@ -27,8 +29,13 @@ public class GameController : MonoBehaviour , ILogging
 
         if (uiController == null)
             Debug.LogError("GameController was not given a uiController.");
+        if (charListController == null)
+            Debug.LogError("GameController was not given a charListController.");
+        if (mapController == null)
+            Debug.LogError("GameController was not given a mapController.");
         if (plrController == null)
             Debug.LogError("GameController was not given a plrController.");
+
         try
         {
             wsConnection = GameObject.Find("Connections").GetComponent<WorldServerConnection>();
@@ -80,8 +87,9 @@ public class GameController : MonoBehaviour , ILogging
 
                 case (ClientToWorldPackets.PacketType.Map_Reset_c):
                     {
-                        //ClientToWorldPackets.Map_Reset_c pp = p as ClientToWorldPackets.Map_Reset_c;
+                        ClientToWorldPackets.Map_Reset_c pp = p as ClientToWorldPackets.Map_Reset_c;
 
+                        mapController.ResetMap(pp.newNumBlocksX, pp.newNumBlocksY);
 
                         log.Log("Reset Map.");
                     }
@@ -89,8 +97,9 @@ public class GameController : MonoBehaviour , ILogging
 
                 case (ClientToWorldPackets.PacketType.Map_TerrainBlock_c):
                     {
-                        //ClientToWorldPackets.Map_TerrainBlock_c pp = p as ClientToWorldPackets.Map_TerrainBlock_c;
+                        ClientToWorldPackets.Map_TerrainBlock_c pp = p as ClientToWorldPackets.Map_TerrainBlock_c;
 
+                        mapController.SetTerrainBlock(pp.blockX, pp.blockY, pp.heightMap);
 
                         log.Log("Terrain Block.");
                     }
@@ -113,6 +122,16 @@ public class GameController : MonoBehaviour , ILogging
                         charListController.SetCharacterPosition(pp.charId, pp.newx, pp.newy);
 
                         log.Log("Character position: " + pp.charId);
+                    }
+                    break;
+
+                case (ClientToWorldPackets.PacketType.Character_Movement_c):
+                    {
+                        ClientToWorldPackets.Character_Movement_c pp = p as ClientToWorldPackets.Character_Movement_c;
+
+                        //charListController.SetCharacterPosition(pp.charId, pp.newx, pp.newy);
+
+                        log.Log("Character movement: " + pp.charId + "- " + pp.movePoint.start.ToString() + "->" + pp.movePoint.end.ToString());
                     }
                     break;
 
@@ -141,5 +160,10 @@ public class GameController : MonoBehaviour , ILogging
         {
             return log;
         }
+    }
+
+    public void Command_MoveTo(float x, float y)
+    {
+        wsConnection.SendPacket(new ClientToWorldPackets.Player_MovementRequest_w(x, y));
     }
 }

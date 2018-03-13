@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using WorldServer.World;
+using WorldServer.World.MapItems;
 
 namespace WorldServer.Control
 {
@@ -22,7 +23,9 @@ namespace WorldServer.Control
 
             public override void Tick()
             {
-                
+                base.Tick();
+
+
             }
 
             public ZoneIDs ZoneID

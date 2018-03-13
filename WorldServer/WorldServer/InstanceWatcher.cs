@@ -9,14 +9,23 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
+using Extant;
 using WorldServer.Control;
+using WorldServer.World;
 
 namespace WorldServer
 {
     public partial class InstanceWatcher : Form
     {
+        private Dictionary<string, Characters.Player> players = new Dictionary<string, Characters.Player>();
+        //private Characters.Player selectedPlayer = null;
+
         private Dictionary<string, Instance> instances = new Dictionary<string, Instance>();
         private Instance selectedInstance = null;
+
+        private LogItem[] logItems = new LogItem[0];
+        private object logItems_lock = new object();
+
         private Thread workerThread = null;
         private WorldController wc;
 
@@ -25,6 +34,9 @@ namespace WorldServer
             InitializeComponent();
 
             this.wc = wc;
+
+            button_RefreshList_Click(null, null);
+            button_RefreshPlayerList_Click(null, null);
         }
 
         private void button_RefreshList_Click(object sender, EventArgs e)
@@ -67,6 +79,7 @@ namespace WorldServer
                 Pen pen = new Pen(Brushes.Black, 2);
                 while (true)
                 {
+                    //Draw map
                     panel_InstanceView.Invalidate();
 
                     var characters = selectedInstance.GetCharacters();
@@ -79,6 +92,36 @@ namespace WorldServer
                     {
                         graphics.DrawRectangle(pen, new Rectangle((int)c.Position.x, (int)c.Position.y, 2, 2));
                     }
+
+                    //Handle log
+                    if (!checkBox_logPause.Checked)
+                    {
+                        this.Invoke(new MethodInvoker(() =>
+                        {
+                            lock (logItems_lock)
+                            {
+                                try
+                                {
+                                    listBox_log.SelectedIndex = -1;
+                                    textBox_logSelect.Text = String.Empty;
+
+                                    logItems = selectedInstance.Log.GetLog(10);
+
+                                    listBox_log.Items.Clear();
+                                    foreach (LogItem li in logItems)
+                                    {
+                                        if (li.Message.Length > 28)
+                                            listBox_log.Items.Add(li.Message.Substring(0, 28));
+                                        else
+                                            listBox_log.Items.Add(li.Message);
+                                    }
+                                }
+                                catch (IndexOutOfRangeException)
+                                { }
+                            }
+                        }));
+                    }
+
                     Thread.Sleep(500);
                 }
             }
@@ -96,7 +139,25 @@ namespace WorldServer
 
         private void button_RefreshPlayerList_Click(object sender, EventArgs e)
         {
+            players.Clear();
+            listBox_Players.Items.Clear();
+            foreach (var p in wc.GetPlayerList())
+            {
+                players.Add(p.Info.Name, p);
+                listBox_Players.Items.Add(p.Info.Name);
+            }
+        }
 
+        private void listBox_log_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            lock (logItems_lock)
+            {
+                textBox_logSelect.Text = String.Empty;
+                if (listBox_log.SelectedIndex < logItems.Length)
+                {
+                    textBox_logSelect.Text = logItems[listBox_log.SelectedIndex].ToString();
+                }
+            }
         }
     }
 }

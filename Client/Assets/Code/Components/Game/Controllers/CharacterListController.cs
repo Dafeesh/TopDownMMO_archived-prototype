@@ -7,7 +7,7 @@ using SharedComponents.GameProperties;
 
 public class CharacterListController : MonoBehaviour
 {
-    Dictionary<int, CharacterObjectController> characters = new Dictionary<int, CharacterObjectController>();
+    Dictionary<int, GameCharacterController> characters = new Dictionary<int, GameCharacterController>();
 
     DebugLogger log;
 
@@ -35,18 +35,18 @@ public class CharacterListController : MonoBehaviour
     {
         if (characters.ContainsKey(id))
         {
-            Debug.LogError("CharacterListController cannot add a character that already exists!");
-            return;
+            RemoveCharacter(id);
+            Debug.LogWarning("CharacterListController added character that already existed.");
         }
 
         GameObject newChar;
         if (modelNum == 1)
-            newChar = (GameObject)GameObject.Instantiate(Resources.Load("Character_Player"));
+            newChar = (GameObject)GameObject.Instantiate(Resources.Load("Character"));
         else
-            newChar = (GameObject)GameObject.Instantiate(Resources.Load("Character_NPC"));
+            newChar = (GameObject)GameObject.Instantiate(Resources.Load("Character"));
         newChar.transform.parent = this.transform;
 
-        characters.Add(id, newChar.GetComponent<CharacterObjectController>());
+        characters.Add(id, newChar.GetComponent<GameCharacterController>());
 
         log.Log("CharacterListController added character: " + id);
     }
@@ -70,9 +70,9 @@ public class CharacterListController : MonoBehaviour
     {
         if (characters.ContainsKey(id))
         {
-            characters[id].MoveTo(x, y);
+            characters[id].SetPosition(x, y);
 
-            log.Log("CharacterListController moved character: " + id + " -> (" + x + "," + y + ")");
+            //log.Log("CharacterListController moved character: " + id + " -> (" + x + "," + y + ")");
         }
         else
         {
@@ -80,7 +80,7 @@ public class CharacterListController : MonoBehaviour
         }
     }
 
-    public CharacterObjectController GetControllerFromId(int id)
+    public GameCharacterController GetControllerFromId(int id)
     {
         if (characters.ContainsKey(id))
         {

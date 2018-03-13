@@ -35,6 +35,7 @@ public class WorldServerConnection : MonoBehaviour , ILogging
     {
         log = new DebugLogger("WSCon");
         log.MessageLogged += Debug.Log;
+        log.Log("Application start.");
 
         if (debugInterface == null)
             Debug.LogError("WSCon not given a reference to DebugInterface.");
@@ -177,10 +178,15 @@ public class WorldServerConnection : MonoBehaviour , ILogging
         this.password = password;
 
         connection = new NetConnection(ClientToWorldPackets.ReadBuffer, remoteEndPoint, CONNECT_TIMEOUT, RECEIVE_TIMEOUT);
-        //connection.SubscribeToLogs(Debug.Log);
+        //connection.Log.MessageLogged += Debug.Log;
         connection.Start();
         SetState(ConnectionState.Connecting);
         log.Log("WSConnection set target to " + endPoint.Address.ToString() + ":" + endPoint.Port);
+    }
+
+    public void SendPacket(Packet p)
+    {
+        connection.SendPacket(p);
     }
 
     public Packet GetPacket()

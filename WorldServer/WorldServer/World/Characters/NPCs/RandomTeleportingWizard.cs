@@ -14,7 +14,7 @@ namespace WorldServer.World
             Stopwatch timer = new Stopwatch();
 
             public RandomTeleportingWizard(float x, float y)
-                : base("RndTeleWizard", CharacterType.Enemy)
+                : base("RndTeleWizard", CharacterType.Npc)
             {
                 this.Position.x = x;
                 this.Position.y = y;
@@ -23,11 +23,13 @@ namespace WorldServer.World
 
             protected override void Dispose(bool blocking)
             {
-                
+
             }
 
             public override void Tick()
             {
+                base.Tick();
+
                 if (timer.ElapsedMilliseconds > 3000)
                 {
                     this.TeleportTo(this.Position.x, this.Position.y + 10 * direction);
@@ -48,7 +50,12 @@ namespace WorldServer.World
 
             public override void Inform_CharacterTeleport(Character charFrom, Position2D pos)
             {
-                //Log.Log(DebugLogger.LogType.Blank, this.GetHashCode() + ": Teleport!");
+                //Log.Log(this.GetHashCode() + ": Teleport- " + charFrom.GetHashCode() + "- " + charFrom.Position.ToString() + "->" + pos.ToString());
+            }
+
+            public override void Inform_CharacterMovePoint(Character charFrom, MovePoint mp)
+            {
+                Log.Log(this.GetHashCode() + ": Move- " + charFrom.GetHashCode() + "- " + mp.start.ToString() + "->" + mp.end.ToString());
             }
         }
     }

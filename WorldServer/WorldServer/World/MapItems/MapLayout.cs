@@ -4,32 +4,24 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WorldServer.World
+using SharedComponents.GameProperties;
+
+namespace WorldServer.World.MapItems
 {
     public struct MapLayout
     {
-        private readonly Single[,] heightMap;
+        private readonly Terrain terrain;
 
-        public MapLayout(Single[,] heightMap)
+        public MapLayout(Terrain terrain)
         {
-            this.heightMap = heightMap;
-        }
-
-        public Single GetHeightAt(Single x, Single y)
-        {
-            if (x - (int)x >= 0.50f)
-                x += 1.0f;
-            if (y - (int)y >= 0.50f)
-                y += 1.0f;
-
-            return heightMap[(int)x, (int)y];
+            this.terrain = terrain;
         }
 
         public int SizeX
         {
             get
             {
-                return heightMap.GetLength(0);
+                return terrain.NumBlocksX * MapDefaults.TERRAINBLOCK_WIDTH;
             }
         }
 
@@ -37,7 +29,15 @@ namespace WorldServer.World
         {
             get
             {
-                return heightMap.GetLength(1);
+                return terrain.NumBlocksY * MapDefaults.TERRAINBLOCK_WIDTH;
+            }
+        }
+
+        public Terrain Terrain
+        {
+            get
+            {
+                return terrain;
             }
         }
     }

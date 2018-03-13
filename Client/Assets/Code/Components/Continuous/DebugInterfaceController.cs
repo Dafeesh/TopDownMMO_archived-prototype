@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using Extant;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -12,10 +13,17 @@ class DebugInterfaceController : MonoBehaviour
         if (text_WSConnection == null)
             Debug.LogError("DebugInterface has no reference to WSConnection text.");
 
-        StartCoroutine(ClearConsoleAsync());
+        //StartCoroutine(ClearConsoleAsync());
+
+        DebugLogger.Global.MessageLogged += Debug.Log;
     }
 
     void Update()
+    {
+
+    }
+
+    void OnDestroy()
     {
 
     }

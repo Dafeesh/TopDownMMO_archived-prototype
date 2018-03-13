@@ -23,6 +23,10 @@ namespace WorldServer.World
         private DebugLogger log;
 
         private Position2D position;
+        private Queue<MovePoint> movePoints = new Queue<MovePoint>();
+        private MovePoint currentMovePoint = null;
+
+        private CharacterStats stats = new CharacterStats();
 
         /// <summary>
         /// Creates a character to be used in a game map.
@@ -50,6 +54,21 @@ namespace WorldServer.World
             this.Dispose(true);
         }
 
+        //Private
+        private void SetCurrentMovePoint(MovePoint mp)
+        {
+            currentMovePoint = mp;
+            this.Inform_CharacterMovePoint(this, currentMovePoint);
+            foreach (Character c in this.CharsSeenBy)
+            {
+                c.Inform_CharacterMovePoint(this, currentMovePoint);
+            }
+        }
+
+        //Protected
+
+
+        //Public
         public void Dispose()
         {
             this.Dispose(false);
@@ -67,7 +86,7 @@ namespace WorldServer.World
             position.x = x;
             position.y = y;
 
-            ClientToWorldPackets.Character_Position_c p = new ClientToWorldPackets.Character_Position_c(id, x, y);
+            this.Inform_CharacterTeleport(this, this.Position);
             foreach (var c in charsSeenBy)
             {
                 c.Inform_CharacterTeleport(this, this.Position);
@@ -108,10 +127,31 @@ namespace WorldServer.World
             return true;
         }
 
+        public void SetMovePointsPath(MovePoint[] points)
+        {
+            currentMovePoint = null;
+            movePoints.Clear();
+            foreach (MovePoint p in points)
+            {
+                movePoints.Enqueue(p);
+            }
+        }
+
+        public virtual void Tick()
+        {
+            if (currentMovePoint == null)
+            {
+                if (movePoints.Count > 0)
+                {
+                    SetCurrentMovePoint(movePoints.Dequeue());
+                }
+            }
+        }
+
         #region Overrides
-        public abstract void Tick();
 
         public abstract void Inform_CharacterTeleport(Character charFrom, Position2D pos);
+        public abstract void Inform_CharacterMovePoint(Character charFrom, MovePoint mp);
         public abstract void Inform_AddCharacterInView(Character newChar);
         public abstract void Inform_RemoveCharacterInView(Character newChar);
 
@@ -177,6 +217,5 @@ namespace WorldServer.World
         }
 
         #endregion Accessors
-
     }
 }

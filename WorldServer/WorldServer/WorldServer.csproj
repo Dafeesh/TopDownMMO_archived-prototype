@@ -60,12 +60,14 @@
     <Compile Include="Control\Zone.cs" />
     <Compile Include="World\Characters\NPCs\RandomTeleportingWizard.cs" />
     <Compile Include="World\Characters\Npc.cs" />
+    <Compile Include="World\Characters\PlayerCommand.cs" />
     <Compile Include="World\MapItems\MapLayoutBuilder.cs" />
     <Compile Include="Control\WorldController.cs" />
     <Compile Include="World\Character.cs" />
     <Compile Include="World\Characters\Player.cs" />
     <Compile Include="World\Map.cs" />
     <Compile Include="World\MapItems\MapLayout.cs" />
+    <Compile Include="World\MapItems\Terrain.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

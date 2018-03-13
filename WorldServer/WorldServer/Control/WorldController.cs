@@ -78,29 +78,32 @@ namespace WorldServer.Control
 
         private void LoadMaps()
         {
+            int nBlocksX = 5;
+            int nBlocksY = 5;
+
             //Build maps
-            MapLayoutBuilder mb = new MapLayoutBuilder(100, 100);
-            for (int i = 0; i < 100; i++ )
+            MapLayoutBuilder testMap = new MapLayoutBuilder(nBlocksX, nBlocksY);
+            for (int i = 0; i < nBlocksX * MapDefaults.TERRAINBLOCK_WIDTH; i++)
             {
-                for (int j=0; j<100; j++)
+                for (int j = 0; j < nBlocksY * MapDefaults.TERRAINBLOCK_WIDTH; j++)
                 {
-                    mb.SetHeight(i, j, Math.Abs((float)((i + j) % 10) - 5));
+                    testMap.SetHeight(i, j, Math.Abs((float)((i + j) % 10) - 5));
                 }
             }
 
-            maps.Add(MapID.TestMap, mb.GetLayout());
+            maps.Add(MapID.TestMap, testMap.GetLayout());
         }
 
         private void CreateZones()
         {
             Instances.Zone testZone = new Instances.Zone(Instances.Zone.ZoneIDs.TestZone, maps[MapID.TestMap]);
 
-            
-            Character c1 = new Characters.RandomTeleportingWizard(100, 100);
-            Character c2 = new Characters.RandomTeleportingWizard(150, 100);
+
+            Character c1 = new Characters.RandomTeleportingWizard(40, 20);
+            Character c2 = new Characters.RandomTeleportingWizard(30, 20);
             testZone.AddCharacterToInstance(c1);
             testZone.AddCharacterToInstance(c2);
-            
+
 
             testZone.Start();
             instances_zone.Add(Instances.Zone.ZoneIDs.TestZone, testZone);
@@ -118,6 +121,11 @@ namespace WorldServer.Control
                 players.Add(newPlayer);
                 instances_zone[template.Location.Zone].AddPlayerToInstance(newPlayer);
             });
+        }
+
+        public Characters.Player[] GetPlayerList()
+        {
+            return players.ToArray();
         }
 
         public Characters.Player.Template GetLoggedPlayer()

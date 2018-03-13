@@ -8,21 +8,21 @@ namespace WorldServer.World.MapItems
 {
     public class MapLayoutBuilder
     {
-        Single[,] heightMap;
+        Terrain terrain;
 
-        public MapLayoutBuilder(int sizeX, int sizeY)
+        public MapLayoutBuilder(int numBlocksX, int numBlocksY)
         {
-            heightMap = new Single[sizeX, sizeY];
+            terrain = new Terrain(numBlocksX, numBlocksY);
         }
 
         public void SetHeight(int x, int y, Single value)
         {
-            heightMap[x, y] = value;
+            terrain.SetHeightAtPoint(x, y, value);
         }
 
         public MapLayout GetLayout()
         {
-            return new MapLayout(heightMap);
+            return new MapLayout(terrain);
         }
     }
 }

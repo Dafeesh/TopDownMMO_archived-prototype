@@ -243,15 +243,6 @@ namespace Extant
         }
 
         /// <summary>
-        /// Subscribed to this object's log.
-        /// </summary>
-        /// <param name="func"></param>
-        public void SubscribeToLogs(DebugLogger.DebugLogMessageDelegate func)
-        {
-            this.Log.MessageLogged += func;
-        }
-
-        /// <summary>
         /// Returns the log for this object.
         /// </summary>
         public DebugLogger Log

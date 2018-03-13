@@ -7,10 +7,17 @@ namespace SharedComponents.GameProperties
 {
     public enum CharacterType
     {
-        Neutral,
-        Enemy,
+        Npc,
         Player
     }
+
+    public enum CharacterThreat
+    {
+        Neutral,
+        Enemy,
+        Friendly
+    }
+
     public enum CharacterVisibilityType
     {
         None,

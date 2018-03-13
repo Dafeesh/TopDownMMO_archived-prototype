@@ -19,6 +19,7 @@ namespace WorldServer.World
         public class Player : Character
         {
             private ClientConnection client;
+            private Queue<PlayerCommand> commands = new Queue<PlayerCommand>();
             private PlayerInfo info;
             private Int32 password;
             private bool newlyConnected = false;
@@ -46,7 +47,10 @@ namespace WorldServer.World
 
             public override void Tick()
             {
+                base.Tick();
+
                 if (client != null)
+                {
                     if (client.IsStopped)
                     {
                         Log.Log("Player disconnected.");
@@ -54,12 +58,41 @@ namespace WorldServer.World
                         client = null;
                         loggingOut = true;
                     }
+                    else
+                    {
+                        ReceiveCommands();
+                    }
+                }
+            }
+
+            private void ReceiveCommands()
+            {
+                Packet p = null;
+                while ((p = client.GetPacket()) != null)
+                {
+                    switch ((ClientToWorldPackets.PacketType)p.Type)
+                    {
+                        case (ClientToWorldPackets.PacketType.Player_MovementRequest_w):
+                            {
+                                ClientToWorldPackets.Player_MovementRequest_w pp = (ClientToWorldPackets.Player_MovementRequest_w)p;
+
+                                commands.Enqueue(new PlayerCommand.MoveTo(new Position2D(pp.posx, pp.posy)));
+                            }
+                            break;
+                    }
+                }
             }
 
             public override void Inform_AddCharacterInView(Character newChar)
             {
-                this.SendPacket(new ClientToWorldPackets.Character_Add_c(newChar.Id, CharacterType.Neutral, 0));
+                this.SendPacket(new ClientToWorldPackets.Character_Add_c(newChar.Id, CharacterType.Player, 0));
                 this.SendPacket(new ClientToWorldPackets.Character_Position_c(newChar.Id, newChar.Position.x, newChar.Position.y));
+            }
+
+            public override void Inform_CharacterMovePoint(Character charFrom, MovePoint mp)
+            {
+                this.SendPacket(new ClientToWorldPackets.Character_Position_c(charFrom.Id, mp.start.x, mp.start.y));
+                this.SendPacket(new ClientToWorldPackets.Character_Movement_c(charFrom.Id, mp));
             }
 
             public override void Inform_RemoveCharacterInView(Character oldChar)
@@ -100,6 +133,24 @@ namespace WorldServer.World
                 {
                     client.SendPacket(p);
                 }
+            }
+
+            /*
+            public Packet GetPacket()
+            {
+                if (client == null)
+                    return null;
+                else
+                    return client.GetPacket();
+            }
+            * */
+
+            public PlayerCommand GetCommand()
+            {
+                if (commands.Count > 0)
+                    return commands.Dequeue();
+                else
+                    return null;
             }
 
             public bool IsLoggingOut

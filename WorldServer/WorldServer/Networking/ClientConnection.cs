@@ -30,7 +30,7 @@ namespace WorldServer.Networking
             : base("Client")
         {
             connection = new NetConnection(ClientToWorldPackets.ReadBuffer, tcpClient, RECEIVE_TIMEOUT);
-            //connection.SubscribeToLogs(Console.WriteLine);
+            //connection.Log.MessageLogged += Console.WriteLine;
             connection.Start();
             state = ClientState.Varifying;
         }

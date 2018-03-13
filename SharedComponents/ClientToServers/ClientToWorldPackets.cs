@@ -29,6 +29,7 @@ namespace SharedComponents
 
             Player_Info_c,
             Player_SetControl_c,
+            Player_MovementRequest_w,
 
             Character_Add_c,
             Character_Remove_c,
@@ -62,6 +63,10 @@ namespace SharedComponents
                                 returnPacket = Map_Reset_c.ReadPacket(ref buffer);
                                 break;
 
+                            case (PacketType.Map_TerrainBlock_c):
+                                returnPacket = Map_TerrainBlock_c.ReadPacket(ref buffer);
+                                break;
+
                             case (PacketType.Verify_Details_w):
                                 returnPacket = Verify_Details_g.ReadPacket(ref buffer);
                                 break;
@@ -76,6 +81,10 @@ namespace SharedComponents
 
                             case (PacketType.Player_SetControl_c):
                                 returnPacket = Player_SetControl_c.ReadPacket(ref buffer);
+                                break;
+
+                            case (PacketType.Player_MovementRequest_w):
+                                returnPacket = Player_MovementRequest_w.ReadPacket(ref buffer);
                                 break;
 
                             case (PacketType.Character_Add_c):
@@ -96,17 +105,17 @@ namespace SharedComponents
 
                             default:
                                 DebugLogger.Global.Log("Invalid packet header: " + packetType + "/" + ((PacketType)packetType).ToString());
-                                throw new Packet.InvalidPacketRead();
+                                throw new Packet.InvalidPacketRead("Invalid packet header: " + ((PacketType)packetType).ToString());
                         }
 
                         if (Packet.TakeByte(ref buffer) == Packet.END_PACKET)
                             return returnPacket;
                         else
-                            throw new Packet.InvalidPacketRead();
+                            throw new Packet.InvalidPacketRead("Last byte of packet was not END_PACKET byte.");
                     }
-                    catch (ArgumentOutOfRangeException e) //Not enough data yet to make a full packet.
+                    catch (ArgumentOutOfRangeException)// e) //Not enough data yet to make a full packet.
                     {
-                        DebugLogger.Global.Log("Packet not large enough yet." + e.ToString());
+                        //DebugLogger.Global.Log("Packet not large enough yet." + e.ToString());
                         buffer = backupBuffer.ToList();
                         return null;
                     }
@@ -152,15 +161,24 @@ namespace SharedComponents
         /// </summary>
         public class Map_Reset_c : Packet
         {
-            public Map_Reset_c()
+            public int newNumBlocksX;
+            public int newNumBlocksY;
+
+            public Map_Reset_c(int newNumBlocksX, int newNumBlocksY)
                 : base((Int32)PacketType.Map_Reset_c, ProtocolType.Tcp)
-            { }
+            {
+                this.newNumBlocksX = newNumBlocksX;
+                this.newNumBlocksY = newNumBlocksY;
+            }
 
             public override Byte[] CreateSendBuffer()
             {
                 List<Byte> buffer = new List<Byte>();
                 {
                     buffer.AddRange(GetBytes_Int32((Int32)type));
+
+                    buffer.AddRange(GetBytes_Int32(newNumBlocksX));
+                    buffer.AddRange(GetBytes_Int32(newNumBlocksY));
                 }
                 buffer.Add(END_PACKET);
 
@@ -169,12 +187,14 @@ namespace SharedComponents
 
             public static Packet ReadPacket(ref List<byte> buffer)
             {
+                Int32 numBlocksX = TakeInt32(ref buffer);
+                Int32 numBlocksY = TakeInt32(ref buffer);
 
 #if DEBUG_PACKETS
-                DebugLogger.Global.Log("Packet In: Map_Reset_c");
+                DebugLogger.Global.Log("Packet In: Map_Reset_c - " + id);
 #endif
 
-                return new Map_Reset_c();
+                return new Map_Reset_c(numBlocksX, numBlocksY);
             }
         }
 
@@ -185,15 +205,13 @@ namespace SharedComponents
         {
             public int blockX;
             public int blockY;
-            public int sideLength;
             public Single[,] heightMap;
 
-            public Map_TerrainBlock_c(int blockX, int blockY, int sideLength, Single[,] heightMap)
+            public Map_TerrainBlock_c(int blockX, int blockY, Single[,] heightMap)
                 : base((Int32)PacketType.Map_TerrainBlock_c, ProtocolType.Tcp)
             {
                 this.blockX = blockX;
                 this.blockY = blockY;
-                this.sideLength = sideLength;
                 this.heightMap = heightMap;
             }
 
@@ -205,10 +223,9 @@ namespace SharedComponents
 
                     buffer.AddRange(GetBytes_Int32(blockX));
                     buffer.AddRange(GetBytes_Int32(blockY));
-                    buffer.AddRange(GetBytes_Int32(sideLength));
-                    for (int i = 0; i < sideLength; i++)
+                    for (int i = 0; i < MapDefaults.TERRAINBLOCK_WIDTH; i++)
                     {
-                        for (int j = 0; j < sideLength; j++)
+                        for (int j = 0; j < MapDefaults.TERRAINBLOCK_WIDTH; j++)
                         {
                             buffer.AddRange(GetBytes_Single(heightMap[i, j]));
                         }
@@ -223,14 +240,14 @@ namespace SharedComponents
             {
                 int blockX = TakeInt32(ref buffer);
                 int blockY = TakeInt32(ref buffer);
-                int sideLength = TakeInt32(ref buffer);
 
-                Single[,] heightMap = new Single[sideLength, sideLength];
-                for (int i = 0; i < sideLength; i++)
+                Single[,] heightMap = new Single[MapDefaults.TERRAINBLOCK_WIDTH, MapDefaults.TERRAINBLOCK_WIDTH];
+                for (int i = 0; i < MapDefaults.TERRAINBLOCK_WIDTH; i++)
                 {
-                    for (int j = 0; j < sideLength; j++)
+                    for (int j = 0; j < MapDefaults.TERRAINBLOCK_WIDTH; j++)
                     {
-                        buffer.AddRange(GetBytes_Single(heightMap[i, j]));
+                        //DebugLogger.Global.Log("[" + i + "," + j + "]");
+                        heightMap[i, j] = TakeSingle(ref buffer);
                     }
                 }
 
@@ -238,7 +255,7 @@ namespace SharedComponents
                 DebugLogger.Global.Log("Packet In: Map_TerrainBlock_c");
 #endif
 
-                return new Map_TerrainBlock_c(blockX, blockY, sideLength, heightMap);
+                return new Map_TerrainBlock_c(blockX, blockY, heightMap);
             }
         }
 
@@ -278,6 +295,47 @@ namespace SharedComponents
 #endif
 
                 return new Player_SetControl_c(id);
+            }
+        }
+
+        /// <summary>
+        /// Character is requesting to move.
+        /// </summary>
+        public class Player_MovementRequest_w : Packet
+        {
+            public Single posx, posy;
+
+            public Player_MovementRequest_w(Single posx, Single posy)
+                : base((Int32)PacketType.Player_MovementRequest_w, ProtocolType.Tcp)
+            {
+                this.posx = posx;
+                this.posy = posy;
+            }
+
+            public override Byte[] CreateSendBuffer()
+            {
+                List<Byte> buffer = new List<Byte>();
+                {
+                    buffer.AddRange(GetBytes_Int32((Int32)type));
+
+                    buffer.AddRange(GetBytes_Single(posx));
+                    buffer.AddRange(GetBytes_Single(posy));
+                }
+                buffer.Add(END_PACKET);
+
+                return buffer.ToArray();
+            }
+
+            public static Packet ReadPacket(ref List<byte> buffer)
+            {
+                Single posx = TakeSingle(ref buffer);
+                Single posy = TakeSingle(ref buffer);
+
+#if DEBUG_PACKETS
+                DebugLogger.Global.Log("Packet In: Player_MovementRequest_w");
+#endif
+
+                return new Player_MovementRequest_w(posx, posy);
             }
         }
 
@@ -425,22 +483,14 @@ namespace SharedComponents
         public class Character_Movement_c : Packet
         {
             public Int32 charId;
-            public Double x, y;
-            public Double newx, newy;
-            public Double speed;
+            public MovePoint movePoint;
 
             public Character_Movement_c(Int32 charId,
-                                        Double x, Double y,
-                                        Double newx, Double newy,
-                                        Double speed)
+                                        MovePoint movePoint)
                 : base((Int32)PacketType.Character_Movement_c, ProtocolType.Tcp)
             {
                 this.charId = charId;
-                this.x = x;
-                this.y = y;
-                this.newx = newx;
-                this.newy = newy;
-                this.speed = speed;
+                this.movePoint = movePoint;
             }
 
             public override Byte[] CreateSendBuffer()
@@ -450,11 +500,10 @@ namespace SharedComponents
                     buffer.AddRange(GetBytes_Int32((Int32)type));
 
                     buffer.AddRange(GetBytes_Int32(charId));
-                    buffer.AddRange(GetBytes_Double(x));
-                    buffer.AddRange(GetBytes_Double(y));
-                    buffer.AddRange(GetBytes_Double(newx));
-                    buffer.AddRange(GetBytes_Double(newy));
-                    buffer.AddRange(GetBytes_Double(speed));
+                    buffer.AddRange(GetBytes_Single(movePoint.start.x));
+                    buffer.AddRange(GetBytes_Single(movePoint.start.y));
+                    buffer.AddRange(GetBytes_Single(movePoint.end.x));
+                    buffer.AddRange(GetBytes_Single(movePoint.end.y));
                 }
                 buffer.Add(END_PACKET);
 
@@ -464,20 +513,16 @@ namespace SharedComponents
             public static Packet ReadPacket(ref List<byte> buffer)
             {
                 Int32 charId = TakeInt32(ref buffer);
-                Double x = TakeDouble(ref buffer);
-                Double y = TakeDouble(ref buffer);
-                Double newx = TakeDouble(ref buffer);
-                Double newy = TakeDouble(ref buffer);
-                Double speed = TakeDouble(ref buffer);
+                Single startx = TakeSingle(ref buffer);
+                Single starty = TakeSingle(ref buffer);
+                Single newx = TakeSingle(ref buffer);
+                Single newy = TakeSingle(ref buffer);
 
 #if DEBUG_PACKETS
                 DebugLogger.Global.Log("Packet In: Character_Movement_c - " + charId + ": (" + x + "," + y + ") -> (" + newx + "," + newy + ")");
 #endif
 
-                return new Character_Movement_c(charId,
-                                                x, y,
-                                                newx, newy,
-                                                speed);
+                return new Character_Movement_c(charId, new MovePoint(new Position2D(startx,starty), new Position2D(newx, newy)));
             }
         }
 
@@ -502,7 +547,7 @@ namespace SharedComponents
                 {
                     buffer.AddRange(GetBytes_Int32((Int32)type));
 
-                    buffer.AddRange(GetBytes_String_Unicode(username, STRBYTELENGTH_12));
+                    buffer.AddRange(GetBytes_String_Unicode(username));
                     buffer.AddRange(GetBytes_Int32(level));
                 }
                 buffer.Add(END_PACKET);
@@ -512,7 +557,7 @@ namespace SharedComponents
 
             public static Packet ReadPacket(ref List<byte> buffer)
             {
-                String username = new String(TakeUnicodeChars(ref buffer, STRBYTELENGTH_12));
+                String username = TakeString(ref buffer);
                 Int32 level = TakeInt32(ref buffer);
 
 #if DEBUG_PACKETS
@@ -547,7 +592,7 @@ namespace SharedComponents
                     buffer.AddRange(GetBytes_Int32((Int32)type));
 
                     buffer.AddRange(GetBytes_Int32(build));
-                    buffer.AddRange(GetBytes_String_Unicode(username, STRBYTELENGTH_12));
+                    buffer.AddRange(GetBytes_String_Unicode(username));
                     buffer.AddRange(GetBytes_Int32(password));
                 }
                 buffer.Add(END_PACKET);
@@ -558,7 +603,7 @@ namespace SharedComponents
             public static Packet ReadPacket(ref List<byte> buffer)
             {
                 Int32 build = TakeInt32(ref buffer);
-                String username = new String(TakeUnicodeChars(ref buffer, STRBYTELENGTH_12));
+                String username = TakeString(ref buffer);
                 Int32 password = TakeInt32(ref buffer);
 
 #if DEBUG_PACKETS

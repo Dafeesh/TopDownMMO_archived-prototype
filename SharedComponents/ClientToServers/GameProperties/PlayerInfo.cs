@@ -7,11 +7,10 @@ namespace SharedComponents.GameProperties
 {
     public struct PlayerInfo
     {
-        public PlayerInfo(string name)
+        public PlayerInfo(string name = "NULL", int level = -1)
         {
             Name = name;
-
-            Level = -1;
+            Level = level;
         }
 
         public string Name;

@@ -20,6 +20,7 @@ namespace Extant.Networking
         private IAsyncResult connectResult;
 
         private NetworkStream stream;
+        private object stream_lock = new object();
         private List<Byte> receiveBuffer = new List<byte>();
         private Byte[] receiveBuffer_temp = new Byte[1024];
 
@@ -155,8 +156,6 @@ namespace Extant.Networking
                     this.stream = tcpClient.GetStream();
                     state = NetworkState.Connected;
 
-                    receiveTimeoutTimer.Reset();
-                    receiveTimeoutTimer.Start();
                     BeginReceive(tcpClient.Client);
                 }
                 else
@@ -179,6 +178,9 @@ namespace Extant.Networking
                 }
                 else
                 {
+                    receiveTimeoutTimer.Reset();
+                    receiveTimeoutTimer.Start();
+
                     receiveBuffer.AddRange(receiveBuffer_temp.Take(numBytes));
                     InterpretBuffer(ref receiveBuffer);
                     
@@ -187,7 +189,6 @@ namespace Extant.Networking
                     byteLog_in.Bytes += numBytes;
 
                     BeginReceive(ar.AsyncState as Socket);
-                    //BeginReceive(tcpClient);
                 }
             }
             catch (Exception e)
@@ -227,15 +228,25 @@ namespace Extant.Networking
 
         public void SendPacket(Packet p)
         {
-            if (tcpClient.Connected)
+            try
             {
-                Byte[] d = p.CreateSendBuffer();
-                stream.Write(d, 0, d.Length);
-                stream.Flush();
+                if (tcpClient.Connected)
+                {
+                    Byte[] d = p.CreateSendBuffer();
+                    lock (stream_lock)
+                    {
+                        stream.Write(d, 0, d.Length);
+                        stream.Flush();
+                    }
 
-                byteLog_out.Bytes += d.Length;
+                    byteLog_out.Bytes += d.Length;
 
-                packets_count_out++;
+                    packets_count_out++;
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Log("Exception while while sending packet: " + e.Message);
             }
         }
 

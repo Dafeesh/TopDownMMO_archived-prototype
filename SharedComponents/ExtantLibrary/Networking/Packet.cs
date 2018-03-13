@@ -17,8 +17,6 @@ namespace Extant.Networking
     /// </summary>
     public abstract class Packet
     {
-        public static readonly Int32 STRBYTELENGTH_12 = sizeof(char) * 12;
-        public static readonly Int32 STRBYTELENGTH_25 = sizeof(char) * 25;
         public static readonly Byte EMPTY_BYTE = (Byte)0;
         public static readonly Byte END_PACKET = (Byte)23; //End of trans. block
         public static readonly Char EMPTY_CHAR = (Char)0;
@@ -58,6 +56,9 @@ namespace Extant.Networking
         /// <param name="buff">The array for data to be taken from.</param>
         public static Int32 TakeInt32(ref List<Byte> buff)
         {
+            if (buff.Count < sizeof(Int32))
+                throw new ArgumentOutOfRangeException("Buffer not big enough to pull Int32.");
+
             Int32 read = BitConverter.ToInt32(buff.ToArray(), 0);
             buff = buff.Skip(sizeof(Int32)).ToList();
             return read;
@@ -69,6 +70,9 @@ namespace Extant.Networking
         /// <param name="buff">The array for data to be taken from.</param>
         public static Single TakeSingle(ref List<Byte> buff)
         {
+            if (buff.Count < sizeof(Int32))
+                throw new ArgumentOutOfRangeException("Buffer not big enough to pull Single.");
+
             Single read = BitConverter.ToSingle(buff.ToArray(), 0);
             buff = buff.Skip(sizeof(Single)).ToList();
             return read;
@@ -80,6 +84,9 @@ namespace Extant.Networking
         /// <param name="buff">The array for data to be taken from.</param>
         public static Double TakeDouble(ref List<Byte> buff)
         {
+            if (buff.Count < sizeof(Double))
+                throw new ArgumentOutOfRangeException("Buffer not big enough to pull Double.");
+
             Double read = BitConverter.ToDouble(buff.ToArray(), 0);
             buff = buff.Skip(sizeof(Double)).ToList();
             return read;
@@ -91,6 +98,9 @@ namespace Extant.Networking
         /// <param name="buff">The array for data to be taken from.</param>
         public static Byte TakeByte(ref List<Byte> buff)
         {
+            if (buff.Count < sizeof(Byte))
+                throw new ArgumentOutOfRangeException("Buffer not big enough to pull Byte.");
+
             Byte read = buff[0];
             buff = buff.Skip(sizeof(Byte)).ToList();
             return read;
@@ -102,6 +112,9 @@ namespace Extant.Networking
         /// <param name="buff">The array for data to be taken from.</param>
         public static Char[] TakeUnicodeChars(ref List<Byte> buff, int count)
         {
+            if (buff.Count < count)
+                throw new ArgumentOutOfRangeException("Buffer not big enough to pull Char(" + count + ").");
+
             Char[] arr = Encoding.Unicode.GetChars(buff.ToArray(), 0, count);
             int returnAmount = 0;
             buff = buff.Skip(count).ToList();
@@ -112,6 +125,22 @@ namespace Extant.Networking
                 returnAmount++;
             }
             return arr.Take(returnAmount).ToArray();
+        }
+
+        /// <summary>
+        /// Returns a String of Chars that is read and removed from beginning of List of Bytes.
+        /// </summary>
+        /// <param name="buff">The array for data to be taken from.</param>
+        public static String TakeString(ref List<Byte> buff)
+        {
+            int byteCount = (int)TakeByte(ref buff);
+            if (byteCount <= 0)
+                throw new InvalidPacketRead("TakeString cannot read from '" + byteCount + "' bytes.");
+
+            Char[] charArr = Encoding.Unicode.GetChars(buff.ToArray(), 0, byteCount);
+
+            buff = buff.Skip(byteCount).ToList();
+            return new String(charArr);
         }
 
         /// <summary>
@@ -138,22 +167,14 @@ namespace Extant.Networking
             return BitConverter.GetBytes(d);
         }
 
-        /// <summary>
-        /// Returns the Bytes that make up an array of Chars.
-        /// </summary>
-        /// <param name="str">String to read from.</param>
-        /// <param name="size">Number of characters to read.</param>
-        /// <returns></returns>
-        public static Byte[] GetBytes_String_Unicode(String str, int size)
+        public static Byte[] GetBytes_String_Unicode(String str)
         {
-            char[] stra = str.ToArray();
+            Char[] chars = str.ToArray();
+            List<byte> arr = new List<byte>();
 
-            List<Byte> arr = new List<Byte>();
-            arr.AddRange(Encoding.Unicode.GetBytes(stra, 0, stra.Length).ToList());
-            while (arr.Count < size)
-            {
-                arr.Add(EMPTY_BYTE);
-            }
+            arr.Add((byte)Encoding.Unicode.GetByteCount(chars, 0, chars.Length));
+            arr.AddRange(Encoding.Unicode.GetBytes(chars, 0, chars.Length));
+
             return arr.ToArray();
         }
 
@@ -162,8 +183,8 @@ namespace Extant.Networking
         /// </summary>
         public class InvalidPacketRead : Exception
         {
-            public InvalidPacketRead()
-                : base("Packet was found to be invalid upon reading.")
+            public InvalidPacketRead(String m)
+                : base("Packet was found to be invalid upon reading: " + m)
             { }
         }
     }

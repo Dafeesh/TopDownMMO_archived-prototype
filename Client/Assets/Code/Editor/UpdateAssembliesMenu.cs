@@ -22,6 +22,7 @@ public class UpdateAssembliesMenu : MonoBehaviour
         catch (Exception e)
         {
             Debug.Log("Failed to copy over assemblies: " + e.ToString());
+            return;
         }
 
         Debug.Log("Successfully copied over assemblies.");

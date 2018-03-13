@@ -33,5 +33,10 @@ namespace SharedComponents.GameProperties
             this.x = x;
             this.y = y;
         }
+
+        public override string ToString()
+        {
+            return "(" + x.ToString("F") + "," + y.ToString("F") + ")";
+        }
     }
 }

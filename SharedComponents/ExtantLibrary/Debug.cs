@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Diagnostics;
 
 namespace Extant
@@ -9,13 +10,21 @@ namespace Extant
     /// </summary>
     public class DebugLogger
     {
+        private class _Global : DebugLogger
+        {
+            public _Global()
+                : base("Global")
+            {
+                //this.MessageLogged += Console.WriteLine;
+            }
+        }
         /////////////
-        public static readonly DebugLogger Global = new DebugLogger("Global");
+        public static readonly DebugLogger Global = new DebugLogger._Global();
         /////////////
 
         private String sourceName;
 
-        private List<String> log = new List<String>();
+        private List<LogItem> log = new List<LogItem>();
         private object log_lock = new object();
 
         public delegate void DebugLogMessageDelegate(String message);
@@ -28,17 +37,51 @@ namespace Extant
 
         public void Log(string s)
         {
-            String m;
+            if (String.IsNullOrEmpty(s))
+                return;
+
             lock (log_lock)
             {
-                m = DateTime.Now.ToString("HH:mm:ss tt") +
-                    "[" + sourceName + "]: " + s;
+                LogItem li = new LogItem(DateTime.Now, sourceName, s);
 
-                log.Add(m);
+                log.Add(li);
+
+                if (MessageLogged != null)
+                    MessageLogged(li.ToString());
             }
+        }
 
-            if (MessageLogged != null)
-                MessageLogged(m);
+        public LogItem[] GetLog(int numLines)
+        {
+            lock (log_lock)
+            {
+                if (numLines <= 0)
+                    return new LogItem[0];
+
+                if (numLines > log.Count)
+                    numLines = log.Count;
+
+                return log.Take(numLines).ToArray();
+            }
+        }
+    }
+
+    public class LogItem
+    {
+        public DateTime Time;
+        public String Source;
+        public String Message;
+
+        public LogItem(DateTime time, String source, String message)
+        {
+            this.Time = time;
+            this.Source = source;
+            this.Message = message;
+        }
+
+        public override string ToString()
+        {
+            return Time.ToString("HH:mm:ss tt") + "[" + Source + "]: " + Message;
         }
     }
 

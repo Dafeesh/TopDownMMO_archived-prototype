@@ -14,7 +14,7 @@ public class ClickTargetting : MonoBehaviour
     {
         if (Input.GetMouseButton(1))
         {
-            Ray start = this.camera.ScreenPointToRay(Input.mousePosition);
+            Ray start = this.GetComponent<Camera>().ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
 
             if (Physics.Raycast(start, out hit))
