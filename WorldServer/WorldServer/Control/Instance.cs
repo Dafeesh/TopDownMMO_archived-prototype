@@ -8,9 +8,9 @@ using Extant;
 
 using SharedComponents;
 using SharedComponents.GameProperties;
-using WorldServer.World.InstanceItems;
+using WorldServer.World;
 
-namespace WorldServer.World
+namespace WorldServer.Control
 {
     public abstract class Instance : ThreadRun, IInstanceTick
     {
@@ -22,11 +22,11 @@ namespace WorldServer.World
 
         private DebugLogger log;
 
-        public Instance(String name, Map map)
+        public Instance(String name, MapLayout map)
             : base("Instance-" + name)
         {
             this.name = name;
-            this.map = map;
+            this.map = new Map(map);
 
             characters = new List<Character>();
             players = new List<Characters.Player>();
@@ -127,7 +127,8 @@ namespace WorldServer.World
             characters.Add(p);
             players.Add(p);
 
-            p.SendPacket(new ClientToWorldPackets.Map_MoveTo_c((int)map.Id));
+            p.SendPacket(new ClientToWorldPackets.Map_Reset_c());
+            //Send immediate map pieces
             p.SendPacket(new ClientToWorldPackets.Character_Add_c(p.Id, CharacterType.Player, 1));
             p.SendPacket(new ClientToWorldPackets.Character_Position_c(p.Id, p.Position.x, p.Position.y));
             p.SendPacket(new ClientToWorldPackets.Player_SetControl_c(p.Id));
@@ -162,25 +163,21 @@ namespace WorldServer.World
         }
 
         /////////// Public ///////////
-        public void AddCharacterToInstance(Character c, int entryPoint = -1)
+        public void AddCharacterToInstance(Character character, Position2D position = null)
         {
-            if (entryPoint >= 0)
-            {
-                c.Position.Set(map.EntryPoint(entryPoint));
-            }
+            if (position != null)
+                character.Position.Set(position);
 
             this.Invoke(() =>
             {
-                this.AddCharacter(c);
+                this.AddCharacter(character);
             });
         }
 
-        public void AddPlayerToInstance(Characters.Player p, int entryPoint = -1)
+        public void AddPlayerToInstance(Characters.Player p, Position2D position = null)
         {
-            if (entryPoint >= 0)
-            {
-                p.Position.Set(map.EntryPoint(entryPoint));
-            }
+            if (position != null)
+                p.Position.Set(position);
 
             this.Invoke(() =>
             {

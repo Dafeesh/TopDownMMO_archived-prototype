@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Net;
 using System.Threading;
+using System.Windows.Forms;
 
 using Extant;
 
 using WorldServer.Networking;
 using SharedComponents.GameProperties;
-using System.Windows.Forms;
 
 namespace WorldServer
 {
@@ -27,7 +27,7 @@ namespace WorldServer
                 if (Console.KeyAvailable)
                     if (Console.ReadKey(true).KeyChar == ' ')
                         if (!RunWatcher())
-                            host.Stop();
+                            host.Dispose();
                 Thread.Sleep(100);
             }
 

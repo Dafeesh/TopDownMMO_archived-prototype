@@ -38,11 +38,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ClientToChatPackets.cs" />
     <Compile Include="ClientToWorldPackets.cs" />
-    <Compile Include="ClientToMainPackets.cs" />
     <Compile Include="GameProperties\Enums.cs" />
-    <Compile Include="GameProperties\Instances.cs" />
     <Compile Include="GameProperties\PlayerInfo.cs" />
     <Compile Include="GameProperties\Position2D.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

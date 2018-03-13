@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using SharedComponents.GameProperties;
-using WorldServer.World.InstanceItems;
+using WorldServer.World;
 
 namespace WorldServer.Networking
 {

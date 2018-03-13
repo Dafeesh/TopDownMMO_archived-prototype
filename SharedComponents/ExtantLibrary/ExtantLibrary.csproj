@@ -37,6 +37,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Debug.cs" />
+    <Compile Include="ILogging.cs" />
     <Compile Include="Networking\NetConnection.cs" />
     <Compile Include="Networking\Packet.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

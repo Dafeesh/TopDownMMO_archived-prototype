@@ -5,8 +5,9 @@ using SharedComponents;
 using SharedComponents.GameProperties;
 
 using Extant.Networking;
+using WorldServer.Control;
 
-namespace WorldServer.World.InstanceItems
+namespace WorldServer.World
 {
     public abstract class Character : IDisposable , IInstanceTick
     {

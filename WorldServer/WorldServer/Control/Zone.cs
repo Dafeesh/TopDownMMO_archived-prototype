@@ -4,7 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WorldServer.World.InstanceItems
+using WorldServer.World;
+
+namespace WorldServer.Control
 {
     public partial class Instances
     {
@@ -12,8 +14,8 @@ namespace WorldServer.World.InstanceItems
         {
             private ZoneIDs id;
 
-            public Zone(ZoneIDs id, Map map)
-                : base(id.ToString(), map)
+            public Zone(ZoneIDs id, MapLayout mapLayout)
+                : base(id.ToString(), mapLayout)
             {
                 this.id = id;
             }

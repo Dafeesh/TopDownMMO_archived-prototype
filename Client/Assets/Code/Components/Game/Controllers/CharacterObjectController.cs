@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class CharacterController : MonoBehaviour
+public class CharacterObjectController : MonoBehaviour
 {
     void Start()
     {

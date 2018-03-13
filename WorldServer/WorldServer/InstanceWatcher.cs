@@ -9,7 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-using WorldServer.World;
+using WorldServer.Control;
 
 namespace WorldServer
 {
@@ -92,6 +92,11 @@ namespace WorldServer
         {
             workerThread.Abort();
             workerThread.Join();
+        }
+
+        private void button_RefreshPlayerList_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

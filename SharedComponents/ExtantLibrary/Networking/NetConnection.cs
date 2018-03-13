@@ -33,7 +33,8 @@ namespace Extant.Networking
         public delegate Packet ReadBufferFunc(ref List<Byte> bytes);
         private ReadBufferFunc ReadBuffer;
 
-        private DebugLogger log = new DebugLogger();
+        private ByteRecord byteLog_out = new ByteRecord();
+        private ByteRecord byteLog_in = new ByteRecord();
 
         /// <summary>
         /// Used if connection is not already established.
@@ -86,8 +87,9 @@ namespace Extant.Networking
                 }
                 catch (Exception e)
                 {
-                    log.LogWarning("NetConnection: Exception while trying to start connecting.\n" + e.ToString());
-                    this.Stop();
+                    String m = "NetConnection: Exception while trying to start connecting.\n" + e.ToString();
+                    Log.LogWarning(m);
+                    this.Stop(m);
                 }
             }
         }
@@ -101,9 +103,9 @@ namespace Extant.Networking
                         if (connectTimeoutTimer.ElapsedMilliseconds > connectTimeout)
                         {
 #if LOG_DEBUG
-                            log.Log("NetConnection: Connect timed out.");
+                            Log.Log("NetConnection: Connect timed out.");
 #endif
-                            this.Stop();
+                            this.Stop("Connect timed out.");
                         }
                         break;
                     }
@@ -112,27 +114,27 @@ namespace Extant.Networking
                         if (receiveTimeoutTimer.ElapsedMilliseconds > receiveTimeout)
                         {
 #if LOG_DEBUG
-                            log.Log("NetConnection: Receive timed out.");
+                            Log.Log("NetConnection: Receive timed out.");
 #endif
-                            this.Stop();
+                            this.Stop("Receive timed out.");
                         }
                         else if (!tcpClient.Connected)
                         {
 #if LOG_DEBUG
-                            log.Log("NetConnection: Disconnected.");
+                            Log.Log("NetConnection: Disconnected.");
 #endif
-                            this.Stop();
+                            this.Stop("Disconnected.");
                         }
                         break;
                     }
                 case (NetworkState.Closed):
                     {
-                        this.Stop();
+                        this.Stop("Closed.");
                         break;
                     }
                 default:
                     {
-                        log.LogError("NetConnection: Invalid state: " + state.ToString());
+                        Log.LogError("NetConnection: Invalid state: " + state.ToString());
                         throw new SocketException((int)SocketError.OperationNotSupported);
                     }
             }
@@ -146,6 +148,7 @@ namespace Extant.Networking
             }
             connectTimeoutTimer.Stop();
             state = NetworkState.Closed;
+            Log.Log("NetConnection finished.");
         }
 
         private void BeginReceive(Socket client)
@@ -160,7 +163,7 @@ namespace Extant.Networking
                 if (tcpClient.Connected)
                 {
 #if LOG_DEBUG
-                    log.Log("NetConnection: ConnectCallback, connected!");
+                    Log.Log("NetConnection: ConnectCallback, connected!");
 #endif
                     this.stream = tcpClient.GetStream();
                     state = NetworkState.Connected;
@@ -172,9 +175,9 @@ namespace Extant.Networking
                 else
                 {
 #if LOG_DEBUG
-                    log.Log("NetConnection: ConnectCallback, no connection.");
+                    Log.Log("NetConnection: ConnectCallback, no connection.");
 #endif
-                    this.Stop();
+                    this.Stop("Callback, no connection.");
                 }
             }
         }
@@ -190,9 +193,9 @@ namespace Extant.Networking
                 if (numBytes == 0)
                 {
 #if LOG_DEBUG
-                    log.Log("NetConnection: Client disconnected.");
+                    Log.Log("NetConnection: Client disconnected.");
 #endif
-                    this.Stop();
+                    this.Stop("Receive callback: lost connection.");
                 }
                 else
                 {
@@ -200,9 +203,9 @@ namespace Extant.Networking
                     InterpretBuffer(ref receiveBuffer);
                     
 #if LOG_DEBUG
-                    log.Log("NetConnection: Received bytes- " + numBytes);
+                    Log.Log("NetConnection: Received bytes- " + numBytes);
 #endif
-                    ByteRecord.GlobalByteRecord_In.Bytes += numBytes;
+                    byteLog_in.Bytes += numBytes;
 
                     BeginReceive(ar.AsyncState as Socket);
                     //BeginReceive(tcpClient);
@@ -210,8 +213,8 @@ namespace Extant.Networking
             }
             catch (Exception e)
             {
-                log.Log("NetConnection: ReceiveCallback exception ->\n" + e.ToString() + "\n--");
-                this.Stop();
+                Log.Log("NetConnection: ReceiveCallback exception ->\n" + e.ToString());
+                this.Stop("Receive callback exception: " + e.ToString());
             }
         }
 
@@ -252,15 +255,10 @@ namespace Extant.Networking
                 stream.Write(d, 0, d.Length);
                 stream.Flush();
 
+                byteLog_out.Bytes += d.Length;
+
                 packets_count_out++;
             }
-        }
-
-        public void SubscribeToLogs(DebugLogger.DebugLogMessageDelegate func)
-        {
-            log.MessageLogged += func;
-            log.WarningLogged += func;
-            log.ErrorLogged += func;
         }
 
         /// <summary>

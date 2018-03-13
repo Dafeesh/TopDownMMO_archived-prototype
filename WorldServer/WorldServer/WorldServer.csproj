@@ -55,16 +55,17 @@
     <Compile Include="Networking\WorldHost.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="World\InstanceItems\IInstanceTick.cs" />
-    <Compile Include="World\Instance.cs" />
-    <Compile Include="World\InstanceItems\_Instances\Zone.cs" />
-    <Compile Include="World\InstanceItems\_Characters\NPCs\RandomTeleportingWizard.cs" />
-    <Compile Include="World\InstanceItems\_Characters\Npc.cs" />
-    <Compile Include="World\MapItems\Maps\Zones\TestMap.cs" />
-    <Compile Include="World\WorldController.cs" />
-    <Compile Include="World\InstanceItems\Character.cs" />
-    <Compile Include="World\InstanceItems\_Characters\Player.cs" />
+    <Compile Include="Control\InstanceItems\IInstanceTick.cs" />
+    <Compile Include="Control\Instance.cs" />
+    <Compile Include="Control\Zone.cs" />
+    <Compile Include="World\Characters\NPCs\RandomTeleportingWizard.cs" />
+    <Compile Include="World\Characters\Npc.cs" />
+    <Compile Include="World\MapItems\MapLayoutBuilder.cs" />
+    <Compile Include="Control\WorldController.cs" />
+    <Compile Include="World\Character.cs" />
+    <Compile Include="World\Characters\Player.cs" />
     <Compile Include="World\Map.cs" />
+    <Compile Include="World\MapItems\MapLayout.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -84,6 +85,7 @@
       <Name>ExtantLibrary</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

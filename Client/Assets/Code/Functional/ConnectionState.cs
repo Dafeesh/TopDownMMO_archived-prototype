@@ -2,6 +2,7 @@
 
 public enum ConnectionState
 {
+    Null,
     None,
     Connecting,
     Authorizing,

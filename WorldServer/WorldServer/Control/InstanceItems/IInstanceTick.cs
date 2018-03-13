@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WorldServer.World.InstanceItems
+namespace WorldServer.Control
 {
     public interface IInstanceTick
     {

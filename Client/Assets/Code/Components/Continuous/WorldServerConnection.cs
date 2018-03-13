@@ -8,7 +8,7 @@ using Extant;
 using Extant.Networking;
 using SharedComponents;
 
-public class WorldServerConnection : MonoBehaviour
+public class WorldServerConnection : MonoBehaviour , ILogging
 {
     [SerializeField]
     int CONNECT_TIMEOUT = 5000;
@@ -28,7 +28,7 @@ public class WorldServerConnection : MonoBehaviour
 
     DebugLogger log = new DebugLogger();
 
-    ConnectionState state = ConnectionState.Connected;
+    ConnectionState state = ConnectionState.Null;
     Queue<Packet> packets = new Queue<Packet>();
 
     void Start()
@@ -43,6 +43,7 @@ public class WorldServerConnection : MonoBehaviour
 
     void OnApplicationQuit()
     {
+        log.Log("Application quit.");
         if (connection != null)
             connection.Dispose();
     }
@@ -88,9 +89,8 @@ public class WorldServerConnection : MonoBehaviour
                                 ClientToWorldPackets.Verify_Result_c r = (ClientToWorldPackets.Verify_Result_c)p;
                                 if (r.returnCode == ClientToWorldPackets.Verify_Result_c.VerifyReturnCode.Success)
                                 {
-                                    log.Log("WSConnection authorized!");
+                                    log.Log("WSConnection authorized! Starting game...");
                                     SetState(ConnectionState.Connected);
-                                    Application.LoadLevel(SceneList.GameStart);
                                 }
                                 else
                                 {
@@ -110,6 +110,7 @@ public class WorldServerConnection : MonoBehaviour
                 {
                     if (connection.State != NetConnection.NetworkState.Connected)
                     {
+                        log.Log("WSConnection disconnected from server! Error: " + ((connection.UnhandledException == null)?("null"):(connection.UnhandledException.ToString())));
                         SetState(ConnectionState.None);
                     }
                     else
@@ -126,25 +127,22 @@ public class WorldServerConnection : MonoBehaviour
         }
     }
 
-    private void SetState(ConnectionState s)
+    private void SetState(ConnectionState newState)
     {
-        if (s != state)
+        if (newState != state)
         {
-            state = s;
+            state = newState;
             switch (state)
             {
                 case (ConnectionState.None):
                     {
                         ClearConnection();
-                        if (Application.loadedLevelName != "_MainMenu")
-                        {
-                            Application.LoadLevel("_MainMenu");
-                        }
+                        Application.LoadLevel(SceneList.MainMenu);
                     }
                     break;
                 case (ConnectionState.Connected):
                     {
-
+                        Application.LoadLevel(SceneList.GameStart);
                     }
                     break;
             }
@@ -157,11 +155,12 @@ public class WorldServerConnection : MonoBehaviour
         if (connection != null)
         {
             connection.Dispose();
+            connection = null;
             packetCount = 0;
             packets.Clear();
 
+            log.Log("WSConnection cleared connection.");
             SetState(ConnectionState.None);
-            //log.Log("WSConnection cleared connection.");
         }
     }
 
@@ -198,6 +197,14 @@ public class WorldServerConnection : MonoBehaviour
         get
         {
             return state;
+        }
+    }
+
+    public DebugLogger Log
+    {
+        get
+        {
+            return log;
         }
     }
 }

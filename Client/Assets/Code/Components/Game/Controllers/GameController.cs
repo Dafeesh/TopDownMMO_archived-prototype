@@ -4,7 +4,7 @@ using SharedComponents;
 using SharedComponents.GameProperties;
 using UnityEngine;
 
-public class GameController : MonoBehaviour
+public class GameController : MonoBehaviour , ILogging
 {
     [SerializeField]
     InterfaceController uiController = null;
@@ -14,13 +14,11 @@ public class GameController : MonoBehaviour
     PlayerController plrController = null;
 
     WorldServerConnection wsConnection;
-
     DebugLogger log = new DebugLogger();
 
-    GameTime gameTime;
-    GameObject sceneManager = null;
-
+    //GameMap map = new GameMap();
     PlayerInfo playerInfo = new PlayerInfo("NULL");
+    GameTime gameTime;
 
     void Start()
     {
@@ -30,29 +28,22 @@ public class GameController : MonoBehaviour
             Debug.LogError("GameController was not given a uiController.");
         if (plrController == null)
             Debug.LogError("GameController was not given a plrController.");
-
-        wsConnection = GameObject.Find("_Connections").GetComponent<WorldServerConnection>();
-        if (wsConnection == null)
-            Debug.LogError("GameController could not find WorldServerConnection.");
+        try
+        {
+            wsConnection = GameObject.Find("Connections").GetComponent<WorldServerConnection>();
+        }
+        finally
+        {
+            if (wsConnection == null)
+                Debug.LogError("GameController could not find WorldServerConnection.");
+        }
 
         gameTime = new GameTime();
-        sceneManager = null;
     }
 
     void Update()
     {
-        if (sceneManager != null)
-        {
-            HandleIncomingPackets();
-        }
-        else
-        {
-            sceneManager = GameObject.Find("_SceneBase");
-            if (sceneManager != null)
-            {
-                log.Log("GameController found SceneBase.");
-            }
-        }
+        HandleIncomingPackets();
     }
 
     private void HandleIncomingPackets()
@@ -86,12 +77,21 @@ public class GameController : MonoBehaviour
                     }
                     break;
 
-                case (ClientToWorldPackets.PacketType.Map_MoveTo_c):
+                case (ClientToWorldPackets.PacketType.Map_Reset_c):
                     {
-                        ClientToWorldPackets.Map_MoveTo_c pp = p as ClientToWorldPackets.Map_MoveTo_c;
+                        //ClientToWorldPackets.Map_Reset_c pp = p as ClientToWorldPackets.Map_Reset_c;
 
-                        LoadNewMap((MapID)pp.mapNum);
-                        log.Log("WorldServer- LoadMap: " + (MapID)pp.mapNum);
+
+                        log.Log("WorldServer- Reset Map.");
+                    }
+                    break;
+
+                case (ClientToWorldPackets.PacketType.Map_TerrainBlock_c):
+                    {
+                        //ClientToWorldPackets.Map_TerrainBlock_c pp = p as ClientToWorldPackets.Map_TerrainBlock_c;
+
+
+                        log.Log("WorldServer- Terrain Block.");
                     }
                     break;
 
@@ -134,35 +134,11 @@ public class GameController : MonoBehaviour
         }
     }
 
-    private void DeleteOldMap()
+    public DebugLogger Log
     {
-        if (sceneManager != null)
+        get
         {
-            Destroy(sceneManager);
-            sceneManager = null;
-            log.Log("Deleted the map.");
-        }
-    }
-
-    private void LoadNewMap(MapID id)
-    {
-        DeleteOldMap();
-
-        //Load new map
-        switch (id)
-        {
-            case (MapID.TestMap):
-                {
-                    Application.LoadLevelAdditive(SceneList.Maps.TestMap);
-                    log.Log("Loaded map: " + SceneList.Maps.TestMap);
-                }
-                break;
-
-            default:
-                {
-                    log.LogError("GameController could not load map: " + id.ToString());
-                }
-                break;
+            return log;
         }
     }
 }

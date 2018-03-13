@@ -24,7 +24,7 @@ namespace WorldServer.Networking
         private Int32 verifyPassword;
         private Stopwatch lifeTimeTimer = new Stopwatch();
 
-        private ClientState state;
+        private ClientState state = ClientState.Null;
 
         public ClientConnection(TcpClient tcpClient)
             : base("Client")
@@ -45,7 +45,8 @@ namespace WorldServer.Networking
             //Check connection
             if (connection.State == NetConnection.NetworkState.Closed)
             {
-                this.Stop();
+                this.Stop("Connection lost.");
+                this.state = ClientState.Disconnected;
                 return;
             }
 
@@ -53,7 +54,7 @@ namespace WorldServer.Networking
             {
                 case (ClientState.Disconnected):
                     {
-                        this.Stop();
+                        this.Stop("Disconnected.");
                         break;
                     }
                 case (ClientState.Varifying):
@@ -77,13 +78,13 @@ namespace WorldServer.Networking
                                 else
                                 {
                                     connection.SendPacket(new ClientToWorldPackets.Verify_Result_c(ClientToWorldPackets.Verify_Result_c.VerifyReturnCode.IncorrectVersion));
-                                    this.Stop();
+                                    this.Stop("Client had incorrect version.");
                                 }
                             }
                             else
                             {
                                 DebugLogger.Global.Log("Client sent wrong packet when trying to verify: " + this.RunningID + "/" + p.Type.ToString());
-                                this.Stop();
+                                this.Stop("Client sent wrong packet when trying to verify.");
                                 return;
                             }
                         }
@@ -101,7 +102,7 @@ namespace WorldServer.Networking
         protected override void Finish(bool success)
         {
             //DebugLogger.Global.Log("Client disconnected. (" + this.RunningID + ")");
-            connection.Stop();
+            connection.Stop("ClientConnection finished.");
             lifeTimeTimer.Stop();
             state = ClientState.Disconnected;
         }
@@ -171,6 +172,7 @@ namespace WorldServer.Networking
 
     enum ClientState
     {
+        Null,
         Disconnected,
         Varifying,
         Connected

@@ -4,7 +4,7 @@ using System.Diagnostics;
 using SharedComponents.GameProperties;
 using Extant;
 
-namespace WorldServer.World.InstanceItems
+namespace WorldServer.World
 {
     public partial class Characters
     {

@@ -10,13 +10,13 @@ using SharedComponents;
 using SharedComponents.GameProperties;
 using WorldServer.Networking;
 using WorldServer.World;
-using WorldServer.World.InstanceItems;
+using WorldServer.World.MapItems;
 
-namespace WorldServer.World
+namespace WorldServer.Control
 {
     public class WorldController : ThreadRun
     {
-        private Dictionary<string, Map> maps = new Dictionary<string, Map>();
+        private Dictionary<MapID, MapLayout> maps = new Dictionary<MapID, MapLayout>();
         private Dictionary<Instances.Zone.ZoneIDs, Instances.Zone> instances_zone = new Dictionary<Instances.Zone.ZoneIDs, Instances.Zone>();
         private List<Instance> instances_temp = new List<Instance>();
         private List<Characters.Player> players = new List<Characters.Player>();
@@ -78,19 +78,29 @@ namespace WorldServer.World
 
         private void LoadMaps()
         {
-            maps.Add("TestMap", new Maps.TestMap());
+            //Build maps
+            MapLayoutBuilder mb = new MapLayoutBuilder(100, 100);
+            for (int i = 0; i < 100; i++ )
+            {
+                for (int j=0; j<100; j++)
+                {
+                    mb.SetHeight(i, j, Math.Abs((float)((i + j) % 10) - 5));
+                }
+            }
+
+            maps.Add(MapID.TestMap, mb.GetLayout());
         }
 
         private void CreateZones()
         {
-            Instances.Zone testZone = new Instances.Zone(Instances.Zone.ZoneIDs.TestZone, maps["TestMap"]);
+            Instances.Zone testZone = new Instances.Zone(Instances.Zone.ZoneIDs.TestZone, maps[MapID.TestMap]);
 
-            /*
+            
             Character c1 = new Characters.RandomTeleportingWizard(100, 100);
             Character c2 = new Characters.RandomTeleportingWizard(150, 100);
             testZone.AddCharacterToInstance(c1);
             testZone.AddCharacterToInstance(c2);
-            */
+            
 
             testZone.Start();
             instances_zone.Add(Instances.Zone.ZoneIDs.TestZone, testZone);

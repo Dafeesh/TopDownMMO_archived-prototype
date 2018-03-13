@@ -16,10 +16,4 @@ namespace SharedComponents.GameProperties
         None,
         Normal
     }
-
-    public enum MapID
-    {
-        Null,
-        TestMap
-    }
 }

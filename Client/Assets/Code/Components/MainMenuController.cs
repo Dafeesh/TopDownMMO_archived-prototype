@@ -8,9 +8,15 @@ public class MainMenuController : MonoBehaviour
 
     void Start()
     {
-        wsConnection = GameObject.Find("_Connections").GetComponent<WorldServerConnection>();
-        if (wsConnection == null)
-            Debug.LogError("MainMenuController could not find WorldServerConnection");
+        try
+        {
+            wsConnection = GameObject.Find("Connections").GetComponent<WorldServerConnection>();
+        }
+        finally
+        {
+            if (wsConnection == null)
+                Debug.LogError("MainMenuController could not find WorldServerConnection");
+        }
     }
 
     void Update()

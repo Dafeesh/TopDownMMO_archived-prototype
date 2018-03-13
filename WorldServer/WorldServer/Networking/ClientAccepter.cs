@@ -49,13 +49,11 @@ namespace WorldServer.Networking
         {
             listener.Stop();
             foreach (ClientConnection c in newClients)
-                if (!c.IsStopped)
-                    c.Stop();
+                c.Dispose();
             lock (verifiedClients_lock)
             {
                 foreach (ClientConnection c in verifiedClients)
-                    if (!c.IsStopped)
-                        c.Stop();
+                    c.Dispose();
             }
         }
 
@@ -78,7 +76,7 @@ namespace WorldServer.Networking
                 //Stopped or timed out?
                 if (newClients[i].IsStopped || newClients[i].LifeTime > NEWCLIENT_TIMEOUT)
                 {
-                    newClients[i].Stop();
+                    newClients[i].Stop("Client timed out.");
                     newClients.Remove(newClients[i]);
                 }
                 else if (newClients[i].IsConnectedAndVerified)

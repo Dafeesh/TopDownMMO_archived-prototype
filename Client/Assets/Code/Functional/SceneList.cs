@@ -2,11 +2,7 @@
 
 class SceneList
 {
-    public const string MainMenu = "_MainMenu";
-    public const string GameStart = "_GameStart";
-
-    public static class Maps
-    {
-        public const string TestMap = "TestMap";
-    }
+    public const string _Start = "_Start";
+    public const string MainMenu = "MainMenu";
+    public const string GameStart = "InGame";
 }

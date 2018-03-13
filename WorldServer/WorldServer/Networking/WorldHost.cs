@@ -10,7 +10,7 @@ using Extant;
 using SharedComponents;
 using SharedComponents.GameProperties;
 using WorldServer.World;
-using WorldServer.World.InstanceItems;
+using WorldServer.Control;
 
 namespace WorldServer.Networking
 {
@@ -49,8 +49,8 @@ namespace WorldServer.Networking
 
         protected override void Finish(bool success)
         {
-            clientAccepter.Stop();
-            worldController.Stop();
+            clientAccepter.Dispose();
+            worldController.Dispose();
 
             //TODO: Send account info to main
         }

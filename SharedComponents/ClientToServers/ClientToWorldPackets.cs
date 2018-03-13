@@ -21,7 +21,8 @@ namespace SharedComponents
 
             Ping_c,
 
-            Map_MoveTo_c,
+            Map_Reset_c,
+            Map_TerrainBlock_c,
 
             Verify_Details_w,
             Verify_Result_c,
@@ -57,8 +58,8 @@ namespace SharedComponents
                                 returnPacket = Ping_c.ReadPacket(ref buffer);
                                 break;
 
-                            case (PacketType.Map_MoveTo_c):
-                                returnPacket = Map_MoveTo_c.ReadPacket(ref buffer);
+                            case (PacketType.Map_Reset_c):
+                                returnPacket = Map_Reset_c.ReadPacket(ref buffer);
                                 break;
 
                             case (PacketType.Verify_Details_w):
@@ -122,7 +123,7 @@ namespace SharedComponents
             public Ping_c()
                 : base((Int32)PacketType.Ping_c, ProtocolType.Tcp)
             {
-                
+
             }
 
             public override Byte[] CreateSendBuffer()
@@ -145,27 +146,21 @@ namespace SharedComponents
                 return new Ping_c();
             }
         }
-        
-        /// <summary>
-        /// Inform client of a change in the map.
-        /// </summary>
-        public class Map_MoveTo_c : Packet
-        {
-            public int mapNum;
 
-            public Map_MoveTo_c(int mapNum)
-                : base((Int32)PacketType.Map_MoveTo_c, ProtocolType.Tcp)
-            {
-                this.mapNum = mapNum;
-            }
+        /// <summary>
+        /// Inform the client to reset the map.
+        /// </summary>
+        public class Map_Reset_c : Packet
+        {
+            public Map_Reset_c()
+                : base((Int32)PacketType.Map_Reset_c, ProtocolType.Tcp)
+            { }
 
             public override Byte[] CreateSendBuffer()
             {
                 List<Byte> buffer = new List<Byte>();
                 {
                     buffer.AddRange(GetBytes_Int32((Int32)type));
-
-                    buffer.AddRange(GetBytes_Int32(mapNum));
                 }
                 buffer.Add(END_PACKET);
 
@@ -174,15 +169,79 @@ namespace SharedComponents
 
             public static Packet ReadPacket(ref List<byte> buffer)
             {
-                Int32 mn = TakeInt32(ref buffer);
 
 #if DEBUG_PACKETS
-                DebugLogger.Global.Log("Packet In: Ping_c");
+                DebugLogger.Global.Log("Packet In: Map_Reset_c");
 #endif
 
-                return new Map_MoveTo_c(mn);
+                return new Map_Reset_c();
             }
         }
+
+        /// <summary>
+        /// A piece of the terrain for the map the player is in.
+        /// </summary>
+        public class Map_TerrainBlock_c : Packet
+        {
+            public int blockX;
+            public int blockY;
+            public int sideLength;
+            public Single[,] heightMap;
+
+            public Map_TerrainBlock_c(int blockX, int blockY, int sideLength, Single[,] heightMap)
+                : base((Int32)PacketType.Map_TerrainBlock_c, ProtocolType.Tcp)
+            {
+                this.blockX = blockX;
+                this.blockY = blockY;
+                this.sideLength = sideLength;
+                this.heightMap = heightMap;
+            }
+
+            public override Byte[] CreateSendBuffer()
+            {
+                List<Byte> buffer = new List<Byte>();
+                {
+                    buffer.AddRange(GetBytes_Int32((Int32)type));
+
+                    buffer.AddRange(GetBytes_Int32(blockX));
+                    buffer.AddRange(GetBytes_Int32(blockY));
+                    buffer.AddRange(GetBytes_Int32(sideLength));
+                    for (int i = 0; i < sideLength; i++)
+                    {
+                        for (int j = 0; j < sideLength; j++)
+                        {
+                            buffer.AddRange(GetBytes_Single(heightMap[i, j]));
+                        }
+                    }
+                }
+                buffer.Add(END_PACKET);
+
+                return buffer.ToArray();
+            }
+
+            public static Packet ReadPacket(ref List<byte> buffer)
+            {
+                int blockX = TakeInt32(ref buffer);
+                int blockY = TakeInt32(ref buffer);
+                int sideLength = TakeInt32(ref buffer);
+
+                Single[,] heightMap = new Single[sideLength, sideLength];
+                for (int i = 0; i < sideLength; i++)
+                {
+                    for (int j = 0; j < sideLength; j++)
+                    {
+                        buffer.AddRange(GetBytes_Single(heightMap[i, j]));
+                    }
+                }
+
+#if DEBUG_PACKETS
+                DebugLogger.Global.Log("Packet In: Map_TerrainBlock_c");
+#endif
+
+                return new Map_TerrainBlock_c(blockX, blockY, sideLength, heightMap);
+            }
+        }
+
 
         /// <summary>
         /// Informs the player which character it is controlling.

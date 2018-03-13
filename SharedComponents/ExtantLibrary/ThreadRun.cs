@@ -28,7 +28,7 @@ namespace Extant
     //Base class used as a framework for classes that will run on a separate
     //thread. When inheritted, the inheritting class must override a RunLoop method
     //that will be called until requested to stop.
-    public abstract class ThreadRun : IDisposable
+    public abstract class ThreadRun : IDisposable , ILogging
     {
         private static Int32 runningIDIterator = 0;
         private static object runningIDIterator_lock = new object();
@@ -44,6 +44,10 @@ namespace Extant
         private object invoked_lock = new object();
 
         private Exception unhandledException = null;
+        private String stopMessage = String.Empty;
+        private Boolean isDisposed = false;
+
+        private DebugLogger log = new DebugLogger();
 
         /// <summary>
         /// Creates and starts a thread to run an inheritted class.
@@ -71,7 +75,8 @@ namespace Extant
 
         ~ThreadRun()
         {
-            Dispose(false);
+            this.Stop("Destructor.");
+            Dispose();
         }
 
         /// <summary>
@@ -109,14 +114,16 @@ namespace Extant
                 }
                 catch (Exception e)
                 {
-                    DebugLogger.Global.LogWarning("ThreadRun experienced an unexpected Exception! (" + this.RunningID + ")\n" + e.ToString() + "\n-");
+                    log.LogWarning("ThreadRun experienced an unexpected Exception! (" + this.RunningID + ")\n" + e.ToString() + "\n-");
                     unhandledException = e;
-                    this.Stop();
+                    this.Stop("Unhandled exception.");
                     if (OnUnhandledException != null)
                         OnUnhandledException(this, new UnhandledExceptionEventArgs(e, true));
                 }
                 Thread.Sleep(thisThread_pauseDelay);
             }
+            if (stopMessage == String.Empty)
+                stopMessage = "Finished successfully.";
             Finish((unhandledException == null));
         }
 
@@ -128,7 +135,6 @@ namespace Extant
         protected virtual void Begin()
         {
             //Begin method is not necessary.
-            //throw new NotImplementedException();
         }
 
         /// <summary>
@@ -143,11 +149,14 @@ namespace Extant
         protected virtual void Finish(bool success)
         {
             //Finish method is not necessary.
-            //throw new NotImplementedException();
+        }
+
+        protected virtual void OnDispose()
+        {
+            //Triggered after the thread is stopped and disposed.
         }
 
         #endregion Override these functions!
-
 
         /// <summary>
         /// Starts the thread controlling this ThreadRun class.
@@ -160,35 +169,46 @@ namespace Extant
         }
 
         /// <summary>
-        /// Stops the thread running this object.
+        /// Instructs the thread to stop.
         /// </summary>
-        public void Stop()
+        public void Stop(String reason)
         {
-            //if (thisThread.ThreadState == ThreadState.Stopped)
-            //    throw new ThreadStateException("ThreadRun has already been stopped! " + this.runningID.ToString());
+            if (thisThread_killSwitch == false)
+            {
+                thisThread_killSwitch = true;
 
-            thisThread_killSwitch = true;
+                stopMessage = reason;
+                log.LogError("Stopped with this reason: " + reason);
+            }
         }
 
         /// <summary>
-        /// Instructs to stop the thread and to clean up.
+        /// Instructs the thread to stop and clean up.
         /// </summary>
         public void Dispose()
         {
-            Dispose(true);
+            Dispose(false);
         }
 
         /// <summary>
-        /// Instructs to stop the thread and to clean up.
+        /// Instructs the thread to stop and clean up.
         /// </summary>
-        /// <param name="isRuntimeDispose">True if this should be non-halting.</param>
-        protected void Dispose(Boolean isRuntimeDispose)
+        /// <param name="waitForDispose">If this thread to wait for the object's thread to dispose.</param>
+        public void Dispose(Boolean waitForDispose)
         {
-            this.Stop();
-
-            if (!isRuntimeDispose)
+            if (!isDisposed)
             {
-                thisThread.Join();
+                if (thisThread_killSwitch == false)
+                {
+                    this.Stop("Disposed.");
+                }
+
+                this.isDisposed = true;
+
+                if (waitForDispose)
+                {
+                    thisThread.Join();
+                }
             }
         }
 
@@ -213,6 +233,26 @@ namespace Extant
             lock (invoked_lock)
             {
                 invoked_Action.Add(a);
+            }
+        }
+
+        /// <summary>
+        /// Subscribed to this object's log.
+        /// </summary>
+        /// <param name="func"></param>
+        public void SubscribeToLogs(DebugLogger.DebugLogMessageDelegate func)
+        {
+            this.Log.AnyLogged += func;
+        }
+
+        /// <summary>
+        /// Returns the log for this object.
+        /// </summary>
+        public DebugLogger Log
+        {
+            get
+            {
+                return log;
             }
         }
 
@@ -262,9 +302,32 @@ namespace Extant
         }
 
         /// <summary>
+        /// Code that symbolizes how the thread stopped.
+        /// </summary>
+        public String StopMessage
+        {
+            get
+            {
+                return stopMessage;
+            }
+        }
+
+        /// <summary>
         /// Executed when the thread throws an UnhandledException and
         /// does not gracefully finish.
         /// </summary>
         public event UnhandledExceptionEventHandler OnUnhandledException;
+
+        /// <summary>
+        /// Code that symbolizes how the thread stopped.
+        /// </summary>
+        public enum ThreadStopCode
+        {
+            Null,
+
+            Default,
+            Success,
+            Failure
+        }
     }
 }

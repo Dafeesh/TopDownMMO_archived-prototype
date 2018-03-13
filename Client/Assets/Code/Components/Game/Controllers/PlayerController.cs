@@ -4,11 +4,11 @@ class PlayerController : MonoBehaviour
 {
     Camera mainCamera = null;
 
-    CharacterController controlledChar = null;
+    CharacterObjectController controlledChar = null;
 
     void Start()
     {
-        mainCamera = GameObject.Find("_MainCamera").GetComponent<Camera>();
+        mainCamera = GameObject.Find("MainCamera").GetComponent<Camera>();
         if (mainCamera == null)
             Debug.LogError("PlayerController could not find _MainCamera.");
     }
@@ -22,7 +22,7 @@ class PlayerController : MonoBehaviour
         }
     }
 
-    public void SetCharacterControlled(CharacterController cc)
+    public void SetCharacterControlled(CharacterObjectController cc)
     {
         controlledChar = cc;
     }

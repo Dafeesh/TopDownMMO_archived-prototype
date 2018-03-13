@@ -7,7 +7,7 @@ using SharedComponents.GameProperties;
 
 public class CharacterListController : MonoBehaviour
 {
-    Dictionary<int, CharacterController> characters = new Dictionary<int, CharacterController>();
+    Dictionary<int, CharacterObjectController> characters = new Dictionary<int, CharacterObjectController>();
 
     DebugLogger log = new DebugLogger();
 
@@ -45,7 +45,7 @@ public class CharacterListController : MonoBehaviour
             newChar = (GameObject)GameObject.Instantiate(Resources.Load("Character_NPC"));
         newChar.transform.parent = this.transform;
 
-        characters.Add(id, newChar.GetComponent<CharacterController>());
+        characters.Add(id, newChar.GetComponent<CharacterObjectController>());
 
         log.Log("CharacterListController added character: " + id);
     }
@@ -79,7 +79,7 @@ public class CharacterListController : MonoBehaviour
         }
     }
 
-    public CharacterController GetControllerFromId(int id)
+    public CharacterObjectController GetControllerFromId(int id)
     {
         if (characters.ContainsKey(id))
         {

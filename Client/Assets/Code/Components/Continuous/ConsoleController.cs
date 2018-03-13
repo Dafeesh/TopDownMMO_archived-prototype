@@ -9,7 +9,7 @@ public class ConsoleController : MonoBehaviour
     private List<string> posts = new List<string>();
     private string posts_report;
 
-    private void Awake()
+    void Start()
     {
         SetNumberOfLines(5);
     }

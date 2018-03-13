@@ -9,9 +9,10 @@ using Extant.Networking;
 using SharedComponents;
 using SharedComponents.GameProperties;
 
+using WorldServer.Control;
 using WorldServer.Networking;
 
-namespace WorldServer.World.InstanceItems
+namespace WorldServer.World
 {
     public partial class Characters
     {
@@ -23,18 +24,22 @@ namespace WorldServer.World.InstanceItems
             private bool newlyConnected = false;
             private bool loggingOut = false;
 
+            private DebugLogger log = new DebugLogger();
+
             private PlayerZoneLocation location;
 
             public Player(Template template)
                 : base()
             {
+                log.AnyLogged += Console.WriteLine;
+
                 this.info = template.Info;
                 this.password = template.Password;
                 this.location = template.Location;
 
                 client = null;
 
-                DebugLogger.Global.Log("Player created: " + info.Name);
+                log.Log("Player created.");
             }
 
             protected override void Dispose(bool blocking)
@@ -48,7 +53,7 @@ namespace WorldServer.World.InstanceItems
                 if (client != null)
                     if (client.IsStopped)
                     {
-                        DebugLogger.Global.Log("Player disconnected: " + info.Name);
+                        log.Log("Player disconnected.");
                         client.Dispose();
                         client = null;
                         loggingOut = true;
@@ -80,9 +85,9 @@ namespace WorldServer.World.InstanceItems
                 if (client != null)
                 {
                     if (client.IsConnectedAndVerified)
-                        DebugLogger.Global.Log("Player connected while already being connected: " + info.Name);
+                        log.Log("Player connected while already being connected.");
                     else
-                        DebugLogger.Global.Log("Player reconnected: " + info.Name);
+                        log.Log("Player reconnected.");
                     client.Dispose();
                 }
                 client = c;

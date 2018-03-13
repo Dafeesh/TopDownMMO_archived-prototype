@@ -1,4 +1,5 @@
-﻿using UnityEditor;
+﻿using System;
+using UnityEditor;
 using UnityEngine;
 public class UpdateAssembliesMenu : MonoBehaviour
 {
@@ -18,9 +19,11 @@ public class UpdateAssembliesMenu : MonoBehaviour
                 FileUtil.ReplaceFile(from + f, to + f);
             }
         }
-        finally
+        catch (Exception e)
         {
-            Debug.Log("Successfully copied over assemblies.");
+            Debug.Log("Failed to copy over assemblies: " + e.ToString());
         }
+
+        Debug.Log("Successfully copied over assemblies.");
     }
 }
