@@ -61,14 +61,6 @@ public class MapController : MonoComponent
 
         Log.Log("Set terrain block: [" + i + "," + j + "]");
     }
-
-    public DebugLogger Log
-    {
-        get
-        {
-            return Log;
-        }
-    }
 }
 
 class TerrainBlock

@@ -142,11 +142,13 @@ namespace Extant.Networking
                 else
                 {
                     Log.Log("ConnectCallback, failed to connect.");
+                    this.Close();
                 }
             }
             else
             {
                 Log.Log("ConnectCallback, disposed.");
+                this.Close();
             }
         }
 

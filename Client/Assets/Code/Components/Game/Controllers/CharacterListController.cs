@@ -37,7 +37,7 @@ public class CharacterListController : MonoComponent
         characters.Clear();
     }
 
-    public void AddCharacter(int id, CharacterLayout layout)
+    public void AddCharacter(int id, CharacterVisualLayout layout)
     {
         if (characters.ContainsKey(id))
         {

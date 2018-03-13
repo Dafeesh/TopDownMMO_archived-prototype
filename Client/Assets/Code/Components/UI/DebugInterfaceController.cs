@@ -49,8 +49,7 @@ class DebugInterfaceController : MonoComponent
 
     public void OnClick_Disconnect()
     {
-        if (MastServConnection != null)
-            MastServConnection.CloseConnection();
+        MastServConnection.CloseConnection();
     }
 
     public void OnStateChange_WSCon(ConnectionState state)

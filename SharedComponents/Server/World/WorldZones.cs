@@ -9,11 +9,6 @@ namespace SharedComponents.Server.World
     {
         private static Dictionary<ZoneID, ZoneInfo> zones = new Dictionary<ZoneID, ZoneInfo>();
 
-        public enum ZoneID
-        {
-            MainTest
-        }
-
         static WorldZones()
         {
             //MainTest
@@ -55,10 +50,10 @@ namespace SharedComponents.Server.World
     public class WorldLocation
     {
         public readonly UInt32 WorldNumber;
-        public readonly WorldZones.ZoneID ZoneId;
+        public readonly ZoneID ZoneId;
         public readonly Position2D Position;
 
-        public WorldLocation(UInt32 worldNumber, WorldZones.ZoneID zid, Position2D pos)
+        public WorldLocation(UInt32 worldNumber, ZoneID zid, Position2D pos)
         {
             this.WorldNumber = worldNumber;
             this.ZoneId = zid;

@@ -30,14 +30,12 @@ public class CharListMenuController : MonoComponent
         if (msConnection == null)
             Debug.LogError("CharacterListController could not find MasterServerConnection.");
 
-        msConnection.Received_AddCharacterListItem += OnReceive_AddCharacterListItem;
-
         Log.MessageLogged += Debug.Log;
     }
 
     void OnDestroy()
     {
-        msConnection.Received_AddCharacterListItem -= OnReceive_AddCharacterListItem;
+        Main = null;
     }
 
     void Update()
@@ -53,7 +51,7 @@ public class CharListMenuController : MonoComponent
         WaitingPanel.SetActive(true);
     }
 
-    public void OnReceive_AddCharacterListItem(string name, CharacterLayout layout, int level)
+    public void AddCharacterListItem(string name, CharacterVisualLayout layout, int level)
     {
         Log.Log("Create selection: " + name);
 

@@ -43,6 +43,7 @@
     <Compile Include="GameProperties\PlayerInfo.cs" />
     <Compile Include="GameProperties\Position2D.cs" />
     <Compile Include="GameProperties\MovePoint.cs" />
+    <Compile Include="GameProperties\ZoneID.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Version.cs" />
   </ItemGroup>

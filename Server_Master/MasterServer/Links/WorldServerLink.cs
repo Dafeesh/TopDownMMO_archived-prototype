@@ -5,6 +5,7 @@ using System.Net;
 using Extant;
 using SharedComponents.Server.World;
 using MasterServer.Game;
+using SharedComponents.Global.GameProperties;
 
 namespace MasterServer.Links
 {
@@ -15,7 +16,7 @@ namespace MasterServer.Links
         public InstanceServerLink ServerLink
         { get; private set; }
 
-        private Dictionary<WorldZones.ZoneID, GameInstance> zones = new Dictionary<WorldZones.ZoneID, GameInstance>();
+        private Dictionary<ZoneID, GameInstance> zones = new Dictionary<ZoneID, GameInstance>();
 
         private DebugLogger _log;
         private bool _isDisposed = false;
@@ -28,7 +29,7 @@ namespace MasterServer.Links
             this.WorldNumber = worldNumber;
             this.ServerLink = instLink;
 
-            foreach (WorldZones.ZoneID zid in Enum.GetValues(typeof(WorldZones.ZoneID)))
+            foreach (ZoneID zid in Enum.GetValues(typeof(ZoneID)))
             {
                 ZoneInfo zoneInfo = WorldZones.GetZoneInfo(zid);
                 GameInstance zoneInstance = new GameInstance(zoneInfo.Name, zoneInfo.MapLayout);

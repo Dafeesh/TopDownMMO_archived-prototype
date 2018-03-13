@@ -4,7 +4,7 @@ using System;
 class GameInput : MonoComponent
 {
     [SerializeField]
-    MainCameraController camera = null;
+    MainCameraController mainCamera = null;
     [SerializeField]
     GameController gameController = null;
 
@@ -12,7 +12,7 @@ class GameInput : MonoComponent
 
     void Start()
     {
-        if (camera == null)
+        if (mainCamera == null)
             Debug.LogError("GameInput was not given a mainCamera.");
         if (gameController == null)
             Debug.LogError("GameInput was not given a gameController.");
@@ -25,11 +25,11 @@ class GameInput : MonoComponent
         if (Input.GetMouseButtonUp(0))
         {
             RaycastHit hit;
-            Ray ray = camera.Camera.ScreenPointToRay(Input.mousePosition);
+            Ray ray = mainCamera.Camera.ScreenPointToRay(Input.mousePosition);
 
             if (Physics.Raycast(ray, out hit))
             {
-                Transform objectHit = hit.transform;
+                //Transform objectHit = hit.transform;
 
                 moveCursor.transform.position = hit.point;
                 gameController.Command_MoveTo(hit.point.x, hit.point.z);
@@ -38,7 +38,7 @@ class GameInput : MonoComponent
 
         if (Input.GetAxis("Mouse ScrollWheel") != 0.0f)
         {
-            camera.CameraFollowDistance += Input.GetAxis("Mouse ScrollWheel")*(-5.0f);
+            mainCamera.CameraFollowDistance += Input.GetAxis("Mouse ScrollWheel")*(-5.0f);
         }
     }
 }

@@ -6,7 +6,7 @@ using SharedComponents.Global.GameProperties;
 public class GameCharacterController : MonoComponent
 {
     string _name;
-    CharacterLayout _layout;
+    CharacterVisualLayout _vlayout;
     CharacterThreat _threat;
     CharacterStats _stats;
 
@@ -23,7 +23,7 @@ public class GameCharacterController : MonoComponent
             Debug.LogError("GameCharacterController does not have reference to animationController.");
 
         this.Name = "NULL";
-        this.Layout = new CharacterLayout(CharacterLayout.VisualType.Null);
+        this.VisualLayout = new CharacterVisualLayout(CharacterVisualLayout.VisualType.Basic);
         this.Threat = CharacterThreat.Neutral;
         this.Stats = new CharacterStats();
 
@@ -64,7 +64,7 @@ public class GameCharacterController : MonoComponent
     {
         float distanceX = (moveToPoint.x - position.x);
         float distanceY = (moveToPoint.y - position.y);
-        float angle = Mathf.Atan2(distanceY, distanceX);
+        //float angle = Mathf.Atan2(distanceY, distanceX);
         float distance = Mathf.Sqrt((distanceX * distanceX) + (distanceY * distanceY));
 
         if (travelDistance > distance)
@@ -137,15 +137,15 @@ public class GameCharacterController : MonoComponent
         }
     }
 
-    public CharacterLayout Layout
+    public CharacterVisualLayout VisualLayout
     {
         set
         {
-            _layout = value;
+            _vlayout = value;
         }
         get
         {
-            return _layout;
+            return _vlayout;
         }
     }
 

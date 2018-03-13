@@ -40,6 +40,8 @@ namespace SharedComponents.Global
 
         public class Distribution : IPacketDistributor
         {
+            public Delegate_PacketDistribute<Packet> Default = null;
+
             public Delegate_PacketDistribute<Error_c> out_Error_c = null;
 
             public Delegate_PacketDistribute<Map_Reset_c> out_Map_Reset_c = null;
@@ -48,7 +50,6 @@ namespace SharedComponents.Global
             public Delegate_PacketDistribute<Verify_Details_i> out_Verify_Details_i = null;
             public Delegate_PacketDistribute<Verify_Result_c> out_Verify_Result_c = null;
 
-            public Delegate_PacketDistribute<Player_Info_c> out_Player_Info_c = null;
             public Delegate_PacketDistribute<Player_SetControl_c> out_Player_SetControl_c = null;
             public Delegate_PacketDistribute<Player_MovementRequest_i> out_Player_MovementRequest_i = null;
 
@@ -60,6 +61,8 @@ namespace SharedComponents.Global
 
             public void Dispose()
             {
+                Default = null;
+
                 out_Error_c = null;
 
                 out_Map_Reset_c = null;
@@ -68,7 +71,6 @@ namespace SharedComponents.Global
                 out_Verify_Details_i = null;
                 out_Verify_Result_c = null;
 
-                out_Player_Info_c = null;
                 out_Player_SetControl_c = null;
                 out_Player_MovementRequest_i = null;
 
@@ -92,68 +94,123 @@ namespace SharedComponents.Global
                         switch ((PacketType)packetType)
                         {
                             case (PacketType.Error_c):
-                                if (out_Error_c != null)
-                                    out_Error_c(Error_c.ReadPacket(ref buffer));
+                                {
+                                    var p = Error_c.ReadPacket(ref buffer);
+                                    if (out_Error_c != null)
+                                        out_Error_c(p);
+                                    else
+                                        Default(p); 
+                                }
                                 break;
 
                             case (PacketType.Map_Reset_c):
-                                if (out_Map_Reset_c != null)
-                                    out_Map_Reset_c(Map_Reset_c.ReadPacket(ref buffer));
+                                {
+                                    var p = Map_Reset_c.ReadPacket(ref buffer);
+                                    if (out_Map_Reset_c != null)
+                                        out_Map_Reset_c(p);
+                                    else
+                                        Default(p); 
+                                }
                                 break;
 
                             case (PacketType.Map_TerrainBlock_c):
-                                if (out_Map_TerrainBlock_c != null)
-                                    out_Map_TerrainBlock_c(Map_TerrainBlock_c.ReadPacket(ref buffer));
+                                {
+                                    var p = Map_TerrainBlock_c.ReadPacket(ref buffer);
+                                    if (out_Map_TerrainBlock_c != null)
+                                        out_Map_TerrainBlock_c(p);
+                                    else
+                                        Default(p); 
+                                }
                                 break;
 
                             case (PacketType.Verify_Details_i):
-                                if (out_Verify_Details_i != null)
-                                    out_Verify_Details_i(Verify_Details_i.ReadPacket(ref buffer));
+                                {
+                                    var p = Verify_Details_i.ReadPacket(ref buffer);
+                                    if (out_Verify_Details_i != null)
+                                        out_Verify_Details_i(p);
+                                    else
+                                        Default(p); 
+                                }
                                 break;
 
                             case (PacketType.Verify_Result_c):
-                                if (out_Verify_Result_c != null)
-                                    out_Verify_Result_c(Verify_Result_c.ReadPacket(ref buffer));
-                                break;
-
-                            case (PacketType.Player_Info_c):
-                                if (out_Player_Info_c != null)
-                                    out_Player_Info_c(Player_Info_c.ReadPacket(ref buffer));
+                                {
+                                    var p = Verify_Result_c.ReadPacket(ref buffer);
+                                    if (out_Verify_Result_c != null)
+                                        out_Verify_Result_c(p);
+                                    else
+                                        Default(p); 
+                                }
                                 break;
 
                             case (PacketType.Player_SetControl_c):
-                                if (out_Player_SetControl_c != null)
-                                    out_Player_SetControl_c(Player_SetControl_c.ReadPacket(ref buffer));
+                                {
+                                    var p = Player_SetControl_c.ReadPacket(ref buffer);
+                                    if (out_Player_SetControl_c != null)
+                                        out_Player_SetControl_c(p);
+                                    else
+                                        Default(p); 
+                                }
                                 break;
 
                             case (PacketType.Player_MovementRequest_i):
-                                if (out_Player_MovementRequest_i != null)
-                                    out_Player_MovementRequest_i(Player_MovementRequest_i.ReadPacket(ref buffer));
+                                {
+                                    var p = Player_MovementRequest_i.ReadPacket(ref buffer);
+                                    if (out_Player_MovementRequest_i != null)
+                                        out_Player_MovementRequest_i(p);
+                                    else
+                                        Default(p); 
+                                }
                                 break;
 
                             case (PacketType.Character_Add_c):
-                                if (out_Character_Add_c != null)
-                                    out_Character_Add_c(Character_Add_c.ReadPacket(ref buffer));
+                                {
+                                    var p = Character_Add_c.ReadPacket(ref buffer);
+                                    if (out_Character_Add_c != null)
+                                        out_Character_Add_c(p);
+                                    else
+                                        Default(p); 
+                                }
                                 break;
 
                             case (PacketType.Character_Remove_c):
-                                if (out_Character_Remove_c != null)
-                                    out_Character_Remove_c(Character_Remove_c.ReadPacket(ref buffer));
+                                {
+                                    var p = Character_Remove_c.ReadPacket(ref buffer);
+                                    if (out_Character_Remove_c != null)
+                                        out_Character_Remove_c(p);
+                                    else
+                                        Default(p); 
+                                }
                                 break;
 
                             case (PacketType.Character_Movement_c):
-                                if (out_Character_Movement_c != null)
-                                    out_Character_Movement_c(Character_Movement_c.ReadPacket(ref buffer));
+                                {
+                                    var p = Character_Movement_c.ReadPacket(ref buffer);
+                                    if (out_Character_Movement_c != null)
+                                        out_Character_Movement_c(p);
+                                    else
+                                        Default(p); 
+                                }
                                 break;
 
                             case (PacketType.Character_Position_c):
-                                if (out_Character_Position_c != null)
-                                    out_Character_Position_c(Character_Position_c.ReadPacket(ref buffer));
+                                {
+                                    var p = Character_Position_c.ReadPacket(ref buffer);
+                                    if (out_Character_Position_c != null)
+                                        out_Character_Position_c(p);
+                                    else
+                                        Default(p); 
+                                }
                                 break;
 
                             case (PacketType.Character_UpdateStats_c):
-                                if (out_Character_UpdateStats_c != null)
-                                    out_Character_UpdateStats_c(Character_UpdateStats_c.ReadPacket(ref buffer));
+                                {
+                                    var p = Character_UpdateStats_c.ReadPacket(ref buffer);
+                                    if (out_Character_UpdateStats_c != null)
+                                        out_Character_UpdateStats_c(p);
+                                    else
+                                        Default(p); 
+                                }
                                 break;
 
                             default:
@@ -166,9 +223,9 @@ namespace SharedComponents.Global
                         else
                             throw new Packet.InvalidPacketRead("Last byte of packet was not END_PACKET byte.");
                     }
-                    catch (ArgumentOutOfRangeException)// e) //Not enough data yet to make a full packet.
+                    catch (ArgumentOutOfRangeException) 
                     {
-                        //DebugLogger.Global.Log("Packet not large enough yet." + e.ToString());
+                        //Not enough data yet to make a full packet.
                         buffer = backupBuffer.ToList();
                         return false;
                     }
@@ -584,44 +641,6 @@ namespace SharedComponents.Global
                 Single moveSpeed = TakeSingle(ref buffer);
 
                 return new Character_UpdateStats_c(charId, new CharacterStats() { MoveSpeed = moveSpeed });
-            }
-        }
-
-        /// <summary>
-        /// Updates the player's info.
-        /// </summary>
-        public class Player_Info_c : Packet
-        {
-            public String username;
-            public Int32 level;
-
-            public Player_Info_c(String username, Int32 level)
-                : base((Int32)PacketType.Player_Info_c)
-            {
-                this.username = username;
-                this.level = level;
-            }
-
-            public override Byte[] CreateSendBuffer()
-            {
-                List<Byte> buffer = new List<Byte>();
-                {
-                    buffer.AddRange(GetBytes_Int32((Int32)type));
-
-                    buffer.AddRange(GetBytes_String_Unicode(username));
-                    buffer.AddRange(GetBytes_Int32(level));
-                }
-                buffer.Add(END_PACKET);
-
-                return buffer.ToArray();
-            }
-
-            public static Player_Info_c ReadPacket(ref List<byte> buffer)
-            {
-                String username = TakeString(ref buffer);
-                Int32 level = TakeInt32(ref buffer);
-
-                return new Player_Info_c(username, level);
             }
         }
 

@@ -12,9 +12,11 @@ public class CharListMenuItemButton : MonoBehaviour
     [SerializeField]
     Text Name_text = null;
     string Name_value;
+
     [SerializeField]
     Text VisualType_text = null;
-    CharacterLayout.VisualType VisualType_value;
+    CharacterVisualLayout.VisualType VisualType_value;
+
     [SerializeField]
     Text Level_text = null;
     int Level_value;
@@ -32,7 +34,7 @@ public class CharListMenuItemButton : MonoBehaviour
         }
     }
 
-    public CharacterLayout.VisualType Type
+    public CharacterVisualLayout.VisualType Type
     {
         get
         {

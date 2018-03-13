@@ -16,8 +16,7 @@ public class MasterServerConnection : MonoComponent
 
     public event Delegate_ConnectionStateChange StateChanged;
 
-    public event Delegate_AddCharacterListItem Received_AddCharacterListItem;
-    public delegate void Delegate_AddCharacterListItem(string name, CharacterLayout layout, int level);
+    private CharListMenuController CharListMenu = null;
 
     [SerializeField]
     int packetCount = 0;
@@ -25,7 +24,6 @@ public class MasterServerConnection : MonoComponent
     ConnectionState _state;
     NetConnection connection = null;
     IPacketDistributor connection_distribute;
-    IPEndPoint connection_target = null;
     string connection_username = null;
     string connection_password = null;
 
@@ -51,15 +49,33 @@ public class MasterServerConnection : MonoComponent
         Log.Log("Start.");
     }
 
+    public void CloseConnection()
+    {
+        if (connection != null)
+        {
+            connection.Dispose();
+            connection = null;
+            State = ConnectionState.NoConnection;
+        }
+    }
+
+    bool CachedComponent_CharSelect()
+    {
+        if (CharListMenu == null)
+        {
+            CharListMenu = CharListMenuController.Main;
+            return (CharListMenu != null);
+        }
+        else
+            return true;
+    }
+
     void OnDestroy()
     {
-        //Kill connection
-        if (connection != null)
-            connection.Dispose();
+        CloseConnection();
 
         //Flush events
         StateChanged = null;
-        Received_AddCharacterListItem = null;
 
         Log.Log("Destroyed.");
     }
@@ -75,7 +91,7 @@ public class MasterServerConnection : MonoComponent
                         Log.Log("Could not connect.");
                         CloseConnection();
                     }
-                    else if (connection.State == NetConnection.NetworkState.Connected)
+                    else if (connection.State == NetConnection.NetworkState.Active)
                     {
                         connection.SendPacket(new ClientToMasterPackets.AccountAuthorize_Attempt_m(GameVersion.Build, connection_username, connection_password));
                         State = ConnectionState.Authorizing;
@@ -115,7 +131,9 @@ public class MasterServerConnection : MonoComponent
                     {
                         //Receive all packets available.
                         while (connection.DistributePacket(connection_distribute) == true)
-                        { }
+                        {
+                            packetCount++;
+                        }
                     }
                 }
                 break;
@@ -190,21 +208,13 @@ public class MasterServerConnection : MonoComponent
 
     private void OnReceive_Menu_CharacterListItem_c(ClientToMasterPackets.Menu_CharacterListItem_c p)
     {
-        if (Received_AddCharacterListItem != null)
-            Received_AddCharacterListItem(p.Name, p.Layout, p.Level);
+        if (CachedComponent_CharSelect())
+        {
+            CharListMenu.AddCharacterListItem(p.Name, p.VisualLayout, p.Level);
+        }
     }
 
     #endregion OnReceive
-
-    public void CloseConnection()
-    {
-        if (connection != null)
-        {
-            connection.Dispose();
-            connection = null;
-            State = ConnectionState.NoConnection;
-        }
-    }
 
     public ConnectionState State
     {
@@ -227,7 +237,7 @@ public class MasterServerConnection : MonoComponent
                     if (Application.loadedLevelName != ResourceList.Scenes.LoginPage)
                         Application.LoadLevel(ResourceList.Scenes.LoginPage);
                 }
-                else if (_state != ConnectionState.NoConnection)
+                else if (_state == ConnectionState.Connected)
                 {
                     if (Application.loadedLevelName != ResourceList.Scenes.CharSelect)
                         Application.LoadLevel(ResourceList.Scenes.CharSelect);
@@ -238,11 +248,10 @@ public class MasterServerConnection : MonoComponent
 
     public void SetTarget(IPEndPoint target, string username, string password)
     {
-        connection_target = target;
         connection_username = username;
         connection_password = password;
 
-        NetConnection con = new NetConnection(target, 5000);
+        NetConnection con = new NetConnection(target);
         con.Start();
         connection = con;
 
