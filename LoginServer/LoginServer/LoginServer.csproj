@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{1CDBB020-72F1-498D-B91C-270320B534A4}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <ProjectGuid>{179314DC-74CC-4919-BC41-7BF13CB55EC3}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>MasterServer</RootNamespace>
-    <AssemblyName>MasterServer</AssemblyName>
+    <RootNamespace>LoginServer</RootNamespace>
+    <AssemblyName>LoginServer</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -31,9 +31,6 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <PropertyGroup>
-    <StartupObject />
-  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -47,20 +44,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="MasterServerWindow.cs">
+    <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="MasterServerWindow.Designer.cs">
-      <DependentUpon>MasterServerWindow.cs</DependentUpon>
+    <Compile Include="Form1.Designer.cs">
+      <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
-    <Compile Include="Host\AuthenticatingClient.cs" />
-    <Compile Include="Host\GameServerConnection.cs" />
-    <Compile Include="Host\GameServerLink.cs" />
-    <Compile Include="Host\MasterServerHost.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <EmbeddedResource Include="MasterServerWindow.resx">
-      <DependentUpon>MasterServerWindow.cs</DependentUpon>
+    <EmbeddedResource Include="Form1.resx">
+      <DependentUpon>Form1.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -83,16 +76,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\SharedComponents\ExtantLibrary\ExtantLibrary.csproj">
-      <Project>{598bb5ef-795b-478c-ad1f-323be7077beb}</Project>
-      <Name>ExtantLibrary</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\SharedComponents\ServerToServer\ServerToServer.csproj">
-      <Project>{6831c8ae-d11a-499d-b2ba-c095ab29959e}</Project>
-      <Name>ServerToServer</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

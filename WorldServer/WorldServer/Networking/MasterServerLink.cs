@@ -43,7 +43,7 @@ namespace WorldServer.Networking
         {
             NetConnection con = new NetConnection(WorldToMasterPackets.ReadBuffer, targetEndPoint, 5000);
 
-            if (Start here)
+            //if (Start here)
         }
 
         public bool IsConnected

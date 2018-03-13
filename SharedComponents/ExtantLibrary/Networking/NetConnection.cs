@@ -274,6 +274,17 @@ namespace Extant.Networking
             }
         }
 
+        public IPEndPoint RemoteEndPoint
+        {
+            get
+            {
+                if (tcpClient != null)
+                    return (IPEndPoint)tcpClient.Client.RemoteEndPoint;
+                else
+                    return null;
+            }
+        }
+
         public enum NetworkState
         {
             Waiting, //Waiting to start a connection. 

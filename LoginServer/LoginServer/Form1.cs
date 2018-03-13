@@ -8,11 +8,11 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace MasterServer
+namespace LoginServer
 {
-    public partial class MasterServer : Form
+    public partial class LoginServer : Form
     {
-        public MasterServer()
+        public LoginServer()
         {
             InitializeComponent();
         }
