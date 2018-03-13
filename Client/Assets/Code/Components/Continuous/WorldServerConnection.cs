@@ -26,14 +26,15 @@ public class WorldServerConnection : MonoBehaviour , ILogging
     string username = null;
     int password = -1;
 
-    DebugLogger log = new DebugLogger();
+    DebugLogger log;
 
     ConnectionState state = ConnectionState.Null;
     Queue<Packet> packets = new Queue<Packet>();
 
     void Start()
     {
-        log.AnyLogged += Debug.Log;
+        log = new DebugLogger("WSCon");
+        log.MessageLogged += Debug.Log;
 
         if (debugInterface == null)
             Debug.LogError("WSCon not given a reference to DebugInterface.");
@@ -99,7 +100,7 @@ public class WorldServerConnection : MonoBehaviour , ILogging
                             }
                             else
                             {
-                                log.LogError("WSConnection received wrong packet when authorizing: " + ((ClientToWorldPackets.PacketType)p.Type).ToString());
+                                log.Log("WSConnection received wrong packet when authorizing: " + ((ClientToWorldPackets.PacketType)p.Type).ToString());
                                 ClearConnection();
                             }
                         }

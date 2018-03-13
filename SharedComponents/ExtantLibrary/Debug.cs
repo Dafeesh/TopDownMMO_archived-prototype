@@ -10,61 +10,35 @@ namespace Extant
     public class DebugLogger
     {
         /////////////
-        public static readonly DebugLogger Global = new DebugLogger();
+        public static readonly DebugLogger Global = new DebugLogger("Global");
         /////////////
+
+        private String sourceName;
 
         private List<String> log = new List<String>();
         private object log_lock = new object();
 
         public delegate void DebugLogMessageDelegate(String message);
         public event DebugLogMessageDelegate MessageLogged;
-        public event DebugLogMessageDelegate WarningLogged;
-        public event DebugLogMessageDelegate ErrorLogged;
-        public event DebugLogMessageDelegate AnyLogged;
 
-        public DebugLogger()
-        {  }
-
-        private String MakeLog(String title, String s)
+        public DebugLogger(String sourceName)
         {
-            String m;
-            lock (log_lock)
-            {
-                m = DateTime.Now.ToString("HH:mm:ss tt");
-                if (title != String.Empty)
-                    m += "[" + title + "]";
-                m += ": " + s;
-
-                log.Add(m);
-            }
-            return m;
+            this.sourceName = sourceName;
         }
 
         public void Log(string s)
         {
-            string l = MakeLog(String.Empty, s);
+            String m;
+            lock (log_lock)
+            {
+                m = DateTime.Now.ToString("HH:mm:ss tt") +
+                    "[" + sourceName + "]: " + s;
+
+                log.Add(m);
+            }
+
             if (MessageLogged != null)
-                MessageLogged(l);
-            if (AnyLogged != null)
-                AnyLogged(l);
-        }
-
-        public void LogWarning(string s)
-        {
-            string l = MakeLog("Warning", s);
-            if (WarningLogged != null)
-                WarningLogged(l);
-            if (AnyLogged != null)
-                AnyLogged(l);
-        }
-
-        public void LogError(string s)
-        {
-            string l = MakeLog("ERROR", s);
-            if (ErrorLogged != null)
-                ErrorLogged(l);
-            if (AnyLogged != null)
-                AnyLogged(l);
+                MessageLogged(m);
         }
     }
 

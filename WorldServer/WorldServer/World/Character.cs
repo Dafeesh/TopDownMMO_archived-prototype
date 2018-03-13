@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
+using Extant;
 using SharedComponents;
 using SharedComponents.GameProperties;
 
@@ -9,32 +10,39 @@ using WorldServer.Control;
 
 namespace WorldServer.World
 {
-    public abstract class Character : IDisposable , IInstanceTick
+    public abstract class Character : IDisposable , IInstanceTick , ILogging
     {
         public const int ID_NULL = -1;
 
+        private String name;
         private int id = ID_NULL;
         private CharacterType type;
         private List<Character> charsInView;
         private List<Character> charsSeenBy;
         private bool isDisposed;
+        private DebugLogger log;
 
-        private CharacterVisibilityType visibility;
         private Position2D position;
 
         /// <summary>
         /// Creates a character to be used in a game map.
         /// </summary>
         /// <param name="id">ID of the character.</param>
-        public Character(int id = ID_NULL)
+        public Character(String name, CharacterType type)
         {
-            this.visibility = CharacterVisibilityType.Normal;
+            name = "Char:" + name;
+
+            log = new DebugLogger(name);
+            log.MessageLogged += Console.WriteLine;
+
+            this.name = name;
             this.position = new Position2D();
             this.charsInView = new List<Character>();
             this.charsSeenBy = new List<Character>();
             this.isDisposed = false;
 
-            this.SetID(id);
+            this.type = type;
+            this.SetID(ID_NULL);
         }
 
         ~Character()
@@ -96,7 +104,7 @@ namespace WorldServer.World
 
         public bool CanSeeCharacter(Character c)
         {
-            //For now, everyone can see all characters
+            //For now, everyone can see all characters in instance
             return true;
         }
 
@@ -144,6 +152,14 @@ namespace WorldServer.World
             }
         }
 
+        public CharacterType CharacterType
+        {
+            get
+            {
+                return type;
+            }
+        }
+
         public bool IsDisposed
         {
             get
@@ -152,6 +168,15 @@ namespace WorldServer.World
             }
         }
 
+        public DebugLogger Log
+        {
+            get
+            {
+                return log;
+            }
+        }
+
         #endregion Accessors
+
     }
 }

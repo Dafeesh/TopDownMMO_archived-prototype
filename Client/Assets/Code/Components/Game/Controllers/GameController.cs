@@ -14,7 +14,7 @@ public class GameController : MonoBehaviour , ILogging
     PlayerController plrController = null;
 
     WorldServerConnection wsConnection;
-    DebugLogger log = new DebugLogger();
+    DebugLogger log;
 
     //GameMap map = new GameMap();
     PlayerInfo playerInfo = new PlayerInfo("NULL");
@@ -22,6 +22,7 @@ public class GameController : MonoBehaviour , ILogging
 
     void Start()
     {
+        log = new DebugLogger("GameController");
         //log.AnyLogged += Debug.Log;
 
         if (uiController == null)
@@ -63,7 +64,7 @@ public class GameController : MonoBehaviour , ILogging
                         uiController.SetPlayerName(pp.username);
                         uiController.SetPlayerLevel(pp.level);
 
-                        log.Log("WorldServer- Got player info: " + playerInfo.Name + "/" + playerInfo.Level);
+                        log.Log("Got player info: " + playerInfo.Name + "/" + playerInfo.Level);
                     }
                     break;
 
@@ -73,7 +74,7 @@ public class GameController : MonoBehaviour , ILogging
 
                         plrController.SetCharacterControlled(charListController.GetControllerFromId(pp.id));
 
-                        log.Log("WorldServer- Set control of char: " + pp.id);
+                        log.Log("Set control of char: " + pp.id);
                     }
                     break;
 
@@ -82,7 +83,7 @@ public class GameController : MonoBehaviour , ILogging
                         //ClientToWorldPackets.Map_Reset_c pp = p as ClientToWorldPackets.Map_Reset_c;
 
 
-                        log.Log("WorldServer- Reset Map.");
+                        log.Log("Reset Map.");
                     }
                     break;
 
@@ -91,7 +92,7 @@ public class GameController : MonoBehaviour , ILogging
                         //ClientToWorldPackets.Map_TerrainBlock_c pp = p as ClientToWorldPackets.Map_TerrainBlock_c;
 
 
-                        log.Log("WorldServer- Terrain Block.");
+                        log.Log("Terrain Block.");
                     }
                     break;
 
@@ -101,7 +102,7 @@ public class GameController : MonoBehaviour , ILogging
 
                         charListController.AddCharacter(pp.charId, pp.charType, pp.modelNumber);
 
-                        log.Log("WorldServer- Add Character: " + pp.charId);
+                        log.Log("Add Character: " + pp.charId);
                     }
                     break;
 
@@ -111,7 +112,7 @@ public class GameController : MonoBehaviour , ILogging
 
                         charListController.SetCharacterPosition(pp.charId, pp.newx, pp.newy);
 
-                        log.Log("WorldServer- Character position: " + pp.charId);
+                        log.Log("Character position: " + pp.charId);
                     }
                     break;
 
@@ -121,13 +122,13 @@ public class GameController : MonoBehaviour , ILogging
 
                         charListController.RemoveCharacter(pp.charId);
 
-                        log.Log("WorldServer- Remove Character: " + pp.charId);
+                        log.Log("Remove Character: " + pp.charId);
                     }
                     break;
 
                 default:
                     {
-                        log.LogWarning("WorldServer- Got unknown packet: " + ((ClientToWorldPackets.PacketType)p.Type).ToString());
+                        log.Log("Got unknown packet: " + ((ClientToWorldPackets.PacketType)p.Type).ToString());
                     }
                     break;
             }

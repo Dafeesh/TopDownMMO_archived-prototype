@@ -9,11 +9,12 @@ public class CharacterListController : MonoBehaviour
 {
     Dictionary<int, CharacterObjectController> characters = new Dictionary<int, CharacterObjectController>();
 
-    DebugLogger log = new DebugLogger();
+    DebugLogger log;
 
     void Start()
     {
-        log.AnyLogged += Debug.Log;
+        log = new DebugLogger("CharListController");
+        log.MessageLogged += Debug.Log;
     }
 
     void Update()
@@ -87,7 +88,7 @@ public class CharacterListController : MonoBehaviour
         }
         else
         {
-            log.LogError("CharListController could not get controller from id: " + id);
+            log.Log("CharListController could not get controller from id: " + id);
             return null;
         }
     }

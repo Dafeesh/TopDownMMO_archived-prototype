@@ -14,7 +14,7 @@ namespace WorldServer.World
             Stopwatch timer = new Stopwatch();
 
             public RandomTeleportingWizard(float x, float y)
-                : base()
+                : base("RndTeleWizard", CharacterType.Enemy)
             {
                 this.Position.x = x;
                 this.Position.y = y;
@@ -38,17 +38,17 @@ namespace WorldServer.World
 
             public override void Inform_AddCharacterInView(Character newChar)
             {
-                DebugLogger.Global.Log(this.GetHashCode() + ": Add- " + newChar.GetHashCode());
+                Log.Log(this.GetHashCode() + ": Add- " + newChar.GetHashCode());
             }
 
             public override void Inform_RemoveCharacterInView(Character charFrom)
             {
-                DebugLogger.Global.Log(this.GetHashCode() + ": Removed- " + charFrom.GetHashCode());
+                Log.Log(this.GetHashCode() + ": Removed- " + charFrom.GetHashCode());
             }
 
             public override void Inform_CharacterTeleport(Character charFrom, Position2D pos)
             {
-                //DebugLogger.Global.Log(DebugLogger.LogType.Blank, this.GetHashCode() + ": Teleport!");
+                //Log.Log(DebugLogger.LogType.Blank, this.GetHashCode() + ": Teleport!");
             }
         }
     }

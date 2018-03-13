@@ -31,13 +31,13 @@ namespace WorldServer.Control
             characters = new List<Character>();
             players = new List<Characters.Player>();
 
-            log = new DebugLogger();
-            log.AnyLogged += Console.WriteLine;
+            log = new DebugLogger("Instance-" + name);
+            log.MessageLogged += Console.WriteLine;
         }
 
         sealed protected override void Begin()
         {
-            log.Log("Instance started: " + this.name);
+            log.Log("Instance started.");
         }
 
         sealed protected override void RunLoop()
@@ -70,7 +70,7 @@ namespace WorldServer.Control
             {
                 c.Dispose();
             }
-            log.Log("Instance finished: " + this.name);
+            log.Log("Instance finished.");
         }
 
         public abstract void Tick();
@@ -97,7 +97,7 @@ namespace WorldServer.Control
 
             characters.Remove(p);
             players.Remove(p);
-            log.Log("Player left instance. [" + p.Info.Name + " -> " + this.name + "]");
+            log.Log("Player left instance. [" + p.Info.Name + "]");
         }
 
         private void UpdateCharacterView(Character c)
@@ -134,7 +134,7 @@ namespace WorldServer.Control
             p.SendPacket(new ClientToWorldPackets.Player_SetControl_c(p.Id));
             UpdateCharacterView(p);
 
-            log.Log("Player joined instance. [" + p.Info.Name + " -> " + this.name + "]");
+            log.Log("Player joined instance. [" + p.Info.Name + "]");
         }
 
         /////////// Protected ///////////

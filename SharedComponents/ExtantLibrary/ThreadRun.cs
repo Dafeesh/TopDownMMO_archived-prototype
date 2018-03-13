@@ -30,6 +30,8 @@ namespace Extant
     //that will be called until requested to stop.
     public abstract class ThreadRun : IDisposable , ILogging
     {
+        private String name;
+
         private static Int32 runningIDIterator = 0;
         private static object runningIDIterator_lock = new object();
 
@@ -47,7 +49,7 @@ namespace Extant
         private String stopMessage = String.Empty;
         private Boolean isDisposed = false;
 
-        private DebugLogger log = new DebugLogger();
+        private DebugLogger log;
 
         /// <summary>
         /// Creates and starts a thread to run an inheritted class.
@@ -71,6 +73,10 @@ namespace Extant
             thisThread = new Thread(new ThreadStart(Run));
             thisThread.Name = "<" + threadName + "::" + runningID.ToString() + ">";
             thisThread_killSwitch = false;
+
+            //Set name
+            this.name = threadName;
+            log = new DebugLogger(threadName);
         }
 
         ~ThreadRun()
@@ -114,7 +120,7 @@ namespace Extant
                 }
                 catch (Exception e)
                 {
-                    log.LogWarning("ThreadRun experienced an unexpected Exception! (" + this.RunningID + ")\n" + e.ToString() + "\n-");
+                    log.Log("ThreadRun experienced an unexpected Exception! (" + thisThread.Name + ")\n" + e.ToString() + "\n-");
                     unhandledException = e;
                     this.Stop("Unhandled exception.");
                     if (OnUnhandledException != null)
@@ -178,7 +184,7 @@ namespace Extant
                 thisThread_killSwitch = true;
 
                 stopMessage = reason;
-                log.LogError("Stopped with this reason: " + reason);
+                log.Log("Stopped with this reason: " + reason);
             }
         }
 
@@ -242,7 +248,7 @@ namespace Extant
         /// <param name="func"></param>
         public void SubscribeToLogs(DebugLogger.DebugLogMessageDelegate func)
         {
-            this.Log.AnyLogged += func;
+            this.Log.MessageLogged += func;
         }
 
         /// <summary>

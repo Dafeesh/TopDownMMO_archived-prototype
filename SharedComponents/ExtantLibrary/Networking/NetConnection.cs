@@ -1,6 +1,4 @@
-﻿#define LOG_DEBUG
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
@@ -87,9 +85,7 @@ namespace Extant.Networking
                 }
                 catch (Exception e)
                 {
-                    String m = "NetConnection: Exception while trying to start connecting.\n" + e.ToString();
-                    Log.LogWarning(m);
-                    this.Stop(m);
+                    this.Stop("Exception while trying to start connecting.\n" + e.ToString());
                 }
             }
         }
@@ -102,9 +98,6 @@ namespace Extant.Networking
                     {
                         if (connectTimeoutTimer.ElapsedMilliseconds > connectTimeout)
                         {
-#if LOG_DEBUG
-                            Log.Log("NetConnection: Connect timed out.");
-#endif
                             this.Stop("Connect timed out.");
                         }
                         break;
@@ -113,16 +106,10 @@ namespace Extant.Networking
                     {
                         if (receiveTimeoutTimer.ElapsedMilliseconds > receiveTimeout)
                         {
-#if LOG_DEBUG
-                            Log.Log("NetConnection: Receive timed out.");
-#endif
                             this.Stop("Receive timed out.");
                         }
                         else if (!tcpClient.Connected)
                         {
-#if LOG_DEBUG
-                            Log.Log("NetConnection: Disconnected.");
-#endif
                             this.Stop("Disconnected.");
                         }
                         break;
@@ -134,7 +121,7 @@ namespace Extant.Networking
                     }
                 default:
                     {
-                        Log.LogError("NetConnection: Invalid state: " + state.ToString());
+                        Log.Log("Invalid state: " + state.ToString());
                         throw new SocketException((int)SocketError.OperationNotSupported);
                     }
             }
@@ -148,7 +135,7 @@ namespace Extant.Networking
             }
             connectTimeoutTimer.Stop();
             state = NetworkState.Closed;
-            Log.Log("NetConnection finished.");
+            Log.Log("Finished.");
         }
 
         private void BeginReceive(Socket client)
@@ -174,9 +161,6 @@ namespace Extant.Networking
                 }
                 else
                 {
-#if LOG_DEBUG
-                    Log.Log("NetConnection: ConnectCallback, no connection.");
-#endif
                     this.Stop("Callback, no connection.");
                 }
             }
@@ -184,7 +168,6 @@ namespace Extant.Networking
 
         private void ReceiveCallback(IAsyncResult ar)
         {
-            //DebugLogger.Global.Log("RECEIVED: " + DateTime.Now.ToString());
             try
             {
                 Socket client = (Socket)ar.AsyncState;
@@ -192,9 +175,6 @@ namespace Extant.Networking
                 int numBytes = client.EndReceive(ar);
                 if (numBytes == 0)
                 {
-#if LOG_DEBUG
-                    Log.Log("NetConnection: Client disconnected.");
-#endif
                     this.Stop("Receive callback: lost connection.");
                 }
                 else
@@ -202,9 +182,8 @@ namespace Extant.Networking
                     receiveBuffer.AddRange(receiveBuffer_temp.Take(numBytes));
                     InterpretBuffer(ref receiveBuffer);
                     
-#if LOG_DEBUG
                     Log.Log("NetConnection: Received bytes- " + numBytes);
-#endif
+
                     byteLog_in.Bytes += numBytes;
 
                     BeginReceive(ar.AsyncState as Socket);
@@ -213,8 +192,7 @@ namespace Extant.Networking
             }
             catch (Exception e)
             {
-                Log.Log("NetConnection: ReceiveCallback exception ->\n" + e.ToString());
-                this.Stop("Receive callback exception: " + e.ToString());
+                this.Stop("ReceiveCallback exception: " + e.ToString());
             }
         }
 

@@ -24,22 +24,18 @@ namespace WorldServer.World
             private bool newlyConnected = false;
             private bool loggingOut = false;
 
-            private DebugLogger log = new DebugLogger();
-
             private PlayerZoneLocation location;
 
             public Player(Template template)
-                : base()
+                : base("Player:" + template.Info.Name, CharacterType.Player)
             {
-                log.AnyLogged += Console.WriteLine;
-
                 this.info = template.Info;
                 this.password = template.Password;
                 this.location = template.Location;
 
                 client = null;
 
-                log.Log("Player created.");
+                Log.Log("Player created.");
             }
 
             protected override void Dispose(bool blocking)
@@ -53,7 +49,7 @@ namespace WorldServer.World
                 if (client != null)
                     if (client.IsStopped)
                     {
-                        log.Log("Player disconnected.");
+                        Log.Log("Player disconnected.");
                         client.Dispose();
                         client = null;
                         loggingOut = true;
@@ -85,9 +81,9 @@ namespace WorldServer.World
                 if (client != null)
                 {
                     if (client.IsConnectedAndVerified)
-                        log.Log("Player connected while already being connected.");
+                        Log.Log("Player connected while already being connected.");
                     else
-                        log.Log("Player reconnected.");
+                        Log.Log("Player reconnected.");
                     client.Dispose();
                 }
                 client = c;
