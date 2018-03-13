@@ -40,12 +40,13 @@
             this.listBox_log = new System.Windows.Forms.ListBox();
             this.textBox_logSelect = new System.Windows.Forms.TextBox();
             this.checkBox_logPause = new System.Windows.Forms.CheckBox();
+            this.checkBox_MasterConnected = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // listBox_Instances
             // 
             this.listBox_Instances.FormattingEnabled = true;
-            this.listBox_Instances.Location = new System.Drawing.Point(299, 37);
+            this.listBox_Instances.Location = new System.Drawing.Point(299, 65);
             this.listBox_Instances.Name = "listBox_Instances";
             this.listBox_Instances.Size = new System.Drawing.Size(126, 225);
             this.listBox_Instances.TabIndex = 0;
@@ -53,7 +54,7 @@
             // 
             // button_RefreshInstanceList
             // 
-            this.button_RefreshInstanceList.Location = new System.Drawing.Point(299, 268);
+            this.button_RefreshInstanceList.Location = new System.Drawing.Point(299, 296);
             this.button_RefreshInstanceList.Name = "button_RefreshInstanceList";
             this.button_RefreshInstanceList.Size = new System.Drawing.Size(75, 23);
             this.button_RefreshInstanceList.TabIndex = 1;
@@ -64,7 +65,7 @@
             // panel_InstanceView
             // 
             this.panel_InstanceView.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panel_InstanceView.Location = new System.Drawing.Point(431, 37);
+            this.panel_InstanceView.Location = new System.Drawing.Point(431, 65);
             this.panel_InstanceView.Name = "panel_InstanceView";
             this.panel_InstanceView.Size = new System.Drawing.Size(200, 200);
             this.panel_InstanceView.TabIndex = 2;
@@ -72,7 +73,7 @@
             // label_InstanceName
             // 
             this.label_InstanceName.AutoSize = true;
-            this.label_InstanceName.Location = new System.Drawing.Point(428, 240);
+            this.label_InstanceName.Location = new System.Drawing.Point(428, 268);
             this.label_InstanceName.Name = "label_InstanceName";
             this.label_InstanceName.Size = new System.Drawing.Size(88, 13);
             this.label_InstanceName.TabIndex = 3;
@@ -81,7 +82,7 @@
             // label_Players
             // 
             this.label_Players.AutoSize = true;
-            this.label_Players.Location = new System.Drawing.Point(578, 240);
+            this.label_Players.Location = new System.Drawing.Point(578, 268);
             this.label_Players.Name = "label_Players";
             this.label_Players.Size = new System.Drawing.Size(53, 13);
             this.label_Players.TabIndex = 4;
@@ -90,7 +91,7 @@
             // listBox_Players
             // 
             this.listBox_Players.FormattingEnabled = true;
-            this.listBox_Players.Location = new System.Drawing.Point(12, 37);
+            this.listBox_Players.Location = new System.Drawing.Point(12, 65);
             this.listBox_Players.Name = "listBox_Players";
             this.listBox_Players.Size = new System.Drawing.Size(126, 225);
             this.listBox_Players.TabIndex = 5;
@@ -98,7 +99,7 @@
             // label_InstancesTitle
             // 
             this.label_InstancesTitle.AutoSize = true;
-            this.label_InstancesTitle.Location = new System.Drawing.Point(296, 21);
+            this.label_InstancesTitle.Location = new System.Drawing.Point(296, 49);
             this.label_InstancesTitle.Name = "label_InstancesTitle";
             this.label_InstancesTitle.Size = new System.Drawing.Size(56, 13);
             this.label_InstancesTitle.TabIndex = 6;
@@ -107,7 +108,7 @@
             // label_PlayersTitle
             // 
             this.label_PlayersTitle.AutoSize = true;
-            this.label_PlayersTitle.Location = new System.Drawing.Point(12, 21);
+            this.label_PlayersTitle.Location = new System.Drawing.Point(12, 49);
             this.label_PlayersTitle.Name = "label_PlayersTitle";
             this.label_PlayersTitle.Size = new System.Drawing.Size(44, 13);
             this.label_PlayersTitle.TabIndex = 7;
@@ -115,7 +116,7 @@
             // 
             // button_RefreshPlayerList
             // 
-            this.button_RefreshPlayerList.Location = new System.Drawing.Point(12, 268);
+            this.button_RefreshPlayerList.Location = new System.Drawing.Point(12, 296);
             this.button_RefreshPlayerList.Name = "button_RefreshPlayerList";
             this.button_RefreshPlayerList.Size = new System.Drawing.Size(75, 23);
             this.button_RefreshPlayerList.TabIndex = 8;
@@ -126,7 +127,7 @@
             // listBox_log
             // 
             this.listBox_log.FormattingEnabled = true;
-            this.listBox_log.Location = new System.Drawing.Point(637, 37);
+            this.listBox_log.Location = new System.Drawing.Point(637, 65);
             this.listBox_log.Name = "listBox_log";
             this.listBox_log.Size = new System.Drawing.Size(126, 225);
             this.listBox_log.TabIndex = 9;
@@ -134,7 +135,7 @@
             // 
             // textBox_logSelect
             // 
-            this.textBox_logSelect.Location = new System.Drawing.Point(770, 37);
+            this.textBox_logSelect.Location = new System.Drawing.Point(770, 65);
             this.textBox_logSelect.Multiline = true;
             this.textBox_logSelect.Name = "textBox_logSelect";
             this.textBox_logSelect.Size = new System.Drawing.Size(198, 149);
@@ -143,18 +144,30 @@
             // checkBox_logPause
             // 
             this.checkBox_logPause.AutoSize = true;
-            this.checkBox_logPause.Location = new System.Drawing.Point(637, 268);
+            this.checkBox_logPause.Location = new System.Drawing.Point(637, 296);
             this.checkBox_logPause.Name = "checkBox_logPause";
             this.checkBox_logPause.Size = new System.Drawing.Size(77, 17);
             this.checkBox_logPause.TabIndex = 11;
             this.checkBox_logPause.Text = "Pause Log";
             this.checkBox_logPause.UseVisualStyleBackColor = true;
             // 
-            // InstanceWatcher
+            // checkBox_MasterConnected
+            // 
+            this.checkBox_MasterConnected.AutoSize = true;
+            this.checkBox_MasterConnected.Enabled = false;
+            this.checkBox_MasterConnected.Location = new System.Drawing.Point(15, 12);
+            this.checkBox_MasterConnected.Name = "checkBox_MasterConnected";
+            this.checkBox_MasterConnected.Size = new System.Drawing.Size(113, 17);
+            this.checkBox_MasterConnected.TabIndex = 12;
+            this.checkBox_MasterConnected.Text = "Master Connected";
+            this.checkBox_MasterConnected.UseVisualStyleBackColor = true;
+            // 
+            // InstanceServerHostWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(980, 465);
+            this.Controls.Add(this.checkBox_MasterConnected);
             this.Controls.Add(this.checkBox_logPause);
             this.Controls.Add(this.textBox_logSelect);
             this.Controls.Add(this.listBox_log);
@@ -167,9 +180,9 @@
             this.Controls.Add(this.panel_InstanceView);
             this.Controls.Add(this.button_RefreshInstanceList);
             this.Controls.Add(this.listBox_Instances);
-            this.Name = "InstanceWatcher";
+            this.Name = "InstanceServerHostWindow";
             this.Text = "InstanceWatcher";
-            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.InstanceWatcher_FormClosing);
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.InstanceServerHostWindow_FormClosing);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -189,5 +202,6 @@
         private System.Windows.Forms.ListBox listBox_log;
         private System.Windows.Forms.TextBox textBox_logSelect;
         private System.Windows.Forms.CheckBox checkBox_logPause;
+        private System.Windows.Forms.CheckBox checkBox_MasterConnected;
     }
 }

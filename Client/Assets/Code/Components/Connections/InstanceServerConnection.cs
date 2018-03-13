@@ -23,6 +23,7 @@ public class InstanceServerConnection : MonoComponent
 
     IPEndPoint remoteEndPoint = null;
     NetConnection connection = null;
+    IPacketDistributor connection_distribution;
     string username = null;
     int? passwordToken = null;
 
@@ -31,8 +32,13 @@ public class InstanceServerConnection : MonoComponent
 
     void Awake()
     {
+        this.connection_distribution = new ClientToInstancePackets.Distribution()
+        {
+            out_Verify_Result_c = OnReceive_Verify_Result_c
+        };
+
         Main = this;
-        Log.MessageLogged += Debug.Log;
+        this.Log.MessageLogged += Debug.Log;
     }
 
     void Start()
@@ -62,10 +68,12 @@ public class InstanceServerConnection : MonoComponent
                     {
                         Log.Log("InstConnection failed to connect.");
                         State = ConnectionState.NoConnection;
+                        break;
                     }
-                    else if (connection.State == NetConnection.NetworkState.Connected)
+
+                    if (connection.State == NetConnection.NetworkState.Connected)
                     {
-                        connection.SendPacket(new ClientToWorldPackets.Verify_Details_g(GameVersion.Build, username, passwordToken.Value));
+                        connection.SendPacket(new ClientToInstancePackets.Verify_Details_i(GameVersion.Build, username, passwordToken.Value));
                         State = ConnectionState.Authorizing;
                     }
                 }
@@ -76,31 +84,14 @@ public class InstanceServerConnection : MonoComponent
                     {
                         Log.Log("InstConnection disconnected while authorizing.");
                         State = ConnectionState.NoConnection;
+                        break;
                     }
-                    else
+
+                    bool receivedPacket = connection.DistributePacket(connection_distribution);
+                    if (receivedPacket == true && State == ConnectionState.Authorizing) //If no action was taken. (Closed = failed, Connected = success)
                     {
-                        Packet p = connection.GetPacket();
-                        if (p != null)
-                        {
-                            if ((ClientToWorldPackets.PacketType)p.Type == ClientToWorldPackets.PacketType.Verify_Result_c)
-                            {
-                                ClientToWorldPackets.Verify_Result_c r = (ClientToWorldPackets.Verify_Result_c)p;
-                                if (r.returnCode == ClientToWorldPackets.Verify_Result_c.VerifyReturnCode.Success)
-                                {
-                                    Log.Log("Successfully connected!");
-                                    State = ConnectionState.Connected;
-                                }
-                                else
-                                {
-                                    Log.Log("Denied connection: " + r.returnCode.ToString());
-                                }
-                            }
-                            else
-                            {
-                                Log.Log("Received wrong packet when authorizing: " + ((ClientToWorldPackets.PacketType)p.Type).ToString());
-                                CloseConnection();
-                            }
-                        }
+                        Log.Log("Received wrong packet while authorizing.");
+                        CloseConnection();
                     }
                 }
                 break;
@@ -113,11 +104,9 @@ public class InstanceServerConnection : MonoComponent
                     }
                     else
                     {
-                        Packet p = null;
-                        while ((p = connection.GetPacket()) != null)
+                        while (connection.DistributePacket(connection_distribution) == true)
                         {
                             packetCount++;
-                            packets.Enqueue(p);
                         }
                     }
                 }
@@ -149,13 +138,30 @@ public class InstanceServerConnection : MonoComponent
         this.username = username;
         this.passwordToken = password;
 
-        connection = new NetConnection(ClientToWorldPackets.ReadBuffer, remoteEndPoint, CONNECT_TIMEOUT);
+        connection = new NetConnection(remoteEndPoint, CONNECT_TIMEOUT);
         //connection.Log.MessageLogged += Debug.Log;
         connection.Start();
         State = ConnectionState.Connecting;
 
         Log.Log("Set target to " + endPoint.Address.ToString() + ":" + endPoint.Port);
     }
+
+    #region OnReceive
+
+    private void OnReceive_Verify_Result_c(ClientToInstancePackets.Verify_Result_c p)
+    {
+        if (p.returnCode == ClientToInstancePackets.Verify_Result_c.VerifyReturnCode.Success)
+        {
+            Log.Log("Successfully connected!");
+            State = ConnectionState.Connected;
+        }
+        else
+        {
+            Log.Log("Denied connection: " + p.returnCode.ToString());
+        }
+    }
+
+    #endregion OnReceive
 
     public ConnectionState State
     {

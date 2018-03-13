@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using SharedComponents.GameProperties;
+using SharedComponents.Global.GameProperties;
 
 namespace InstanceServer.World.Map
 {

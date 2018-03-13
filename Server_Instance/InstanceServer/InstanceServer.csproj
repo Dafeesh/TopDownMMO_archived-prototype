@@ -50,7 +50,7 @@
     <Compile Include="InstanceServerHostWindow.Designer.cs">
       <DependentUpon>InstanceServerHostWindow.cs</DependentUpon>
     </Compile>
-    <Compile Include="Control\ClientAuthConnection.cs" />
+    <Compile Include="Control\VerifyingClient.cs" />
     <Compile Include="Control\ClientAccepter.cs" />
     <Compile Include="Links\MasterServerLink.cs" />
     <Compile Include="Control\InstanceServerHost.cs" />

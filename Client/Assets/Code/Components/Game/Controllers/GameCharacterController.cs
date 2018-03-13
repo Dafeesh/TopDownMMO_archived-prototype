@@ -23,7 +23,7 @@ public class GameCharacterController : MonoComponent
             Debug.LogError("GameCharacterController does not have reference to animationController.");
 
         this.Name = "NULL";
-        this.Layout = new CharacterLayout(CharacterVisualType.Null);
+        this.Layout = new CharacterLayout(CharacterLayout.VisualType.Null);
         this.Threat = CharacterThreat.Neutral;
         this.Stats = new CharacterStats();
 

@@ -21,10 +21,10 @@ namespace MasterServer.Host
         private const int RECEIVE_TIMEOUT = 3000;
 
         TcpListener listener;
-        List<TimedNetConnection> connections = new List<TimedNetConnection>();
+        List<AuthorizingConnection> connections = new List<AuthorizingConnection>();
         Queue<AuthorizedLoginAttempt> authorizedLoginAttempts = new Queue<AuthorizedLoginAttempt>();
         object authorizedLoginAttempts_lock = new object();
-        DBConnection dbConnection = new DBConnection();
+        DBConnections.Accounts dbConnection = new DBConnections.Accounts();
 
         public ClientAcceptor(IPEndPoint localEndPoint)
             : base("ClientAcceptor")
@@ -64,74 +64,57 @@ namespace MasterServer.Host
             //Delete if true...
             connections.RemoveAll((c) =>
             {
-                if (!HandleConnection(c))
+
+                if (c.Connection.IsStopped)
                 {
+                    //Dead connection
+                    c.Connection.Dispose();
                     return true;
                 }
-                return false;
-            });
-        }
-
-        private bool HandleConnection(TimedNetConnection c)
-        {
-            //Check for dead connection
-            if (c.Connection.IsStopped || c.Timer.ElapsedMilliseconds > RECEIVE_TIMEOUT)
-            {
-                c.Connection.Dispose();
-                c.Timer.Stop();
-                return false;
-            }
-            else
-            {
-                //Handle packets
-                Packet packet = null;
-                while ((packet = c.Connection.GetPacket()) != null)
+                else if (c.Timer.ElapsedMilliseconds > RECEIVE_TIMEOUT)
                 {
-                    if (packet is ClientToMasterPackets.AccountAuthorize_Attempt_m)
+                    //Time out connection
+                    c.Connection.Stop("Timed out while authorizing.");
+                    c.Connection.Dispose();
+                    return true;
+                }
+                else
+                {
+                    //Check for authorization
+                    c.HandleAuthorization();
+                    if (c.IsAuthorized == null)
                     {
-                        var p = packet as ClientToMasterPackets.AccountAuthorize_Attempt_m;
-
-                        if (p.Build == GameVersion.Build)
-                        {
-                            AccountInfo acc = dbConnection.Fetch_AccountInfo(p.Username, p.Password);
-                            if (acc != null)
-                            {
-                                lock (authorizedLoginAttempts_lock)
-                                {
-                                    authorizedLoginAttempts.Enqueue(new AuthorizedLoginAttempt(acc, c.Connection));
-                                }
-                                c.Connection.SendPacket(new ClientToMasterPackets.AccountAuthorize_Response_c(ClientToMasterPackets.AccountAuthorize_Response_c.AuthResponse.Success));
-                                return false;
-                            }
-                            else
-                            {
-                                c.Connection.SendPacket(new ClientToMasterPackets.AccountAuthorize_Response_c(ClientToMasterPackets.AccountAuthorize_Response_c.AuthResponse.InvalidLogin));
-                                c.Connection.Stop("Login attempt failed.");
-                                return false;
-                            }
-                        }
-                        else
-                        {
-                            c.Connection.SendPacket(new ClientToMasterPackets.AccountAuthorize_Response_c(ClientToMasterPackets.AccountAuthorize_Response_c.AuthResponse.InvalidBuild));
-                            c.Connection.Stop("Invalid build.");
-                        }
+                        //Received nothing
+                        return false;
                     }
-                    else
+                    else if (c.IsAuthorized == true)
                     {
-                        c.Connection.Stop("Received wrong packet while authorizing.");
+                        //Authorized successfully
+                        Log.Log("Client authorized successfully: " + c.AcctInfo.Name);
+                        lock (authorizedLoginAttempts_lock)
+                        {
+                            authorizedLoginAttempts.Enqueue(new AuthorizedLoginAttempt(c.AcctInfo, c.Connection));
+                        }
+                        return true;
+                    }
+                    else //aka -> if (c.IsAuthorized == false)
+                    {
+                        //Error while authorizing
+                        Log.Log("Client encountered an error while authorizing: " + c.Connection.StopMessage);
+                        c.Connection.Dispose();
+                        return true;
                     }
                 }
-                return true;
-            }
+            });
         }
 
         private void AcceptConnections()
         {
             while (listener.Pending())
             {
-                NetConnection c = new NetConnection(ClientToMasterPackets.ReadBuffer, listener.AcceptTcpClient());
+                NetConnection c = new NetConnection(listener.AcceptTcpClient());
                 c.Start();
-                connections.Add(new TimedNetConnection(c));
+                connections.Add(new AuthorizingConnection(c));
             }
         }
 
@@ -145,7 +128,7 @@ namespace MasterServer.Host
                     return null;
             }
         }
-        
+
         public class AuthorizedLoginAttempt
         {
             public readonly AccountInfo Info;
@@ -158,17 +141,68 @@ namespace MasterServer.Host
             }
         }
 
-        private class TimedNetConnection
+        private class AuthorizingConnection
         {
             public readonly NetConnection Connection;
             public readonly Stopwatch Timer;
 
-            public TimedNetConnection(NetConnection c)
+            public bool? IsAuthorized
+            { get; private set; }
+            public AccountInfo AcctInfo = null;
+
+            private IPacketDistributor distributor;
+
+            public AuthorizingConnection(NetConnection c)
             {
                 this.Connection = c;
-
                 this.Timer = new Stopwatch();
+
+                distributor = new ClientToMasterPackets.Distribution()
+                {
+                    out_AccountAuthorize_Attempt_m = OnReceive_AccountAuthorize_Attempt_m
+                };
+
                 Timer.Start();
+            }
+
+            public void HandleAuthorization()
+            {
+                bool receivedPacket = Connection.DistributePacket(distributor);
+
+                if (receivedPacket == true && IsAuthorized == null)
+                {
+                    Connection.Stop("Received invalid packet while authorizing.");
+                    IsAuthorized = false;
+                }
+            }
+
+            private void OnReceive_AccountAuthorize_Attempt_m(ClientToMasterPackets.AccountAuthorize_Attempt_m p)
+            {
+                if (p.Build == GameVersion.Build)
+                {
+                    using (DBConnections.Accounts dbConnection = new DBConnections.Accounts())
+                    {
+                        AcctInfo = dbConnection.Fetch_AccountInfo(p.Username, p.Password);
+
+                        if (AcctInfo != null)
+                        {
+                            Connection.SendPacket(new ClientToMasterPackets.AccountAuthorize_Response_c(ClientToMasterPackets.AccountAuthorize_Response_c.AuthResponse.Success));
+                            IsAuthorized = true;
+                        }
+                        else
+                        {
+                            Connection.SendPacket(new ClientToMasterPackets.AccountAuthorize_Response_c(ClientToMasterPackets.AccountAuthorize_Response_c.AuthResponse.InvalidLogin));
+                            Connection.Stop("Login attempt failed.");
+                            IsAuthorized = false;
+                        }
+                    }
+                }
+                else
+                {
+                    Connection.SendPacket(new ClientToMasterPackets.AccountAuthorize_Response_c(ClientToMasterPackets.AccountAuthorize_Response_c.AuthResponse.InvalidBuild));
+                    Connection.Stop("Invalid build.");
+                    IsAuthorized = false;
+                }
             }
         }
     }

@@ -13,24 +13,23 @@ using SharedComponents.Global.GameProperties;
 
 namespace SharedComponents.Global
 {
-    public static class ClientToWorldPackets
+    public static class ClientToInstancePackets
     {
         public enum PacketType
         {
             Null,
 
-            Ping_c,
             Error_c,
 
             Map_Reset_c,
             Map_TerrainBlock_c,
 
-            Verify_Details_w,
+            Verify_Details_i,
             Verify_Result_c,
 
             Player_Info_c,
             Player_SetControl_c,
-            Player_MovementRequest_w,
+            Player_MovementRequest_i,
 
             Character_Add_c,
             Character_Remove_c,
@@ -39,74 +38,122 @@ namespace SharedComponents.Global
             Character_UpdateStats_c
         }
 
-        /// <summary>
-        /// Returns a Packet that is read and removed from beginning of List of Bytes.
-        /// </summary>
-        /// <param name="buffer">Buffer used to try to create a packet.</param>
-        public static Packet ReadBuffer(ref List<Byte> buffer)
+        public class Distribution : IPacketDistributor
         {
-            if (buffer != null)
+            public Delegate_PacketDistribute<Error_c> out_Error_c = null;
+
+            public Delegate_PacketDistribute<Map_Reset_c> out_Map_Reset_c = null;
+            public Delegate_PacketDistribute<Map_TerrainBlock_c> out_Map_TerrainBlock_c = null;
+
+            public Delegate_PacketDistribute<Verify_Details_i> out_Verify_Details_i = null;
+            public Delegate_PacketDistribute<Verify_Result_c> out_Verify_Result_c = null;
+
+            public Delegate_PacketDistribute<Player_Info_c> out_Player_Info_c = null;
+            public Delegate_PacketDistribute<Player_SetControl_c> out_Player_SetControl_c = null;
+            public Delegate_PacketDistribute<Player_MovementRequest_i> out_Player_MovementRequest_i = null;
+
+            public Delegate_PacketDistribute<Character_Add_c> out_Character_Add_c = null;
+            public Delegate_PacketDistribute<Character_Remove_c> out_Character_Remove_c = null;
+            public Delegate_PacketDistribute<Character_Position_c> out_Character_Position_c = null;
+            public Delegate_PacketDistribute<Character_Movement_c> out_Character_Movement_c = null;
+            public Delegate_PacketDistribute<Character_UpdateStats_c> out_Character_UpdateStats_c = null;
+
+            public void Dispose()
             {
-                if (buffer.Count > sizeof(Int32))
+                out_Error_c = null;
+
+                out_Map_Reset_c = null;
+                out_Map_TerrainBlock_c = null;
+
+                out_Verify_Details_i = null;
+                out_Verify_Result_c = null;
+
+                out_Player_Info_c = null;
+                out_Player_SetControl_c = null;
+                out_Player_MovementRequest_i = null;
+
+                out_Character_Add_c = null;
+                out_Character_Remove_c = null;
+                out_Character_Position_c = null;
+                out_Character_Movement_c = null;
+                out_Character_UpdateStats_c = null;
+            }
+
+            public bool DistributePacket(ref List<byte> buffer)
+            {
+                if (buffer != null &&
+                    buffer.Count > sizeof(Int32))
                 {
                     Byte[] backupBuffer = buffer.ToArray();
                     try
                     {
-                        Packet returnPacket = null;
                         Int32 packetType = Packet.TakeInt32(ref buffer);
 
                         switch ((PacketType)packetType)
                         {
-                            case (PacketType.Ping_c):
-                                returnPacket = Ping_c.ReadPacket(ref buffer);
+                            case (PacketType.Error_c):
+                                if (out_Error_c != null)
+                                    out_Error_c(Error_c.ReadPacket(ref buffer));
                                 break;
 
                             case (PacketType.Map_Reset_c):
-                                returnPacket = Map_Reset_c.ReadPacket(ref buffer);
+                                if (out_Map_Reset_c != null)
+                                    out_Map_Reset_c(Map_Reset_c.ReadPacket(ref buffer));
                                 break;
 
                             case (PacketType.Map_TerrainBlock_c):
-                                returnPacket = Map_TerrainBlock_c.ReadPacket(ref buffer);
+                                if (out_Map_TerrainBlock_c != null)
+                                    out_Map_TerrainBlock_c(Map_TerrainBlock_c.ReadPacket(ref buffer));
                                 break;
 
-                            case (PacketType.Verify_Details_w):
-                                returnPacket = Verify_Details_g.ReadPacket(ref buffer);
+                            case (PacketType.Verify_Details_i):
+                                if (out_Verify_Details_i != null)
+                                    out_Verify_Details_i(Verify_Details_i.ReadPacket(ref buffer));
                                 break;
 
                             case (PacketType.Verify_Result_c):
-                                returnPacket = Verify_Result_c.ReadPacket(ref buffer);
+                                if (out_Verify_Result_c != null)
+                                    out_Verify_Result_c(Verify_Result_c.ReadPacket(ref buffer));
                                 break;
 
                             case (PacketType.Player_Info_c):
-                                returnPacket = Player_Info_c.ReadPacket(ref buffer);
+                                if (out_Player_Info_c != null)
+                                    out_Player_Info_c(Player_Info_c.ReadPacket(ref buffer));
                                 break;
 
                             case (PacketType.Player_SetControl_c):
-                                returnPacket = Player_SetControl_c.ReadPacket(ref buffer);
+                                if (out_Player_SetControl_c != null)
+                                    out_Player_SetControl_c(Player_SetControl_c.ReadPacket(ref buffer));
                                 break;
 
-                            case (PacketType.Player_MovementRequest_w):
-                                returnPacket = Player_MovementRequest_w.ReadPacket(ref buffer);
+                            case (PacketType.Player_MovementRequest_i):
+                                if (out_Player_MovementRequest_i != null)
+                                    out_Player_MovementRequest_i(Player_MovementRequest_i.ReadPacket(ref buffer));
                                 break;
 
                             case (PacketType.Character_Add_c):
-                                returnPacket = Character_Add_c.ReadPacket(ref buffer);
+                                if (out_Character_Add_c != null)
+                                    out_Character_Add_c(Character_Add_c.ReadPacket(ref buffer));
                                 break;
 
                             case (PacketType.Character_Remove_c):
-                                returnPacket = Character_Remove_c.ReadPacket(ref buffer);
+                                if (out_Character_Remove_c != null)
+                                    out_Character_Remove_c(Character_Remove_c.ReadPacket(ref buffer));
                                 break;
 
                             case (PacketType.Character_Movement_c):
-                                returnPacket = Character_Movement_c.ReadPacket(ref buffer);
+                                if (out_Character_Movement_c != null)
+                                    out_Character_Movement_c(Character_Movement_c.ReadPacket(ref buffer));
                                 break;
 
                             case (PacketType.Character_Position_c):
-                                returnPacket = Character_Position_c.ReadPacket(ref buffer);
+                                if (out_Character_Position_c != null)
+                                    out_Character_Position_c(Character_Position_c.ReadPacket(ref buffer));
                                 break;
 
                             case (PacketType.Character_UpdateStats_c):
-                                returnPacket = Character_UpdateStats_c.ReadPacket(ref buffer);
+                                if (out_Character_UpdateStats_c != null)
+                                    out_Character_UpdateStats_c(Character_UpdateStats_c.ReadPacket(ref buffer));
                                 break;
 
                             default:
@@ -115,7 +162,7 @@ namespace SharedComponents.Global
                         }
 
                         if (Packet.TakeByte(ref buffer) == Packet.END_PACKET)
-                            return returnPacket;
+                            return true;
                         else
                             throw new Packet.InvalidPacketRead("Last byte of packet was not END_PACKET byte.");
                     }
@@ -123,42 +170,11 @@ namespace SharedComponents.Global
                     {
                         //DebugLogger.Global.Log("Packet not large enough yet." + e.ToString());
                         buffer = backupBuffer.ToList();
-                        return null;
+                        return false;
                     }
                 }
-            }
-            return null;
-        }
-
-        /// <summary>
-        /// Ping to the client.
-        /// </summary>
-        public class Ping_c : Packet
-        {
-            public Ping_c()
-                : base((Int32)PacketType.Ping_c)
-            {
-
-            }
-
-            public override Byte[] CreateSendBuffer()
-            {
-                List<Byte> buffer = new List<Byte>();
-                {
-                    buffer.AddRange(GetBytes_Int32((Int32)type));
-                }
-                buffer.Add(END_PACKET);
-
-                return buffer.ToArray();
-            }
-
-            public static Packet ReadPacket(ref List<byte> buffer)
-            {
-#if DEBUG_PACKETS
-                DebugLogger.Global.Log("Packet In: Ping_c");
-#endif
-
-                return new Ping_c();
+                else
+                    return false;
             }
         }
 
@@ -167,6 +183,11 @@ namespace SharedComponents.Global
         /// </summary>
         public class Error_c : Packet
         {
+            public enum ErrorCode
+            {
+                InvalidPacket
+            }
+
             public ErrorCode error;
 
             public Error_c(ErrorCode error)
@@ -188,20 +209,11 @@ namespace SharedComponents.Global
                 return buffer.ToArray();
             }
 
-            public static Packet ReadPacket(ref List<byte> buffer)
+            public static Error_c ReadPacket(ref List<byte> buffer)
             {
                 ErrorCode error = (ErrorCode)TakeInt32(ref buffer);
 
-#if DEBUG_PACKETS
-                DebugLogger.Global.Log("Packet In: ErrorCode");
-#endif
-
                 return new Error_c(error);
-            }
-
-            public enum ErrorCode
-            {
-                InvalidPacket
             }
         }
 
@@ -234,14 +246,10 @@ namespace SharedComponents.Global
                 return buffer.ToArray();
             }
 
-            public static Packet ReadPacket(ref List<byte> buffer)
+            public static Map_Reset_c ReadPacket(ref List<byte> buffer)
             {
                 Int32 numBlocksX = TakeInt32(ref buffer);
                 Int32 numBlocksY = TakeInt32(ref buffer);
-
-#if DEBUG_PACKETS
-                DebugLogger.Global.Log("Packet In: Map_Reset_c - " + id);
-#endif
 
                 return new Map_Reset_c(numBlocksX, numBlocksY);
             }
@@ -285,7 +293,7 @@ namespace SharedComponents.Global
                 return buffer.ToArray();
             }
 
-            public static Packet ReadPacket(ref List<byte> buffer)
+            public static Map_TerrainBlock_c ReadPacket(ref List<byte> buffer)
             {
                 int blockX = TakeInt32(ref buffer);
                 int blockY = TakeInt32(ref buffer);
@@ -300,10 +308,6 @@ namespace SharedComponents.Global
                     }
                 }
 
-#if DEBUG_PACKETS
-                DebugLogger.Global.Log("Packet In: Map_TerrainBlock_c");
-#endif
-
                 return new Map_TerrainBlock_c(blockX, blockY, heightMap);
             }
         }
@@ -314,12 +318,12 @@ namespace SharedComponents.Global
         /// </summary>
         public class Player_SetControl_c : Packet
         {
-            public Int32 id;
+            public Int32 charId;
 
-            public Player_SetControl_c(Int32 id)
+            public Player_SetControl_c(Int32 charId)
                 : base((Int32)PacketType.Player_SetControl_c)
             {
-                this.id = id;
+                this.charId = charId;
             }
 
             public override Byte[] CreateSendBuffer()
@@ -328,20 +332,16 @@ namespace SharedComponents.Global
                 {
                     buffer.AddRange(GetBytes_Int32((Int32)type));
 
-                    buffer.AddRange(GetBytes_Int32(id));
+                    buffer.AddRange(GetBytes_Int32(charId));
                 }
                 buffer.Add(END_PACKET);
 
                 return buffer.ToArray();
             }
 
-            public static Packet ReadPacket(ref List<byte> buffer)
+            public static Player_SetControl_c ReadPacket(ref List<byte> buffer)
             {
                 Int32 id = TakeInt32(ref buffer);
-
-#if DEBUG_PACKETS
-                DebugLogger.Global.Log("Packet In: Player_SetControl_c - " + id);
-#endif
 
                 return new Player_SetControl_c(id);
             }
@@ -350,12 +350,12 @@ namespace SharedComponents.Global
         /// <summary>
         /// Character is requesting to move.
         /// </summary>
-        public class Player_MovementRequest_w : Packet
+        public class Player_MovementRequest_i : Packet
         {
             public Single posx, posy;
 
-            public Player_MovementRequest_w(Single posx, Single posy)
-                : base((Int32)PacketType.Player_MovementRequest_w)
+            public Player_MovementRequest_i(Single posx, Single posy)
+                : base((Int32)PacketType.Player_MovementRequest_i)
             {
                 this.posx = posx;
                 this.posy = posy;
@@ -375,16 +375,12 @@ namespace SharedComponents.Global
                 return buffer.ToArray();
             }
 
-            public static Packet ReadPacket(ref List<byte> buffer)
+            public static Player_MovementRequest_i ReadPacket(ref List<byte> buffer)
             {
                 Single posx = TakeSingle(ref buffer);
                 Single posy = TakeSingle(ref buffer);
 
-#if DEBUG_PACKETS
-                DebugLogger.Global.Log("Packet In: Player_MovementRequest_w");
-#endif
-
-                return new Player_MovementRequest_w(posx, posy);
+                return new Player_MovementRequest_i(posx, posy);
             }
         }
 
@@ -395,32 +391,32 @@ namespace SharedComponents.Global
         {
             public Int32 charId;
             public CharacterLayout layout;
-            public CharacterType type;
+            public CharacterType charType;
 
-            public Character_Add_c(Int32 charId, CharacterLayout layout, CharacterType type)
+            public Character_Add_c(Int32 charId, CharacterLayout layout, CharacterType charType)
                 : base((Int32)PacketType.Character_Add_c)
             {
                 this.charId = charId;
                 this.layout = layout;
-                this.type = type;
+                this.charType = charType;
             }
 
             public override Byte[] CreateSendBuffer()
             {
                 List<Byte> buffer = new List<Byte>();
                 {
-                    buffer.AddRange(GetBytes_Int32((Int32)type));
+                    buffer.AddRange(GetBytes_Int32((Int32)charType));
 
                     buffer.AddRange(GetBytes_Int32(charId));
                     buffer.AddRange(GetBytes_Int32((Int32)layout.Type));
-                    buffer.AddRange(GetBytes_Int32((Int32)type));
+                    buffer.AddRange(GetBytes_Int32((Int32)charType));
                 }
                 buffer.Add(END_PACKET);
 
                 return buffer.ToArray();
             }
 
-            public static Packet ReadPacket(ref List<byte> buffer)
+            public static Character_Add_c ReadPacket(ref List<byte> buffer)
             {
                 Int32 charId = TakeInt32(ref buffer);
                 CharacterLayout layout = new CharacterLayout((CharacterLayout.VisualType)TakeInt32(ref buffer));
@@ -456,22 +452,11 @@ namespace SharedComponents.Global
                 return buffer.ToArray();
             }
 
-            public static Packet ReadPacket(ref List<byte> buffer)
+            public static Character_Remove_c ReadPacket(ref List<byte> buffer)
             {
                 Int32 charId = TakeInt32(ref buffer);
 
-#if DEBUG_PACKETS
-                DebugLogger.Global.Log("Packet In: Character_Remove_c - " + charId);
-#endif
-
                 return new Character_Remove_c(charId);
-            }
-
-            public enum VisibilityMode
-            {
-                None,
-                Full,
-                Stealth
             }
         }
 
@@ -507,15 +492,11 @@ namespace SharedComponents.Global
                 return buffer.ToArray();
             }
 
-            public static Packet ReadPacket(ref List<byte> buffer)
+            public static Character_Position_c ReadPacket(ref List<byte> buffer)
             {
                 Int32 charId = TakeInt32(ref buffer);
                 Single newx = TakeSingle(ref buffer);
                 Single newy = TakeSingle(ref buffer);
-
-#if DEBUG_PACKETS
-                DebugLogger.Global.Log("Packet In: Character_Position_c - " + charId + ": (" + newx + "," + newy + ")");
-#endif
 
                 return new Character_Position_c(charId,
                                                 newx, newy);
@@ -555,7 +536,7 @@ namespace SharedComponents.Global
                 return buffer.ToArray();
             }
 
-            public static Packet ReadPacket(ref List<byte> buffer)
+            public static Character_Movement_c ReadPacket(ref List<byte> buffer)
             {
                 Int32 charId = TakeInt32(ref buffer);
                 Single startx = TakeSingle(ref buffer);
@@ -563,11 +544,7 @@ namespace SharedComponents.Global
                 Single newx = TakeSingle(ref buffer);
                 Single newy = TakeSingle(ref buffer);
 
-#if DEBUG_PACKETS
-                DebugLogger.Global.Log("Packet In: Character_Movement_c - " + charId + ": (" + x + "," + y + ") -> (" + newx + "," + newy + ")");
-#endif
-
-                return new Character_Movement_c(charId, new MovePoint(new Position2D(startx,starty), new Position2D(newx, newy)));
+                return new Character_Movement_c(charId, new MovePoint(new Position2D(startx, starty), new Position2D(newx, newy)));
             }
         }
 
@@ -601,14 +578,10 @@ namespace SharedComponents.Global
                 return buffer.ToArray();
             }
 
-            public static Packet ReadPacket(ref List<byte> buffer)
+            public static Character_UpdateStats_c ReadPacket(ref List<byte> buffer)
             {
                 Int32 charId = TakeInt32(ref buffer);
                 Single moveSpeed = TakeSingle(ref buffer);
-
-#if DEBUG_PACKETS
-                DebugLogger.Global.Log("Packet In: Character_UpdateStats_c");
-#endif
 
                 return new Character_UpdateStats_c(charId, new CharacterStats() { MoveSpeed = moveSpeed });
             }
@@ -643,14 +616,10 @@ namespace SharedComponents.Global
                 return buffer.ToArray();
             }
 
-            public static Packet ReadPacket(ref List<byte> buffer)
+            public static Player_Info_c ReadPacket(ref List<byte> buffer)
             {
                 String username = TakeString(ref buffer);
                 Int32 level = TakeInt32(ref buffer);
-
-#if DEBUG_PACKETS
-                DebugLogger.Global.Log("Packet In: Player_Info_c - ");
-#endif
 
                 return new Player_Info_c(username, level);
             }
@@ -659,14 +628,14 @@ namespace SharedComponents.Global
         /// <summary>
         /// Client's attempt to verify credentials.
         /// </summary>
-        public class Verify_Details_g : Packet
+        public class Verify_Details_i : Packet
         {
             public Int32 build;
             public String username;
             public Int32 password;
 
-            public Verify_Details_g(Int32 build, String username, Int32 password)
-                : base((Int32)PacketType.Verify_Details_w)
+            public Verify_Details_i(Int32 build, String username, Int32 password)
+                : base((Int32)PacketType.Verify_Details_i)
             {
                 this.build = build;
                 this.username = username;
@@ -688,7 +657,7 @@ namespace SharedComponents.Global
                 return buffer.ToArray();
             }
 
-            public static Packet ReadPacket(ref List<byte> buffer)
+            public static Verify_Details_i ReadPacket(ref List<byte> buffer)
             {
                 Int32 build = TakeInt32(ref buffer);
                 String username = TakeString(ref buffer);
@@ -698,7 +667,7 @@ namespace SharedComponents.Global
                 DebugLogger.Global.Log("Packet In: Verify_Details_g - " + username + "/" + password + "/" + build);
 #endif
 
-                return new Verify_Details_g(build, username, password);
+                return new Verify_Details_i(build, username, password);
             }
         }
 
@@ -707,6 +676,15 @@ namespace SharedComponents.Global
         /// </summary>
         public class Verify_Result_c : Packet
         {
+            public enum VerifyReturnCode
+            {
+                DoesNotExist,
+                IncorrectPassword,
+                IncorrectVersion,
+                AlreadyConnected,
+                Success
+            }
+
             public VerifyReturnCode returnCode;
 
             public Verify_Result_c(VerifyReturnCode errorCode)
@@ -728,24 +706,11 @@ namespace SharedComponents.Global
                 return buffer.ToArray();
             }
 
-            public static Packet ReadPacket(ref List<byte> buffer)
+            public static Verify_Result_c ReadPacket(ref List<byte> buffer)
             {
                 VerifyReturnCode errorCode = (VerifyReturnCode)TakeInt32(ref buffer);
 
-#if DEBUG_PACKETS
-                DebugLogger.Global.Log("Packet In: Verify_Result_c - " + errorCode.ToString());
-#endif
-
                 return new Verify_Result_c(errorCode);
-            }
-
-            public enum VerifyReturnCode
-            {
-                DoesNotExist,
-                IncorrectPassword,
-                IncorrectVersion,
-                AlreadyConnected,
-                Success
             }
         }
     }

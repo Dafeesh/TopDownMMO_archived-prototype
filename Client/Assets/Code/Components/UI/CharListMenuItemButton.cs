@@ -13,8 +13,8 @@ public class CharListMenuItemButton : MonoBehaviour
     Text Name_text = null;
     string Name_value;
     [SerializeField]
-    Text Type_text = null;
-    CharacterVisualType Type_value;
+    Text VisualType_text = null;
+    CharacterLayout.VisualType VisualType_value;
     [SerializeField]
     Text Level_text = null;
     int Level_value;
@@ -32,16 +32,16 @@ public class CharListMenuItemButton : MonoBehaviour
         }
     }
 
-    public CharacterVisualType Type
+    public CharacterLayout.VisualType Type
     {
         get
         {
-            return Type_value;
+            return VisualType_value;
         }
         set
         {
-            Type_text.text = value.ToString();
-            Type_value = value;
+            VisualType_text.text = value.ToString();
+            VisualType_value = value;
         }
     }
 
@@ -65,7 +65,7 @@ public class CharListMenuItemButton : MonoBehaviour
             Debug.LogError("CharListItemButton could not find CharListMenuController.");
 
         if (Name_text == null ||
-            Type_text == null ||
+            VisualType_text == null ||
             Level_text == null)
             Debug.LogError("CharListItemButton is missing a reference to a SerializeField.");
     }

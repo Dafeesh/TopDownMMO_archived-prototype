@@ -19,14 +19,16 @@ namespace InstanceServer.Links
         private ConnectionState _state;
         private TcpListener listener;
         private NetConnection connection = null;
+        private object connection_lock = new object();
         private IPAddress expectedIPAddress;
 
         public MasterServerLink(IPEndPoint localEndPoint, IPAddress expectedIPAddress)
-            : base("MastServLink", 100)
+            : base("MastServLink", 50)
         {
             this.expectedIPAddress = expectedIPAddress;
+            this.listener = new TcpListener(localEndPoint);
 
-            listener = new TcpListener(localEndPoint);
+            this.Log.MessageLogged += Console.WriteLine;
         }
 
         protected override void Begin()
@@ -40,10 +42,9 @@ namespace InstanceServer.Links
         {
             if (State == ConnectionState.Connected)
             {
-                if (connection.State != NetConnection.NetworkState.Connected)
+                if (!IsConnected)
                 {
-                    connection.Dispose();
-                    State = ConnectionState.NoConnection;
+                    CloseConnection();
                 }
             }
             else
@@ -55,8 +56,9 @@ namespace InstanceServer.Links
         protected override void Finish(bool success)
         {
             listener.Stop();
-            if (connection != null)
-                connection.Dispose();
+            CloseConnection();
+
+            StateChanged = null;
 
             Log.Log("Finished.");
         }
@@ -69,15 +71,50 @@ namespace InstanceServer.Links
 
                 if ((possibleClient.Client.RemoteEndPoint as IPEndPoint).Address.Equals(expectedIPAddress))
                 {
-                    connection = new NetConnection(InstanceToMasterPackets.ReadBuffer, possibleClient);
-                    connection.Start();
-                    State = ConnectionState.Connected;
+                    SetAsConnection(possibleClient);
                     Log.Log("Master server connected!");
                 }
                 else
                 {
                     possibleClient.Close();
                     Log.Log("Invalid endpoint from MasterServer connection.");
+                }
+            }
+        }
+
+        private void SetAsConnection(TcpClient con)
+        {
+            lock (connection_lock)
+            {
+                if (connection != null)
+                    connection.Dispose();
+
+                connection = new NetConnection(con);
+                connection.Start();
+                State = ConnectionState.Connected;
+            }
+        }
+
+        public void DistributePackets(IPacketDistributor distributor)
+        {
+            lock (connection_lock)
+            {
+                if (IsConnected)
+                {
+                    while (connection.DistributePacket(distributor) == true)
+                    { }
+                }
+            }
+        }
+
+        public void CloseConnection()
+        {
+            lock (connection_lock)
+            {
+                if (IsConnected)
+                {
+                    connection.Dispose();
+                    State = ConnectionState.NoConnection;
                 }
             }
         }

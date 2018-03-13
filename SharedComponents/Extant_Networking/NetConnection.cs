@@ -26,15 +26,8 @@ namespace Extant.Networking
         private NetworkStream stream;
         private object stream_lock = new object();
         private List<Byte> receiveBuffer = new List<byte>();
+        private object receiveBuffer_lock = new object();
         private Byte[] receiveBuffer_temp = new Byte[1024];
-
-        private Queue<Packet> packets = new Queue<Packet>();
-        private object packets_lock = new object();
-        private int packets_count_out = 0;
-        private int packets_count_in = 0;
-
-        public delegate Packet ReadBufferFunc(ref List<Byte> bytes);
-        private ReadBufferFunc ReadBuffer;
 
         private ByteRecord byteLog_out = new ByteRecord();
         private ByteRecord byteLog_in = new ByteRecord();
@@ -42,14 +35,9 @@ namespace Extant.Networking
         /// <summary>
         /// Used if connection is not already established.
         /// </summary>
-        /// <param name="remoteEndPoint">Endpoint to connect to.</param>
-        /// <param name="connectTimeout">How long connecting should try. (mSec)</param>
-        /// <param name="readTimeout">How long it should wait for a packet. (mSec)</param>
-        public NetConnection(ReadBufferFunc func, IPEndPoint remoteEndPoint, Int32 connectTimeout, Int32 receiveTimeout = RECEIVETIMEOUT_INFINITY)
+        public NetConnection(IPEndPoint remoteEndPoint, Int32 connectTimeout, Int32 receiveTimeout = RECEIVETIMEOUT_INFINITY)
             : base("NetConnection-c")
         {
-            ReadBuffer = func;
-
             this.state = NetworkState.Waiting;
             this.remoteEndPoint = remoteEndPoint;
             this.connectTimeout = connectTimeout;
@@ -61,11 +49,9 @@ namespace Extant.Networking
         /// <summary>
         /// If connection is already established.
         /// </summary>
-        public NetConnection(ReadBufferFunc func, TcpClient tcpClient, Int32 receiveTimeout = RECEIVETIMEOUT_INFINITY)
+        public NetConnection(TcpClient tcpClient, Int32 receiveTimeout = RECEIVETIMEOUT_INFINITY)
             : base("NetConnection")
         {
-            ReadBuffer = func;
-
             state = NetworkState.Connected;
             this.tcpClient = tcpClient;
             this.receiveTimeout = receiveTimeout;
@@ -78,10 +64,6 @@ namespace Extant.Networking
 
         protected override void Begin()
         {
-#if DEBUG_CONNECTION
-            Log.
-#endif
-
             if (state == NetworkState.Waiting)
             {
                 // Start connection attempt
@@ -157,9 +139,8 @@ namespace Extant.Networking
             {
                 if (tcpClient.Connected)
                 {
-#if LOG_DEBUG
-                    Log.Log("NetConnection: ConnectCallback, connected!");
-#endif
+                    Log.Log("ConnectCallback, connected!");
+
                     this.stream = tcpClient.GetStream();
                     state = NetworkState.Connected;
 
@@ -188,11 +169,12 @@ namespace Extant.Networking
                     receiveTimeoutTimer.Reset();
                     receiveTimeoutTimer.Start();
 
-                    receiveBuffer.AddRange(receiveBuffer_temp.Take(numBytes));
-                    InterpretBuffer(ref receiveBuffer);
-                    
-                    Log.Log("NetConnection: Received bytes- " + numBytes);
+                    lock (receiveBuffer_lock)
+                    {
+                        receiveBuffer.AddRange(receiveBuffer_temp.Take(numBytes));
+                    }
 
+                    Log.Log("Received bytes- " + numBytes);
                     byteLog_in.Bytes += numBytes;
 
                     BeginReceive(ar.AsyncState as Socket);
@@ -204,33 +186,22 @@ namespace Extant.Networking
             }
         }
 
-        private void InterpretBuffer(ref List<byte> buffer)
+        /// <returns>If a packet was distributed.</returns>
+        public bool DistributePacket(IPacketDistributor distributor)
         {
-            if (buffer.Count > 0)
+            bool sentPacket = false;
+            lock (receiveBuffer_lock)
             {
-                Packet p = null;
-                while ((p = ReadBuffer(ref buffer)) != null)
+                try
                 {
-                    lock (packets_lock)
-                    {
-                        packets.Enqueue(p);
-                    }
+                    sentPacket = (distributor.DistributePacket(ref receiveBuffer) == true);
+                }
+                catch (Packet.InvalidPacketRead e)
+                {
+                    this.Stop("Invalid packet read: " + e.ToString());
                 }
             }
-        }
-
-        public Packet GetPacket()
-        {
-            Packet p = null;
-            lock (packets_lock)
-            {
-                if (packets.Count > 0)
-                {
-                    p = packets.Dequeue();
-                    packets_count_in++;
-                }
-            }
-            return p;
+            return sentPacket;
         }
 
         public void SendPacket(Packet p)
@@ -247,8 +218,6 @@ namespace Extant.Networking
                     }
 
                     byteLog_out.Bytes += d.Length;
-
-                    packets_count_out++;
                 }
             }
             catch (Exception e)

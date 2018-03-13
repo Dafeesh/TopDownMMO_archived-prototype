@@ -17,59 +17,55 @@ namespace MasterServer.Links
     {
         private AccountInfo accountInfo;
         private NetConnection connection;
+        private IPacketDistributor connection_distribution;
+        private ActionDispersion actionDispersion;
 
         private bool _isInGame = false;
         private bool _disposed = false;
         private DebugLogger _log;
 
-        public ClientLink(AccountInfo accountInfo, NetConnection clientConnection)
+        public class ActionDispersion : IDisposable
         {
+            public Delegate_OnAction_CharacterListItem_Select OnAction_CharacterListItem_Select = null;
+
+            public void Dispose()
+            {
+                OnAction_CharacterListItem_Select = null;
+            }
+        }
+
+        public ClientLink(ActionDispersion actionDispersion, AccountInfo accountInfo, NetConnection clientConnection)
+        {
+            this.connection_distribution = new ClientToMasterPackets.Distribution()
+            {
+                out_Menu_CharacterListItem_Select_m = OnReceive_Menu_CharacterListItem_Select_m
+            };
+
+            this.actionDispersion = actionDispersion;
             this.accountInfo = accountInfo;
             this.connection = clientConnection;
 
             this._log = new DebugLogger("CLink:" + accountInfo.Name);
             this._log.MessageLogged += Console.WriteLine;
-
-            Send_CharacterList();
         }
 
         public void Dispose()
         {
             if (!_disposed)
             {
+                connection_distribution.Dispose();
+
                 connection.Stop("ClientLink finished.");
                 connection.Dispose();
             }
         }
 
-        public void TriggerReceivedActions()
+        public void BroadcastActions()
         {
-            Packet p = null;
-            while ((p = connection.GetPacket()) != null)
-            {
-                if (IsInGame)
-                {
-                    if (false)
-                    {
-
-                    }
-                    else
-                    {
-                        Log.Log("Received invalid packet while InGame: " + (ClientToMasterPackets.PacketType)p.Type);
-                    }
-                }
-                else
-                {
-                    if (p is ClientToMasterPackets.Menu_CharacterListItem_Select_m)
-                    {
-                        ClientLink.ReceivedActions.Trigger_CharListSelect(this, (p as ClientToMasterPackets.Menu_CharacterListItem_Select_m).CharName);
-                    }
-                    else
-                    {
-                        Log.Log("Received invalid packet while not InGame: " + (ClientToMasterPackets.PacketType)p.Type);
-                    }
-                }
-            }
+            //This will have packets be sent to the functions in OnReceivePackets region.
+            //Each function will broadcast to the given actionDispersion object.
+            while (connection.DistributePacket(connection_distribution) == true)
+            { }
         }
 
         public override string ToString()
@@ -86,7 +82,6 @@ namespace MasterServer.Links
             }
 
             connection = con;
-            Send_CharacterList();
         }
 
         public bool IsInGame
@@ -128,7 +123,7 @@ namespace MasterServer.Links
 
         #region SendPackets
 
-        private void Send_CharacterList()
+        public void Send_CharacterList()
         {
             foreach (CharacterInfo charInfo in accountInfo.Characters)
             {
@@ -141,15 +136,16 @@ namespace MasterServer.Links
 
         #endregion SendPackets
 
-        public static class ReceivedActions
+        #region OnReceivePackets
+
+        public delegate void Delegate_OnAction_CharacterListItem_Select(ClientLink client, string selectedCharName);
+        private void OnReceive_Menu_CharacterListItem_Select_m(ClientToMasterPackets.Menu_CharacterListItem_Select_m packet)
         {
-            public static event Delegate_CharListSelect CharListSelect;
-            public delegate void Delegate_CharListSelect(ClientLink sender, string name);
-            public static void Trigger_CharListSelect(ClientLink sender, string name)
-            {
-                if (CharListSelect != null)
-                    CharListSelect(sender, name);
-            }
+            Console.WriteLine("Received selection: " + packet.CharName);
+            if (actionDispersion.OnAction_CharacterListItem_Select != null)
+                actionDispersion.OnAction_CharacterListItem_Select(this, packet.CharName);
         }
+
+        #endregion OnReceivePackets
     }
 }

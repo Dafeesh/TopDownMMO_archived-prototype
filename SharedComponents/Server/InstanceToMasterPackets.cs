@@ -14,9 +14,55 @@ namespace SharedComponents.Server
         {
             Null,
 
-            Ping_mw
+            Ping_im
         }
-        
+
+        public class Distribution : IPacketDistributor
+        {
+            public Delegate_PacketDistribute<Ping_im> out_Ping_im = null;
+
+            public void Dispose()
+            {
+                out_Ping_im = null;
+            }
+
+            public bool DistributePacket(ref List<byte> buffer)
+            {
+                if (buffer != null &&
+                    buffer.Count > sizeof(Int32))
+                {
+                    Byte[] backupBuffer = buffer.ToArray();
+                    try
+                    {
+                        Int32 packetType = Packet.TakeInt32(ref buffer);
+
+                        switch ((PacketType)packetType)
+                        {
+                            case (PacketType.Ping_im):
+                                if (out_Ping_im != null)
+                                    out_Ping_im(Ping_im.ReadPacket(ref buffer));
+                                break;
+
+                            default:
+                                DebugLogger.Global.Log("Invalid packet header: " + packetType + "/" + ((PacketType)packetType).ToString());
+                                throw new Packet.InvalidPacketRead("Invalid packet header: " + ((PacketType)packetType).ToString());
+                        }
+
+                        if (Packet.TakeByte(ref buffer) == Packet.END_PACKET)
+                            return true;
+                        else
+                            throw new Packet.InvalidPacketRead("Last byte of packet was not END_PACKET byte.");
+                    }
+                    catch (ArgumentOutOfRangeException)// e) //Not enough data yet to make a full packet.
+                    {
+                        //DebugLogger.Global.Log("Packet not large enough yet." + e.ToString());
+                        buffer = backupBuffer.ToList();
+                    }
+                }
+                return false;
+            }
+        }
+
         /// <summary>
         /// Returns a Packet that is read and removed from beginning of List of Bytes.
         /// </summary>
@@ -35,8 +81,8 @@ namespace SharedComponents.Server
 
                         switch ((PacketType)packetType)
                         {
-                            case (PacketType.Ping_mw):
-                                returnPacket = Ping_mw.ReadPacket(ref buffer);
+                            case (PacketType.Ping_im):
+                                returnPacket = Ping_im.ReadPacket(ref buffer);
                                 break;
 
                             default:
@@ -61,7 +107,7 @@ namespace SharedComponents.Server
         /// <summary>
         /// Ping to the client.
         /// </summary>
-        public class Ping_mw : Packet
+        public class Ping_im : Packet
         {
             public enum PingCode
             {
@@ -70,8 +116,8 @@ namespace SharedComponents.Server
 
             public PingCode code;
 
-            public Ping_mw(PingCode code)
-                : base((Int32)PacketType.Ping_mw)
+            public Ping_im(PingCode code)
+                : base((Int32)PacketType.Ping_im)
             {
                 this.code = code;
             }
@@ -89,11 +135,11 @@ namespace SharedComponents.Server
                 return buffer.ToArray();
             }
 
-            public static Packet ReadPacket(ref List<byte> buffer)
+            public static Ping_im ReadPacket(ref List<byte> buffer)
             {
                 PingCode code = (PingCode)TakeInt32(ref buffer);
 
-                return new Ping_mw(code);
+                return new Ping_im(code);
             }
         }
     }

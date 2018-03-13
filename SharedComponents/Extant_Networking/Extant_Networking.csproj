@@ -36,6 +36,7 @@
   <ItemGroup>
     <Compile Include="NetConnection.cs" />
     <Compile Include="Packet.cs" />
+    <Compile Include="IPacketDistributor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

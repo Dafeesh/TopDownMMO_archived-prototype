@@ -25,42 +25,63 @@ namespace SharedComponents.Global
             Menu_CharacterListItem_Select_m
         }
 
-        /// <summary>
-        /// Returns a Packet that is read and removed from beginning of List of Bytes.
-        /// </summary>
-        /// <param name="buffer">Buffer used to try to create a packet.</param>
-        public static Packet ReadBuffer(ref List<Byte> buffer)
+        public class Distribution : IPacketDistributor
         {
-            if (buffer != null)
+            public Delegate_PacketDistribute<ErrorCode_c> out_ErrorCode_c = null;
+
+            public Delegate_PacketDistribute<AccountAuthorize_Attempt_m> out_AccountAuthorize_Attempt_m = null;
+            public Delegate_PacketDistribute<AccountAuthorize_Response_c> out_AccountAuthorize_Response_c = null;
+
+            public Delegate_PacketDistribute<Menu_CharacterListItem_c> out_Menu_CharacterListItem_c = null;
+            public Delegate_PacketDistribute<Menu_CharacterListItem_Select_m> out_Menu_CharacterListItem_Select_m = null;
+
+            public void Dispose()
             {
-                if (buffer.Count > sizeof(Int32))
+                out_ErrorCode_c = null;
+
+                out_AccountAuthorize_Attempt_m = null;
+                out_AccountAuthorize_Response_c = null;
+
+                out_Menu_CharacterListItem_c = null;
+                out_Menu_CharacterListItem_Select_m = null;
+            }
+
+            /// <returns>If a packet was distributed.</returns>
+            public bool DistributePacket(ref List<byte> buffer)
+            {
+                if (buffer != null &&
+                    buffer.Count > sizeof(Int32))
                 {
                     Byte[] backupBuffer = buffer.ToArray();
                     try
                     {
-                        Packet returnPacket = null;
                         Int32 packetType = Packet.TakeInt32(ref buffer);
 
                         switch ((PacketType)packetType)
                         {
                             case (PacketType.ErrorCode_c):
-                                returnPacket = ErrorCode_c.ReadPacket(ref buffer);
+                                if (out_ErrorCode_c != null)
+                                    out_ErrorCode_c(ErrorCode_c.ReadPacket(ref buffer));
                                 break;
 
                             case (PacketType.AccountAuthorize_Attempt_m):
-                                returnPacket = AccountAuthorize_Attempt_m.ReadPacket(ref buffer);
+                                if (out_AccountAuthorize_Attempt_m != null)
+                                    out_AccountAuthorize_Attempt_m(AccountAuthorize_Attempt_m.ReadPacket(ref buffer));
                                 break;
 
                             case (PacketType.AccountAuthorize_Response_c):
-                                returnPacket = AccountAuthorize_Response_c.ReadPacket(ref buffer);
+                                if (out_AccountAuthorize_Response_c != null)
+                                    out_AccountAuthorize_Response_c(AccountAuthorize_Response_c.ReadPacket(ref buffer));
                                 break;
 
                             case (PacketType.Menu_CharacterListItem_c):
-                                returnPacket = Menu_CharacterListItem_c.ReadPacket(ref buffer);
+                                if (out_Menu_CharacterListItem_c != null)
+                                    out_Menu_CharacterListItem_c(Menu_CharacterListItem_c.ReadPacket(ref buffer));
                                 break;
 
                             case (PacketType.Menu_CharacterListItem_Select_m):
-                                returnPacket = Menu_CharacterListItem_Select_m.ReadPacket(ref buffer);
+                                if (out_Menu_CharacterListItem_Select_m != null)
+                                    out_Menu_CharacterListItem_Select_m(Menu_CharacterListItem_Select_m.ReadPacket(ref buffer));
                                 break;
 
                             default:
@@ -69,7 +90,7 @@ namespace SharedComponents.Global
                         }
 
                         if (Packet.TakeByte(ref buffer) == Packet.END_PACKET)
-                            return returnPacket;
+                            return true;
                         else
                             throw new Packet.InvalidPacketRead("Last byte of packet was not END_PACKET byte.");
                     }
@@ -77,11 +98,10 @@ namespace SharedComponents.Global
                     {
                         //DebugLogger.Global.Log("Packet not large enough yet." + e.ToString());
                         buffer = backupBuffer.ToList();
-                        return null;
                     }
                 }
+                return false;
             }
-            return null;
         }
 
         /// <summary>
@@ -116,7 +136,7 @@ namespace SharedComponents.Global
                 return buffer.ToArray();
             }
 
-            public static Packet ReadPacket(ref List<byte> buffer)
+            public static ErrorCode_c ReadPacket(ref List<byte> buffer)
             {
                 int error = TakeInt32(ref buffer);
 
@@ -157,7 +177,7 @@ namespace SharedComponents.Global
                 return buffer.ToArray();
             }
 
-            public static Packet ReadPacket(ref List<byte> buffer)
+            public static AccountAuthorize_Attempt_m ReadPacket(ref List<byte> buffer)
             {
                 Int32 build = TakeInt32(ref buffer);
                 String username = TakeString(ref buffer);
@@ -200,7 +220,7 @@ namespace SharedComponents.Global
                 return buffer.ToArray();
             }
 
-            public static Packet ReadPacket(ref List<byte> buffer)
+            public static AccountAuthorize_Response_c ReadPacket(ref List<byte> buffer)
             {
                 AuthResponse response = (AuthResponse)TakeInt32(ref buffer);
 
@@ -240,7 +260,7 @@ namespace SharedComponents.Global
                 return buffer.ToArray();
             }
 
-            public static Packet ReadPacket(ref List<byte> buffer)
+            public static Menu_CharacterListItem_c ReadPacket(ref List<byte> buffer)
             {
                 string name = TakeString(ref buffer);
                 CharacterLayout layout = new CharacterLayout((CharacterLayout.VisualType)TakeInt32(ref buffer));
@@ -276,7 +296,7 @@ namespace SharedComponents.Global
                 return buffer.ToArray();
             }
 
-            public static Packet ReadPacket(ref List<byte> buffer)
+            public static Menu_CharacterListItem_Select_m ReadPacket(ref List<byte> buffer)
             {
                 string charName = TakeString(ref buffer);
 

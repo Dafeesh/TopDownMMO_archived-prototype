@@ -6,29 +6,29 @@ using UnityEngine.UI;
 class DebugInterfaceController : MonoComponent
 {
     [SerializeField]
-    InstanceServerConnection WSConnection = null;
+    InstanceServerConnection InstServConnection = null;
     [SerializeField]
-    Text WSConnection_text = null;
+    Text InstServConnection_text = null;
 
     [SerializeField]
-    MasterServerConnection MSConnection = null;
+    MasterServerConnection MastServConnection = null;
     [SerializeField]
-    Text MSConnection_text = null;
+    Text MastServConnection_text = null;
 
     void Awake()
     {
-        if (WSConnection == null)
+        if (InstServConnection == null)
             Debug.LogError("DebugInterface has no reference to WSCon.");
-        if (WSConnection_text == null)
+        if (InstServConnection_text == null)
             Debug.LogError("DebugInterface has no reference to WSCon text.");
 
-        if (MSConnection == null)
+        if (MastServConnection == null)
             Debug.LogError("DebugInterface has no reference to MSCon.");
-        if (MSConnection_text == null)
+        if (MastServConnection_text == null)
             Debug.LogError("DebugInterface has no reference to MSCon text.");
 
-        WSConnection.StateChanged += OnStateChange_WSCon;
-        MSConnection.StateChanged += OnStateChange_MSCon;
+        InstServConnection.StateChanged += OnStateChange_WSCon;
+        MastServConnection.StateChanged += OnStateChange_MSCon;
         DebugLogger.Global.MessageLogged += Debug.Log;
     }
 
@@ -49,16 +49,17 @@ class DebugInterfaceController : MonoComponent
 
     public void OnClick_Disconnect()
     {
-        WSConnection.CloseConnection();
+        if (MastServConnection != null)
+            MastServConnection.CloseConnection();
     }
 
     public void OnStateChange_WSCon(ConnectionState state)
     {
-        WSConnection_text.text = state.ToString();
+        InstServConnection_text.text = state.ToString();
     }
 
     public void OnStateChange_MSCon(ConnectionState state)
     {
-        MSConnection_text.text = state.ToString();
+        MastServConnection_text.text = state.ToString();
     }
 }

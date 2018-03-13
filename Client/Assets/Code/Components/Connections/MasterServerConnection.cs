@@ -24,6 +24,7 @@ public class MasterServerConnection : MonoComponent
 
     ConnectionState _state;
     NetConnection connection = null;
+    IPacketDistributor connection_distribute;
     IPEndPoint connection_target = null;
     string connection_username = null;
     string connection_password = null;
@@ -31,7 +32,16 @@ public class MasterServerConnection : MonoComponent
     void Awake()
     {
         Main = this;
-        Log.MessageLogged += Debug.Log;
+
+        this.connection_distribute = new ClientToMasterPackets.Distribution()
+        {
+            out_ErrorCode_c = OnReceive_ErrorCode_c,
+
+            out_AccountAuthorize_Response_c = OnReceive_AccountAuthorize_Response_c,
+
+            out_Menu_CharacterListItem_c = OnReceive_Menu_CharacterListItem_c
+        };
+        this.Log.MessageLogged += Debug.Log;
     }
 
     void Start()
@@ -82,49 +92,13 @@ public class MasterServerConnection : MonoComponent
                     }
                     else
                     {
-                        Packet p = null;
-                        if ((p = connection.GetPacket()) != null)
+                        bool receivedPacket = connection.DistributePacket(connection_distribute);
+
+                        //If no action has been taken. (Connected = success, NoConnection = failed)
+                        if (receivedPacket && State == ConnectionState.Authorizing)
                         {
-                            if (p is ClientToMasterPackets.AccountAuthorize_Response_c)
-                            {
-                                var pp = p as ClientToMasterPackets.AccountAuthorize_Response_c;
-
-                                switch (pp.Response)
-                                {
-                                    case (ClientToMasterPackets.AccountAuthorize_Response_c.AuthResponse.Success):
-                                        {
-                                            Log.Log("Successfully connected!");
-                                            State = ConnectionState.Connected;
-                                        }
-                                        break;
-
-                                    case (ClientToMasterPackets.AccountAuthorize_Response_c.AuthResponse.InvalidLogin):
-                                        {
-                                            Log.Log("Invalid login.");
-                                            CloseConnection();
-                                        }
-                                        break;
-
-                                    case (ClientToMasterPackets.AccountAuthorize_Response_c.AuthResponse.InvalidBuild):
-                                        {
-                                            Log.Log("Invalid build.");
-                                            CloseConnection();
-                                        }
-                                        break;
-
-                                    default:
-                                        {
-                                            Log.Log("Unsupported response from Master: " + pp.Response.ToString());
-                                            CloseConnection();
-                                        }
-                                        break;
-                                }
-                            }
-                            else
-                            {
-                                Log.Log("Received wrong packet while verifying.");
-                                CloseConnection();
-                            }
+                            Log.Log("Received wrong packet while authorizing.");
+                            CloseConnection();
                         }
                     }
                 }
@@ -139,27 +113,17 @@ public class MasterServerConnection : MonoComponent
                     }
                     else
                     {
-                        Packet p = null;
-                        while ((p = connection.GetPacket()) != null)
-                        {
-                            switch ((ClientToMasterPackets.PacketType)p.Type)
-                            {
-                                case (ClientToMasterPackets.PacketType.Menu_CharacterListItem_c):
-                                    {
-                                        var pp = p as ClientToMasterPackets.Menu_CharacterListItem_c;
-
-                                        if (Received_AddCharacterListItem != null)
-                                            Received_AddCharacterListItem(pp.Name, pp.Layout, pp.Level);
-                                    }
-                                    break;
-                            }
-                        }
+                        //Receive all packets available.
+                        while (connection.DistributePacket(connection_distribute) == true)
+                        { }
                     }
                 }
                 break;
         }
 
     }
+
+    #region OnAction
 
     public void OnAction_SelectCharacter(string name)
     {
@@ -173,6 +137,64 @@ public class MasterServerConnection : MonoComponent
             Log.Log("Invalid action in current state: OnAction_SelectCharacter -> " + State.ToString());
         }
     }
+
+    #endregion OnAction
+
+    #region OnReceive
+
+    private void OnReceive_ErrorCode_c(ClientToMasterPackets.ErrorCode_c p)
+    {
+        Log.Log("Received error from server: " + p.error.ToString());
+        CloseConnection();
+    }
+
+    private void OnReceive_AccountAuthorize_Response_c(ClientToMasterPackets.AccountAuthorize_Response_c p)
+    {
+        if (State != ConnectionState.Authorizing)
+        {
+            Log.Log("Received authorization response while not authorizing.");
+            return;
+        }
+
+        switch (p.Response)
+        {
+            case (ClientToMasterPackets.AccountAuthorize_Response_c.AuthResponse.Success):
+                {
+                    Log.Log("Successfully connected!");
+                    State = ConnectionState.Connected;
+                }
+                break;
+
+            case (ClientToMasterPackets.AccountAuthorize_Response_c.AuthResponse.InvalidLogin):
+                {
+                    Log.Log("Invalid login.");
+                    CloseConnection();
+                }
+                break;
+
+            case (ClientToMasterPackets.AccountAuthorize_Response_c.AuthResponse.InvalidBuild):
+                {
+                    Log.Log("Invalid build.");
+                    CloseConnection();
+                }
+                break;
+
+            default:
+                {
+                    Log.Log("Unsupported response from Master: " + p.Response.ToString());
+                    CloseConnection();
+                }
+                break;
+        }
+    }
+
+    private void OnReceive_Menu_CharacterListItem_c(ClientToMasterPackets.Menu_CharacterListItem_c p)
+    {
+        if (Received_AddCharacterListItem != null)
+            Received_AddCharacterListItem(p.Name, p.Layout, p.Level);
+    }
+
+    #endregion OnReceive
 
     public void CloseConnection()
     {
@@ -200,15 +222,15 @@ public class MasterServerConnection : MonoComponent
                 if (StateChanged != null)
                     StateChanged(_state);
 
-                if (_state != ConnectionState.NoConnection)
-                {
-                    if (Application.loadedLevelName != ResourceList.Scenes.CharSelect)
-                        Application.LoadLevel(ResourceList.Scenes.CharSelect);
-                }
-                else if (_state == ConnectionState.NoConnection)
+                if (_state == ConnectionState.NoConnection)
                 {
                     if (Application.loadedLevelName != ResourceList.Scenes.LoginPage)
                         Application.LoadLevel(ResourceList.Scenes.LoginPage);
+                }
+                else if (_state != ConnectionState.NoConnection)
+                {
+                    if (Application.loadedLevelName != ResourceList.Scenes.CharSelect)
+                        Application.LoadLevel(ResourceList.Scenes.CharSelect);
                 }
             }
         }
@@ -220,7 +242,7 @@ public class MasterServerConnection : MonoComponent
         connection_username = username;
         connection_password = password;
 
-        NetConnection con = new NetConnection(ClientToMasterPackets.ReadBuffer, target, 5000);
+        NetConnection con = new NetConnection(target, 5000);
         con.Start();
         connection = con;
 

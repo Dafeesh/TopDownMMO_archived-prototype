@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using SharedComponents.GameProperties;
+using SharedComponents.Global.GameProperties;
 
 namespace InstanceServer.World.Map.Character
 {
@@ -12,8 +12,8 @@ namespace InstanceServer.World.Map.Character
     {
         public abstract class Npc : GameCharacter
         {
-            public Npc(String name, CharacterType type)
-                : base("Npc:" + name, type)
+            public Npc(String name, CharacterLayout layout)
+                : base("Npc:" + name, layout)
             {
 
             }

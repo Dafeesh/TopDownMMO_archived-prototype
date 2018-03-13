@@ -18,7 +18,7 @@ namespace InstanceServer.World.Map.Character
     {
         public class Player : GameCharacter
         {
-            private ClientAuthConnection client = null;
+            private NetConnection connection = null;
             private PlayerInfo info;
             private Int32 passwordToken;
 
@@ -31,12 +31,6 @@ namespace InstanceServer.World.Map.Character
                 Log.Log("Player created.");
             }
 
-            protected override void Dispose(bool blocking)
-            {
-                if (client != null)
-                    client.Dispose();
-            }
-
             public override string ToString()
             {
                 return info.Name;
@@ -46,70 +40,75 @@ namespace InstanceServer.World.Map.Character
             {
                 base.Tick(frameDiff);
 
-                if (client != null)
-                {
-                    if (client.IsStopped)
-                    {
-                        Log.Log("Player disconnected.");
-                        client.Dispose();
-                        client = null;
-                    }
-                }
+                
             }
 
             public override void Inform_AddCharacterInView(GameCharacter newChar)
             {
-                this.SendPacket(new ClientToWorldPackets.Character_Add_c(newChar.Id, newChar.Layout, CharacterType.Player));
-                this.SendPacket(new ClientToWorldPackets.Character_Position_c(newChar.Id, newChar.Position.x, newChar.Position.y));
-                this.SendPacket(new ClientToWorldPackets.Character_UpdateStats_c(newChar.Id, newChar.Stats));
+                this.SendPacket(new ClientToInstancePackets.Character_Add_c(newChar.Id, newChar.Layout, CharacterType.Player));
+                this.SendPacket(new ClientToInstancePackets.Character_Position_c(newChar.Id, newChar.Position.x, newChar.Position.y));
+                this.SendPacket(new ClientToInstancePackets.Character_UpdateStats_c(newChar.Id, newChar.Stats));
             }
 
             public override void Inform_CharacterMovePoint(GameCharacter charFrom, MovePoint mp)
             {
-                this.SendPacket(new ClientToWorldPackets.Character_Movement_c(charFrom.Id, mp));
+                this.SendPacket(new ClientToInstancePackets.Character_Movement_c(charFrom.Id, mp));
             }
 
             public override void Inform_RemoveCharacterInView(GameCharacter oldChar)
             {
-                this.SendPacket(new ClientToWorldPackets.Character_Remove_c(oldChar.Id));
+                this.SendPacket(new ClientToInstancePackets.Character_Remove_c(oldChar.Id));
             }
 
             public override void Inform_CharacterTeleport(GameCharacter charFrom, Position2D pos)
             {
-                this.SendPacket(new ClientToWorldPackets.Character_Position_c(charFrom.Id, pos.x, pos.y));
+                this.SendPacket(new ClientToInstancePackets.Character_Position_c(charFrom.Id, pos.x, pos.y));
             }
 
             /// <summary>
             /// Sets or replaces a client connect associated with this player.
             /// </summary>
             /// <param name="c">Client to set/replace.</param>
-            public void SetClient(ClientAuthConnection c)
+            public void SetClient(NetConnection con)
             {
-                if (client != null)
+                if (IsConnected)
                 {
-                    if (client.IsAlive)
-                        Log.Log("Player connected while already being connected.");
-                    else
-                        Log.Log("Player reconnected.");
-                    client.Dispose();
+                    Log.Log("Player connected while already being connected.");
+                    connection.Stop("Client reconnecting while already connected.");
+                    connection.Dispose();
                 }
-                client = c;
+
+                connection = con;
+            }
+
+            public void DisconnectClient()
+            {
+                if (connection != null)
+                    connection.Dispose();
+            }
+
+            public bool IsConnected
+            {
+                get
+                {
+                    return (connection != null) && (connection.State == NetConnection.NetworkState.Connected);
+                }
             }
 
             public void SendPacket(Packet p)
             {
-                if (client != null)
+                if (IsConnected)
                 {
-                    client.SendPacket(p);
+                    connection.SendPacket(p);
                 }
             }
 
-            public Packet GetPacket()
+            public bool DistributePacket(IPacketDistributor distributor)
             {
-                if (client == null)
-                    return null;
+                if (IsConnected)
+                    return connection.DistributePacket(distributor);
                 else
-                    return client.GetPacket();
+                    return false;
             }
 
             public PlayerInfo Info

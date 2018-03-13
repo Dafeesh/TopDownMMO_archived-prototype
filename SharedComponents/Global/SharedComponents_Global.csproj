@@ -35,7 +35,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ClientToMasterPackets.cs" />
-    <Compile Include="ClientToWorldPackets.cs" />
+    <Compile Include="ClientToInstancePackets.cs" />
     <Compile Include="GameProperties\CharacterStats.cs" />
     <Compile Include="GameProperties\CharacterLayout.cs" />
     <Compile Include="GameProperties\CharacterEnums.cs" />

@@ -56,9 +56,9 @@ public class GameController : MonoComponent
 
     private void HandleIncomingPackets()
     {
+        /*
         Packet p = null;
-        //while ((p = wsConnection.GetPacket()) != null)
-        while (p != null)
+        while ((p = wsConnection.GetPacket()) != null)
         {
             switch ((ClientToWorldPackets.PacketType)p.Type)
             {
@@ -173,6 +173,7 @@ public class GameController : MonoComponent
                     break;
             }
         }
+         */
     }
 
     public void Command_MoveTo(float x, float y)

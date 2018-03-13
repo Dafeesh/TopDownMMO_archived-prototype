@@ -16,7 +16,8 @@ namespace MasterServer.Host
         public event Delegate_ClientUpdate ClientUpdated;
         public delegate void Delegate_ClientUpdate(ClientLink cLink);
 
-        List<ClientLink> clients = new List<ClientLink>();
+        private List<ClientLink> clients = new List<ClientLink>();
+        private ClientLink.ActionDispersion clients_ActionDispersion;
 
         private ClientAcceptor clientAcceptor;
         private InstanceServerLink[] zoneInstanceServers;
@@ -30,7 +31,10 @@ namespace MasterServer.Host
             this.instanceServers = instServerLinks;
 
             #region ActionSubscriptions
-            ClientLink.ReceivedActions.CharListSelect += OnAction_CharListSelect;
+            this.clients_ActionDispersion = new ClientLink.ActionDispersion()
+            {
+                OnAction_CharacterListItem_Select = OnAction_CharListItem_Select
+            };
             #endregion ActionSubscriptions
 
             Log.MessageLogged += Console.WriteLine;
@@ -38,6 +42,7 @@ namespace MasterServer.Host
 
         protected override void Begin()
         {
+            clients_ActionDispersion.Dispose();
             clientAcceptor.Start();
 
             Log.Log("Start.");
@@ -47,7 +52,7 @@ namespace MasterServer.Host
         {
             HandleNewClients();
             PollConnections();
-            TriggerReceivedActions();
+            HandleReceivedActions();
         }
 
         protected override void Finish(bool success)
@@ -57,6 +62,16 @@ namespace MasterServer.Host
             {
                 c.Dispose();
             }
+            foreach (var i in zoneInstanceServers)
+            {
+                i.Dispose();
+            }
+
+            foreach (var i in instanceServers)
+            {
+                i.Dispose();
+            }
+
             Log.Log("Finish.");
         }
 
@@ -71,18 +86,19 @@ namespace MasterServer.Host
                         return cl.AccountInfo.Name.CompareTo(newAuthorizedClient.Info.Name) == 0;
                     });
 
-                //Check status
+                //If not found, then it is a newly connecting client.
                 if (foundClient == null)
                 {
-                    ClientLink newLink = new ClientLink(newAuthorizedClient.Info, newAuthorizedClient.Connection);
+                    ClientLink newLink = new ClientLink(clients_ActionDispersion, newAuthorizedClient.Info, newAuthorizedClient.Connection);
 
                     clients.Add(newLink);
                     if (ClientAdded != null)
                         ClientAdded(newLink);
 
+                    newLink.Send_CharacterList();
                     Log.Log("New client: " + newLink.AccountInfo.Name);
                 }
-                else
+                else //Else, it is an already existing client.
                 {
                     if (!foundClient.HasConnection)
                     {
@@ -90,6 +106,7 @@ namespace MasterServer.Host
                         if (ClientUpdated != null)
                             ClientUpdated(foundClient);
 
+                        foundClient.Send_CharacterList();
                         Log.Log("Client reconnected: " + newAuthorizedClient.Info.Name);
                     }
                     else
@@ -115,37 +132,21 @@ namespace MasterServer.Host
             }
         }
 
-        private void TriggerReceivedActions()
+        private void HandleReceivedActions()
         {
             foreach (ClientLink cl in clients)
             {
-                cl.TriggerReceivedActions();
+                cl.BroadcastActions();
             }
         }
 
         #region ReceivedActions
 
-        void OnAction_CharListSelect(ClientLink sender, string selectedCharacter)
+        void OnAction_CharListItem_Select(ClientLink sender, string selectedCharacter)
         {
             Console.WriteLine("CharListSelect: " + selectedCharacter);
         }
 
         #endregion ReceivedActions
-
-        public InstanceServerLink[] ZoneServerLinks
-        {
-            get
-            {
-                return zoneInstanceServers.ToArray();
-            }
-        }
-
-        public InstanceServerLink[] InstanceServerLinks
-        {
-            get
-            {
-                return instanceServers.ToArray();
-            }
-        }
     }
 }

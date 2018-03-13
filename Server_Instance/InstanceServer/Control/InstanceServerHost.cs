@@ -15,7 +15,7 @@ using InstanceServer.Links;
 
 namespace InstanceServer.Control
 {
-    class InstanceServerHost : ThreadRun
+    public class InstanceServerHost : ThreadRun
     {
         private List<GameInstance> instances = new List<GameInstance>();
 
@@ -47,13 +47,18 @@ namespace InstanceServer.Control
             clientAccepter.Dispose();
             masterServerLink.Dispose();
 
+            foreach (GameInstance i in instances)
+            {
+                i.Dispose();
+            }
+
             Log.Log("Finished.");
         }
 
         private void HandleNewClients()
         {
-            ClientAuthConnection c = null;
-            while ((c = clientAccepter.GetVarifiedClient()) != null)
+            VerifyingClient c = null;
+            while ((c = clientAccepter.GetVerifiedClient()) != null)
             {
                 /*
                 GameInstance instFound = instances.FirstOrDefault((inst) =>

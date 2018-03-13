@@ -25,8 +25,8 @@ namespace InstanceServer.World
         private List<GameCharacter> charsInView;
         private List<GameCharacter> charsSeenBy;
 
-        private bool isDisposed;
-        private DebugLogger log;
+        private bool _disposed = false;
+        private DebugLogger _log;
 
         private CharacterStats stats = new CharacterStats();
 
@@ -36,16 +36,13 @@ namespace InstanceServer.World
         /// <param name="id">ID of the character.</param>
         public GameCharacter(String name, CharacterLayout layout)
         {
-            name = "Char:" + name;
-
-            log = new DebugLogger(name);
-            log.MessageLogged += Console.WriteLine;
+            Log = new DebugLogger("Char:" + name);
+            Log.MessageLogged += Console.WriteLine;
 
             this.name = name;
             this.position = new Position2D();
             this.charsInView = new List<GameCharacter>();
             this.charsSeenBy = new List<GameCharacter>();
-            this.isDisposed = false;
 
             this.layout = layout;
             this.SetID(ID_NULL);
@@ -53,7 +50,17 @@ namespace InstanceServer.World
 
         ~GameCharacter()
         {
-            this.Dispose(true);
+            this.Dispose();
+        }
+
+        public void Dispose()
+        {
+            if (!_disposed)
+            {
+                _disposed = true;
+
+                //To-do, dispose process
+            }
         }
 
         //Private
@@ -129,13 +136,6 @@ namespace InstanceServer.World
             }
         }
 
-        public void Dispose()
-        {
-            this.Dispose(false);
-
-            this.isDisposed = true;
-        }
-
         public void SetID(int id)
         {
             this.id = id;
@@ -203,8 +203,6 @@ namespace InstanceServer.World
         public abstract void Inform_CharacterMovePoint(GameCharacter charFrom, MovePoint mp);
         public abstract void Inform_AddCharacterInView(GameCharacter newChar);
         public abstract void Inform_RemoveCharacterInView(GameCharacter newChar);
-
-        protected abstract void Dispose(bool blocking);
         #endregion Overrides
 
         #region Accessors
@@ -273,19 +271,16 @@ namespace InstanceServer.World
             }
         }
 
-        public bool IsDisposed
-        {
-            get
-            {
-                return isDisposed;
-            }
-        }
-
         public DebugLogger Log
         {
             get
             {
-                return log;
+                return _log;
+            }
+
+            private set
+            {
+                _log = value;
             }
         }
 

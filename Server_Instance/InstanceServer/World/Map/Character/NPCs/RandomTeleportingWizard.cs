@@ -14,15 +14,10 @@ namespace InstanceServer.World.Map.Character
             Stopwatch timer = new Stopwatch();
 
             public RandomTeleportingWizard(float x, float y)
-                : base("RndTeleWizard", CharacterType.Npc)
+                : base("RndTeleWizard", new CharacterLayout(CharacterLayout.VisualType.Null))
             {
                 this.Position.x = x;
                 this.Position.y = y;
-            }
-
-            protected override void Dispose(bool blocking)
-            {
-
             }
 
             public override void Tick(float frameDiff)

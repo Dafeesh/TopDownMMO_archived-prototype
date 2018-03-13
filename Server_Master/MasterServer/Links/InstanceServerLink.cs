@@ -1,16 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Diagnostics;
 
 using SharedComponents.Server;
+using SharedComponents.Global;
 
 using Extant;
 using Extant.Networking;
 
 namespace MasterServer.Links
 {
-    public class InstanceServerLink
+    public class InstanceServerLink : IDisposable, ILogging
     {
+        private const Int32 CONNECTION_RETRYDELAY = 5000;
+
         public event StateChange OnStateChange;
         public delegate void StateChange(InstanceServerLink instServLink);
 
@@ -26,22 +30,44 @@ namespace MasterServer.Links
         { get; private set; }
 
         private NetConnection connection;
-        private bool _connectedState;
+        private InstanceToMasterPackets.Distribution connection_distribution;
+        private Stopwatch connection_retryTimer = new Stopwatch();
+
+        private bool _isConnected = false;
+        private bool _isDisposed = false;
+        private DebugLogger _log;
 
         public InstanceServerLink(Int32 serverId,
                                   string name,
                                   IPEndPoint remoteEndPoint,
                                   IPEndPoint broadcastEndPoint)
         {
+            this.Log = new DebugLogger("InstServLink-" + serverId);
+            this.Log.MessageLogged += Console.WriteLine;
+
             this.ServerId = serverId;
             this.Name = name;
             this.RemoteEndPoint = remoteEndPoint;
             this.BroadcastEndPoint = broadcastEndPoint;
-            this.ConnectedState = false;
-
             this.ActiveCharacters = new List<AccountInfo>();
 
+            this.connection_distribution = new InstanceToMasterPackets.Distribution()
+            {
+                out_Ping_im = OnReceive_Ping_im
+            };
+
             RestartConnection();
+        }
+
+        public void Dispose()
+        {
+            if (!IsDisposed)
+            {
+                IsDisposed = true;
+
+                connection.Dispose();
+                connection_distribution.Dispose();
+            }
         }
 
         private void RestartConnection()
@@ -49,40 +75,87 @@ namespace MasterServer.Links
             if (connection != null)
                 connection.Dispose();
 
-            connection = new NetConnection(InstanceToMasterPackets.ReadBuffer, RemoteEndPoint, 5000);
+            connection = new NetConnection(RemoteEndPoint, 5000);
             connection.Start();
         }
 
         public void PollConnection()
         {
-            if (ConnectedState == true)
+            if (IsConnected)
             {
                 if (connection.State == NetConnection.NetworkState.Closed)
                 {
+                    Log.Log("Disconnected.");
                     RestartConnection();
-                    ConnectedState = false;
+                    IsConnected = false;
                 }
             }
-            else //if (ConnectedStatus == false)
+            else
             {
                 if (connection.State == NetConnection.NetworkState.Connected)
                 {
-                    ConnectedState = true;
+                    Log.Log("Connected!");
+                    IsConnected = true;
+                }
+                else if (connection.State == NetConnection.NetworkState.Closed)
+                {
+                    if (connection_retryTimer.IsRunning)
+                    {
+                        if (connection_retryTimer.ElapsedMilliseconds > CONNECTION_RETRYDELAY)
+                        {
+                            connection_retryTimer.Reset();
+                            RestartConnection();
+                        }
+                    }
+                    else
+                    {
+                        //Log.Log("Failed to connect, trying again in " + (int)(CONNECTION_RETRYDELAY/1000) + " seconds...");
+                        connection_retryTimer.Start();
+                    }
+                }
+                    
+            }
+        }
+
+        public bool IsConnected
+        {
+            get
+            {
+                return _isConnected;
+            }
+            private set
+            {
+                if (value != _isConnected)
+                {
+                    _isConnected = value;
+                    if (OnStateChange != null)
+                        OnStateChange(this);
                 }
             }
         }
 
-        public bool ConnectedState
+        public bool IsDisposed
         {
             get
             {
-                return _connectedState;
+                return _isDisposed;
             }
             private set
             {
-                _connectedState = value;
-                if (OnStateChange != null)
-                    OnStateChange(this);
+                _isDisposed = value;
+            }
+        }
+
+        public DebugLogger Log
+        {
+            get
+            {
+                return _log;
+            }
+
+            private set
+            {
+                _log = value;
             }
         }
 
@@ -90,5 +163,14 @@ namespace MasterServer.Links
         {
             return Name;
         }
+
+        #region OnPacketReceive
+
+        private void OnReceive_Ping_im(InstanceToMasterPackets.Ping_im packet)
+        {
+            
+        }
+
+        #endregion OnPacketReceive
     }
 }

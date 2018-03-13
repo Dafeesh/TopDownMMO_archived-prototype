@@ -10,6 +10,8 @@ using SharedComponents.Server;
 using MasterServer.Host;
 using MasterServer.Links;
 
+using Extant;
+
 namespace MasterServer
 {
     static class Program
@@ -20,13 +22,8 @@ namespace MasterServer
         [STAThread]
         static void Main()
         {
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new MasterServerWindow(InitializeHost()));
-        }
+            DebugLogger.Global.MessageLogged += Console.WriteLine;
 
-        static MasterServerHost InitializeHost()
-        {
             //ClientAcceptor
             ClientAcceptor clientAcceptor = new ClientAcceptor(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 3000));
 
@@ -44,10 +41,9 @@ namespace MasterServer
                    new InstanceServerLink(4, "InstServer1", new IPEndPoint(IPAddress.Parse("127.0.0.1"), 4501), new IPEndPoint(IPAddress.Parse("127.0.0.1"), 4501))
             };
 
-            //Host
-            MasterServerHost host = new MasterServerHost(clientAcceptor, zoneServers, instanceServers);
-
-            return host;
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+            Application.Run(new MasterServerWindow(clientAcceptor, zoneServers, instanceServers));
         }
     }
 }

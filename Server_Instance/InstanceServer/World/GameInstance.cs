@@ -76,14 +76,15 @@ namespace InstanceServer.World
         /////////// Private ///////////
         private void ReceiveAndProcessPlayerPackets(Characters.Player plr)
         {
+            return;
             Packet p = null;
-            while ((p = plr.GetPacket()) != null)
+            //while ((p = plr.GetPacket()) != null)
             {
-                switch ((ClientToWorldPackets.PacketType)p.Type)
+                switch ((ClientToInstancePackets.PacketType)p.Type)
                 {
-                    case (ClientToWorldPackets.PacketType.Player_MovementRequest_w):
+                    case (ClientToInstancePackets.PacketType.Player_MovementRequest_i):
                         {
-                            ClientToWorldPackets.Player_MovementRequest_w pp = p as ClientToWorldPackets.Player_MovementRequest_w;
+                            ClientToInstancePackets.Player_MovementRequest_i pp = p as ClientToInstancePackets.Player_MovementRequest_i;
 
                             MovePoint[] mps = map.CalculatePath(plr.Position, new Position2D(pp.posx, pp.posy));
                             if (mps.Length > 0)
@@ -93,7 +94,7 @@ namespace InstanceServer.World
 
                     default:
                         Log.Log("Received invalid packet from player: " + plr.Info.Name);
-                        plr.SendPacket(new ClientToWorldPackets.Error_c(ClientToWorldPackets.Error_c.ErrorCode.InvalidPacket));
+                        plr.SendPacket(new ClientToInstancePackets.Error_c(ClientToInstancePackets.Error_c.ErrorCode.InvalidPacket));
                         break;
                 }
             }
@@ -170,7 +171,7 @@ namespace InstanceServer.World
                 for (int j = 0; j < map.Terrain.NumBlocksY; j++)
                 {
                     block = map.Terrain.GetBlock(i, j);
-                    p.SendPacket(new ClientToWorldPackets.Map_TerrainBlock_c(i, j, block));
+                    p.SendPacket(new ClientToInstancePackets.Map_TerrainBlock_c(i, j, block));
                 }
             }
         }
@@ -178,14 +179,15 @@ namespace InstanceServer.World
         private void AddPlayer(Characters.Player p)
         {
             p.SetID(NextCharacterID);
+
             allCharacters.Add(p);
             players.Add(p);
 
-            p.SendPacket(new ClientToWorldPackets.Map_Reset_c(map.Terrain.NumBlocksX, map.Terrain.NumBlocksY));
-            p.SendPacket(new ClientToWorldPackets.Character_Add_c(p.Id, p.Layout, CharacterType.Player));
-            p.SendPacket(new ClientToWorldPackets.Character_Position_c(p.Id, p.Position.x, p.Position.y));
-            p.SendPacket(new ClientToWorldPackets.Player_SetControl_c(p.Id));
-            p.SendPacket(new ClientToWorldPackets.Character_UpdateStats_c(p.Id, p.Stats));
+            p.SendPacket(new ClientToInstancePackets.Map_Reset_c(map.Terrain.NumBlocksX, map.Terrain.NumBlocksY));
+            p.SendPacket(new ClientToInstancePackets.Character_Add_c(p.Id, p.Layout, CharacterType.Player));
+            p.SendPacket(new ClientToInstancePackets.Character_Position_c(p.Id, p.Position.x, p.Position.y));
+            p.SendPacket(new ClientToInstancePackets.Player_SetControl_c(p.Id));
+            p.SendPacket(new ClientToInstancePackets.Character_UpdateStats_c(p.Id, p.Stats));
 
             UpdatePlayerMapView(p);
             UpdateCharacterView(p);
@@ -197,9 +199,11 @@ namespace InstanceServer.World
         protected void AddCharacter(GameCharacter c)
         {
             c.SetID(NextCharacterID);
+
             allCharacters.Add(c);
 
             UpdateCharacterView(c);
+            Log.Log("Character added to instance. [" + c.Id + "]");
         }
 
         protected GameMap Map

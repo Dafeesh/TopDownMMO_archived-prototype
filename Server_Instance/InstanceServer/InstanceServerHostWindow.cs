@@ -12,45 +12,55 @@ using System.Windows.Forms;
 using Extant;
 using InstanceServer.Control;
 using InstanceServer.World;
+using InstanceServer.Links;
 
 namespace InstanceServer
 {
     public partial class InstanceServerHostWindow : Form
     {
-        private GameInstance selectedInstance;
+        GameInstance selectedInstance;
 
         private LogItem[] logItems = new LogItem[0];
         private object logItems_lock = new object();
 
         private InstanceServerHost instHost;
 
-        public InstanceServerHostWindow(InstanceServerHost instHost)
+        public InstanceServerHostWindow(ClientAccepter clientAccepter, MasterServerLink msLink)
         {
             InitializeComponent();
 
-            this.instHost = instHost;
+            msLink.StateChanged += OnStateChange_MasterServerLink;
+
+            this.instHost = new InstanceServerHost(clientAccepter, msLink);
+            this.instHost.Start();
 
             button_RefreshList_Click(null, null);
             button_RefreshPlayerList_Click(null, null);
         }
 
+        private void InstanceServerHostWindow_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            instHost.Dispose();
+        }
+
+        private void OnStateChange_MasterServerLink(MasterServerLink.ConnectionState state)
+        {
+            this.Invoke(new MethodInvoker(() =>
+            {
+                this.checkBox_MasterConnected.Checked = (state == MasterServerLink.ConnectionState.Connected);
+            }));
+        }
+
         private void button_RefreshList_Click(object sender, EventArgs e)
         {
-            var insts = instHost.GetInstances();
-
             listBox_Instances.Items.Clear();
-            foreach (var i in insts)
-            {
-                listBox_Instances.Items.Add(i);
-            }
         }
 
         private void listBox_Instances_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (listBox_Instances.SelectedItem != null)
             {
-                selectedInstance = (GameInstance)listBox_Instances.SelectedItem;
-                label_InstanceName.Text = selectedInstance.Name;
+                
             }
         }
 
@@ -119,19 +129,9 @@ namespace InstanceServer
             }
         }
 
-        private void InstanceWatcher_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            workerThread.Abort();
-            workerThread.Join();
-        }
-
         private void button_RefreshPlayerList_Click(object sender, EventArgs e)
         {
             listBox_Players.Items.Clear();
-            foreach (var p in instHost.GetPlayerList())
-            {
-                listBox_Players.Items.Add(p);
-            }
         }
 
         private void listBox_log_SelectedIndexChanged(object sender, EventArgs e)

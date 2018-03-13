@@ -18,14 +18,13 @@ namespace MasterServer
     {
         private MasterServerHost host;
 
-        public MasterServerWindow(MasterServerHost _host)
+        public MasterServerWindow(ClientAcceptor clientAcceptor, InstanceServerLink[] zoneServers, InstanceServerLink[] instanceServers)
         {
             InitializeComponent();
-            this.host = _host;
 
             //Zone servers
             listBox_ZoneSevers.Items.Clear();
-            foreach (var z in host.ZoneServerLinks)
+            foreach (var z in zoneServers)
             {
                 z.OnStateChange += ZoneServerStateChanged;
                 listBox_ZoneSevers.Items.Add(z);
@@ -33,14 +32,15 @@ namespace MasterServer
 
             //Instance servers
             listBox_InstServers.Items.Clear();
-            foreach (var i in host.InstanceServerLinks)
+            foreach (var i in instanceServers)
             {
                 i.OnStateChange += InstanceServerStateChanged;
                 listBox_InstServers.Items.Add(i);
             }
 
             //Start host
-            host.Start();
+            this.host = new MasterServerHost(clientAcceptor, zoneServers, instanceServers);
+            this.host.Start();
         }
 
         private void MasterServerWindow_FormClosing(object sender, FormClosingEventArgs e)

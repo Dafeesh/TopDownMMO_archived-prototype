@@ -11,6 +11,11 @@ public class CharListMenuController : MonoComponent
     public static CharListMenuController Main = null;
     //
 
+    [SerializeField]
+    GameObject CharListPanel = null;
+    [SerializeField]
+    GameObject WaitingPanel = null;
+
     List<CharListMenuItemButton> charListItems = new List<CharListMenuItemButton>();
     MasterServerConnection msConnection;
 
@@ -24,9 +29,15 @@ public class CharListMenuController : MonoComponent
         msConnection = MasterServerConnection.Main;
         if (msConnection == null)
             Debug.LogError("CharacterListController could not find MasterServerConnection.");
+
         msConnection.Received_AddCharacterListItem += OnReceive_AddCharacterListItem;
 
         Log.MessageLogged += Debug.Log;
+    }
+
+    void OnDestroy()
+    {
+        msConnection.Received_AddCharacterListItem -= OnReceive_AddCharacterListItem;
     }
 
     void Update()
@@ -37,14 +48,17 @@ public class CharListMenuController : MonoComponent
     public void OnButton_SelectCharacter(CharListMenuItemButton sender)
     {
         msConnection.OnAction_SelectCharacter(sender.Name);
+
+        CharListPanel.SetActive(false);
+        WaitingPanel.SetActive(true);
     }
 
     public void OnReceive_AddCharacterListItem(string name, CharacterLayout layout, int level)
     {
-        Log.Log("Create character: " + name);
+        Log.Log("Create selection: " + name);
 
         GameObject obj = (GameObject)Instantiate(Resources.Load(ResourceList.UI.CharacterListItem));
-        obj.transform.parent = GameObject.Find("CharList").transform;
+        obj.transform.SetParent(GameObject.Find("CharList").transform);
         CharListMenuItemButton button = obj.GetComponent<CharListMenuItemButton>();
 
         button.Name = name;
