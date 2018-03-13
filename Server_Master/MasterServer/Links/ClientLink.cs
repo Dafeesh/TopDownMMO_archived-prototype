@@ -11,6 +11,8 @@ using SharedComponents.Global.GameProperties;
 using Extant;
 using Extant.Networking;
 
+using MasterServer.Game;
+
 namespace MasterServer.Links
 {
     public class ClientLink : IDisposable , ILogging
@@ -20,7 +22,8 @@ namespace MasterServer.Links
         private IPacketDistributor connection_distribution;
         private ActionDispersion actionDispersion;
 
-        private bool _isInGame = false;
+        private PlayerCharacter activeCharacter = null;
+
         private bool _disposed = false;
         private DebugLogger _log;
 
@@ -55,7 +58,6 @@ namespace MasterServer.Links
             {
                 connection_distribution.Dispose();
 
-                connection.Stop("ClientLink finished.");
                 connection.Dispose();
             }
         }
@@ -77,23 +79,22 @@ namespace MasterServer.Links
         {
             if (this.HasConnection)
             {
-                connection.Stop("Client overwrote connection.");
                 connection.Dispose();
             }
 
             connection = con;
         }
 
+        public void SetActiveCharacter(PlayerCharacter ch)
+        {
+            activeCharacter = ch;
+        }
+
         public bool IsInGame
         {
             get
             {
-                return _isInGame;
-            }
-
-            private set
-            {
-                _isInGame = value;
+                return (activeCharacter != null);
             }
         }
 
@@ -101,7 +102,7 @@ namespace MasterServer.Links
         {
             get
             {
-                return connection.State == NetConnection.NetworkState.Connected;
+                return (connection.State == NetConnection.NetworkState.Active);
             }
         }
 
@@ -125,11 +126,11 @@ namespace MasterServer.Links
 
         public void Send_CharacterList()
         {
-            foreach (CharacterInfo charInfo in accountInfo.Characters)
+            foreach (PlayerCharacterInfo charInfo in accountInfo.Characters)
             {
                 connection.SendPacket(new ClientToMasterPackets.Menu_CharacterListItem_c(
                     charInfo.Name,
-                    charInfo.Layout,
+                    charInfo.VisualLayout,
                     charInfo.Level));
             }
         }

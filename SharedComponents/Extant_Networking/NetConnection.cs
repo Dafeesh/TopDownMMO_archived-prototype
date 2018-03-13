@@ -10,18 +10,13 @@ using Extant;
 
 namespace Extant.Networking
 {
-    public class NetConnection : ThreadRun
+    public class NetConnection : IDisposable, ILogging
     {
-        private const int RECEIVETIMEOUT_INFINITY = 0;
-
-        private NetworkState state;
-        private IPEndPoint remoteEndPoint;
-        private readonly Stopwatch connectTimeoutTimer = new Stopwatch();
-        private readonly Int32 connectTimeout;
-        private readonly Stopwatch receiveTimeoutTimer = new Stopwatch();
-        private readonly Int32 receiveTimeout;
         private TcpClient tcpClient;
-        private IAsyncResult connectResult;
+
+        private NetworkState _state;
+        private IPEndPoint _remoteEndPoint;
+        private readonly Stopwatch lastReceiveTimer = new Stopwatch();
 
         private NetworkStream stream;
         private object stream_lock = new object();
@@ -29,160 +24,170 @@ namespace Extant.Networking
         private object receiveBuffer_lock = new object();
         private Byte[] receiveBuffer_temp = new Byte[1024];
 
+        private DebugLogger _log;
         private ByteRecord byteLog_out = new ByteRecord();
         private ByteRecord byteLog_in = new ByteRecord();
+        private bool _isDisposed = false;
 
         /// <summary>
         /// Used if connection is not already established.
         /// </summary>
-        public NetConnection(IPEndPoint remoteEndPoint, Int32 connectTimeout, Int32 receiveTimeout = RECEIVETIMEOUT_INFINITY)
-            : base("NetConnection-c")
+        public NetConnection(IPEndPoint remoteEndPoint)
         {
-            this.state = NetworkState.Waiting;
-            this.remoteEndPoint = remoteEndPoint;
-            this.connectTimeout = connectTimeout;
+            this.Log = new DebugLogger("NetCon");
+
+            this.RemoteEndPoint = remoteEndPoint;
 
             this.tcpClient = new TcpClient();
-            this.receiveTimeout = receiveTimeout;
+            this.State = NetworkState.Waiting_ToConnect;
         }
 
         /// <summary>
         /// If connection is already established.
         /// </summary>
-        public NetConnection(TcpClient tcpClient, Int32 receiveTimeout = RECEIVETIMEOUT_INFINITY)
-            : base("NetConnection")
+        public NetConnection(TcpClient tcpClient)
         {
-            state = NetworkState.Connected;
+            this.Log = new DebugLogger("NetCon");
+
+            this.RemoteEndPoint = (IPEndPoint)tcpClient.Client.RemoteEndPoint;
+
             this.tcpClient = tcpClient;
-            this.receiveTimeout = receiveTimeout;
             this.stream = tcpClient.GetStream();
-            this.remoteEndPoint = (IPEndPoint)tcpClient.Client.RemoteEndPoint;
-            this.connectTimeout = 0;
-
-            BeginReceive(this.tcpClient.Client);
+            this.State = NetworkState.Waiting_Connected;
         }
 
-        protected override void Begin()
+        /// <summary>
+        /// Start connection attempt.
+        /// </summary>
+        public void Start()
         {
-            if (state == NetworkState.Waiting)
+            if (IsClosed)
+                throw new InvalidOperationException("NetConnection cannot start while closed.");
+            if (IsDisposed)
+                throw new InvalidOperationException("NetConnection cannot start while disposed.");
+
+            if (State == NetworkState.Waiting_ToConnect)
             {
-                // Start connection attempt
-                try
-                {
-                    Log.Log("Attempting to connect to " + remoteEndPoint.Address.ToString() + "/" + remoteEndPoint.Port);
-                    connectResult = this.tcpClient.BeginConnect(remoteEndPoint.Address.ToString(), remoteEndPoint.Port, new AsyncCallback(ConnectCallback), null);
-                    connectTimeoutTimer.Start();
-                    state = NetworkState.Connecting;
-                }
-                catch (Exception e)
-                {
-                    this.Stop("Exception while trying to start connecting.\n" + e.ToString());
-                }
+                BeginConnect();
+
+                State = NetworkState.Connecting;
+                Log.Log("Attempting to connect to " + RemoteEndPoint.Address.ToString() + "/" + RemoteEndPoint.Port);
+            }
+            else if (State == NetworkState.Waiting_Connected)
+            {
+
+                BeginReceive();
+
+                State = NetworkState.Active;
+                Log.Log("Connection handling started.");
+            }
+            else
+            {
+                throw new InvalidOperationException("Invalid state while trying to start!");
+            }
+
+        }
+
+        /// <summary>
+        /// Closes an active connection.
+        /// </summary>
+        public void Close()
+        {
+            if (!IsClosed)
+            {
+                this.tcpClient.Close();
+
+                this.State = NetworkState.Closed;
+                Log.Log("Closed.");
             }
         }
 
-        protected override void RunLoop()
+        /// <summary>
+        /// Stops and disposes an active connection.
+        /// </summary>
+        public void Dispose()
         {
-            switch (state)
+            if (!IsClosed)
+                this.Close();
+
+            if (!IsDisposed)
             {
-                case (NetworkState.Connecting):
-                    {
-                        if (connectTimeoutTimer.ElapsedMilliseconds > connectTimeout)
-                        {
-                            this.Stop("Connect timed out.");
-                        }
-                        break;
-                    }
-                case (NetworkState.Connected):
-                    {
-                        if (receiveTimeout != RECEIVETIMEOUT_INFINITY)
-                        {
-                            if (receiveTimeoutTimer.ElapsedMilliseconds > receiveTimeout)
-                                this.Stop("Receive timed out.");
-                            else if (!tcpClient.Connected)
-                                this.Stop("Disconnected.");
-                        }
-                        break;
-                    }
-                case (NetworkState.Closed):
-                    {
-                        this.Stop("Closed.");
-                        break;
-                    }
-                default:
-                    {
-                        Log.Log("Invalid state: " + state.ToString());
-                        throw new SocketException((int)SocketError.OperationNotSupported);
-                    }
+                Log.Log("Disposed.");
             }
         }
 
-        protected override void Finish(bool success)
+        private void BeginConnect()
         {
-            if (tcpClient != null)
-            {
-                tcpClient.Close();
-            }
-            connectTimeoutTimer.Stop();
-            state = NetworkState.Closed;
-            Log.Log("Finished.");
+            this.tcpClient.BeginConnect(RemoteEndPoint.Address.ToString(), RemoteEndPoint.Port, new AsyncCallback(Callback_Connect), tcpClient);
         }
 
-        private void BeginReceive(Socket client)
+        private void BeginReceive()
         {
-            client.BeginReceive(receiveBuffer_temp, 0, receiveBuffer_temp.Length, SocketFlags.None, ReceiveCallback, client);
+            this.tcpClient.Client.BeginReceive(receiveBuffer_temp, 0, receiveBuffer_temp.Length, SocketFlags.None, Callback_Receive, this.tcpClient.Client);
         }
 
-        private void ConnectCallback(IAsyncResult ar)
+        private void Callback_Connect(IAsyncResult ar)
         {
-            if (!this.IsStopped)
+            if (!IsDisposed)
             {
                 if (tcpClient.Connected)
                 {
-                    Log.Log("ConnectCallback, connected!");
-
                     this.stream = tcpClient.GetStream();
-                    state = NetworkState.Connected;
 
-                    BeginReceive(tcpClient.Client);
+                    BeginReceive();
+
+                    this.State = NetworkState.Active;
+                    Log.Log("ConnectCallback, success.");
                 }
                 else
                 {
-                    this.Stop("Callback, no connection.");
+                    Log.Log("ConnectCallback, failed to connect.");
                 }
+            }
+            else
+            {
+                Log.Log("ConnectCallback, disposed.");
             }
         }
 
-        private void ReceiveCallback(IAsyncResult ar)
+        private void Callback_Receive(IAsyncResult ar)
         {
-            try
+            if (!IsDisposed)
             {
-                Socket client = (Socket)ar.AsyncState;
-
-                int numBytes = client.EndReceive(ar);
-                if (numBytes == 0)
+                try
                 {
-                    this.Stop("Receive callback: lost connection.");
-                }
-                else
-                {
-                    receiveTimeoutTimer.Reset();
-                    receiveTimeoutTimer.Start();
+                    Socket client = (Socket)ar.AsyncState;
 
-                    lock (receiveBuffer_lock)
+                    int numBytes = client.EndReceive(ar);
+                    if (numBytes == 0)
                     {
-                        receiveBuffer.AddRange(receiveBuffer_temp.Take(numBytes));
+                        Log.Log("ReceiveCallback, lost connection.");
+                        this.Close();
                     }
+                    else
+                    {
+                        lastReceiveTimer.Reset();
+                        lastReceiveTimer.Start();
 
-                    Log.Log("Received bytes- " + numBytes);
-                    byteLog_in.Bytes += numBytes;
+                        lock (receiveBuffer_lock)
+                        {
+                            byteLog_in.Bytes += numBytes;
+                            receiveBuffer.AddRange(receiveBuffer_temp.Take(numBytes));
+                        }
 
-                    BeginReceive(ar.AsyncState as Socket);
+                        Log.Log("ReceiveCallback, received bytes- " + numBytes);
+                        BeginReceive();
+                    }
                 }
-            }
-            catch (Exception e)
-            {
-                this.Stop("ReceiveCallback exception: " + e.ToString());
+                catch (ObjectDisposedException)
+                {
+                    Log.Log("ReceiveCallback, disposed.");
+                }
+                catch (Exception e)
+                {
+                    Log.Log("ReceiveCallback exception: " + e.ToString());
+                    this.Close();
+                }
             }
         }
 
@@ -198,7 +203,8 @@ namespace Extant.Networking
                 }
                 catch (Packet.InvalidPacketRead e)
                 {
-                    this.Stop("Invalid packet read: " + e.ToString());
+                    Log.Log("Invalid packet read: " + e.ToString());
+                    this.Close();
                 }
             }
             return sentPacket;
@@ -213,31 +219,17 @@ namespace Extant.Networking
                     Byte[] d = p.CreateSendBuffer();
                     lock (stream_lock)
                     {
+                        byteLog_out.Bytes += d.Length;
                         stream.Write(d, 0, d.Length);
                         stream.Flush();
                     }
 
-                    byteLog_out.Bytes += d.Length;
                 }
             }
             catch (Exception e)
             {
                 Log.Log("Exception while while sending packet: " + e.Message);
-            }
-        }
-
-        /// <summary>
-        /// Gets and sets the time the connection will wait for a packet. (ms)
-        /// </summary>
-        public Int32 ReceiveTimeout
-        {
-            get
-            {
-                return tcpClient.ReceiveTimeout;
-            }
-            set
-            {
-                tcpClient.ReceiveTimeout = value;
+                this.Close();
             }
         }
 
@@ -245,7 +237,20 @@ namespace Extant.Networking
         {
             get
             {
-                return state;
+                return _state;
+            }
+
+            private set
+            {
+                _state = value;
+            }
+        }
+
+        public Int32 TimeSinceLastReceive
+        {
+            get
+            {
+                return (Int32)lastReceiveTimer.ElapsedMilliseconds;
             }
         }
 
@@ -253,18 +258,56 @@ namespace Extant.Networking
         {
             get
             {
-                if (tcpClient != null)
-                    return (IPEndPoint)tcpClient.Client.RemoteEndPoint;
-                else
-                    return null;
+                return _remoteEndPoint;
+            }
+
+            private set
+            {
+                _remoteEndPoint = value;
+            }
+        }
+
+        public DebugLogger Log
+        {
+            get
+            {
+                return _log;
+            }
+
+            private set
+            {
+                _log = value;
+            }
+        }
+
+        public bool IsClosed
+        {
+            get
+            {
+                return (State == NetworkState.Closed);
+            }
+        }
+
+
+        public bool IsDisposed
+        {
+            get
+            {
+                return _isDisposed;
+            }
+
+            private set
+            {
+                _isDisposed = value;
             }
         }
 
         public enum NetworkState
         {
-            Waiting, //Waiting to start a connection. 
+            Waiting_ToConnect, //Waiting to start a connection. 
+            Waiting_Connected, //Waiting with an active connection.
             Connecting, //Attempting to connect.
-            Connected, //Successfully connected.
+            Active, //Actively receiving.
             Closed //Socket closed.
         }
     }

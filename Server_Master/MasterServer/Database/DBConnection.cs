@@ -16,16 +16,16 @@ namespace MasterServer.Database
             //Static
             private static string ConnectionString = @"Data Source=C:\Users\Blake\Code & Source\_Game\Databases\AccountsDB.sqlite; Version=3;";
 
-            private static readonly string Accounts_Column_Name = "name";
-            private static readonly string Accounts_Column_Password = "password";
-            private static readonly string Accounts_Column_Type = "type";
+            private static readonly string Column_Accounts_Name = "name";
+            private static readonly string Column_Accounts_Password = "password";
+            private static readonly string Column_Accounts_Type = "type";
 
-            private static readonly string Characters_Column_Owner = "owner";
-            private static readonly string Characters_Column_Name = "name";
-            private static readonly string Characters_Column_Type = "type";
-            private static readonly string Characters_Column_Level = "level";
-            private static readonly string Characters_Column_LevelProgress = "level_progress";
-            private static readonly string Characters_Column_Credits = "credits";
+            private static readonly string Column_Characters_Owner = "owner";
+            private static readonly string Column_Characters_Name = "name";
+            private static readonly string Column_Characters_Type = "type";
+            private static readonly string Column_Characters_Level = "level";
+            private static readonly string Column_Characters_LevelProgress = "level_progress";
+            private static readonly string Column_Characters_Credits = "credits";
             //~Static
 
             SQLiteConnection connection;
@@ -55,9 +55,9 @@ namespace MasterServer.Database
                 try
                 {
                     string commandString = "INSERT INTO accounts (" +
-                        Accounts_Column_Name + ", " +
-                        Accounts_Column_Password + ", " +
-                        Accounts_Column_Type +
+                        Column_Accounts_Name + ", " +
+                        Column_Accounts_Password + ", " +
+                        Column_Accounts_Type +
                         ") values('" +
                         info.Name + "', '" +
                         info.Password + "', " +
@@ -77,7 +77,7 @@ namespace MasterServer.Database
             {
                 try
                 {
-                    string commandString = "SELECT * FROM accounts WHERE UPPER(" + Accounts_Column_Name + ")=UPPER('" + name + "');";
+                    string commandString = "SELECT * FROM accounts WHERE UPPER(" + Column_Accounts_Name + ")=UPPER('" + name + "');";
                     SQLiteCommand cmd = new SQLiteCommand(commandString, connection);
                     SQLiteDataReader reader = cmd.ExecuteReader();
 
@@ -85,13 +85,13 @@ namespace MasterServer.Database
                         return null;
 
                     reader.Read();
-                    if (reader[Accounts_Column_Password].ToString().CompareTo(password) != 0)
+                    if (reader[Column_Accounts_Password].ToString().CompareTo(password) != 0)
                         return null;
                     else
                     {
-                        return new AccountInfo(reader[Accounts_Column_Name].ToString(),
-                                               reader[Accounts_Column_Password].ToString(),
-                                               (AccountInfo.AccountType)(Int32)reader[Accounts_Column_Type])
+                        return new AccountInfo(reader[Column_Accounts_Name].ToString(),
+                                               reader[Column_Accounts_Password].ToString(),
+                                               (AccountInfo.AccountType)(Int32)reader[Column_Accounts_Type])
                         {
                             Characters = Fetch_Characters(name)
                         };
@@ -103,27 +103,27 @@ namespace MasterServer.Database
                 }
             }
 
-            public CharacterInfo[] Fetch_Characters(string owner)
+            public PlayerCharacterInfo[] Fetch_Characters(string owner)
             {
-                List<CharacterInfo> chars = new List<CharacterInfo>();
+                List<PlayerCharacterInfo> chars = new List<PlayerCharacterInfo>();
 
                 try
                 {
-                    string commandString = "SELECT * FROM characters WHERE UPPER(" + Characters_Column_Owner + ")=UPPER('" + owner + "');";
+                    string commandString = "SELECT * FROM characters WHERE UPPER(" + Column_Characters_Owner + ")=UPPER('" + owner + "');";
                     SQLiteCommand cmd = new SQLiteCommand(commandString, connection);
                     SQLiteDataReader reader = cmd.ExecuteReader();
 
                     if (!reader.HasRows)
-                        return new CharacterInfo[0];
+                        return new PlayerCharacterInfo[0];
 
                     while (reader.Read())
                     {
-                        chars.Add(new CharacterInfo(owner, reader[Characters_Column_Name].ToString())
+                        chars.Add(new PlayerCharacterInfo(reader[Column_Characters_Name].ToString())
                         {
-                            Layout = new CharacterLayout((CharacterLayout.VisualType)((Int32)reader[Characters_Column_Type])),
-                            Level = (Int32)reader[Characters_Column_Level],
-                            Level_Progress = (Int32)reader[Characters_Column_LevelProgress],
-                            Credits = (Int32)reader[Characters_Column_Credits]
+                            VisualLayout = new CharacterVisualLayout((CharacterVisualLayout.VisualType)((Int32)reader[Column_Characters_Type])),
+                            Level = (Int32)reader[Column_Characters_Level],
+                            Level_Progress = (Int32)reader[Column_Characters_LevelProgress],
+                            Credits = (Int32)reader[Column_Characters_Credits]
                         });
                     }
                 }

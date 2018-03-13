@@ -11,7 +11,7 @@ namespace SharedComponents.Server
         public readonly string Password;
         public readonly AccountType Type;
 
-        public CharacterInfo[] Characters;
+        public PlayerCharacterInfo[] Characters;
 
         public AccountInfo(string name, string password, AccountType type)
         {

@@ -14,7 +14,7 @@ namespace InstanceServer.World.Map.Character
             Stopwatch timer = new Stopwatch();
 
             public RandomTeleportingWizard(float x, float y)
-                : base("RndTeleWizard", new CharacterLayout(CharacterLayout.VisualType.Null))
+                : base("RndTeleWizard", new CharacterVisualLayout(CharacterVisualLayout.VisualType.Basic))
             {
                 this.Position.x = x;
                 this.Position.y = y;

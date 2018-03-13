@@ -1,22 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace SharedComponents.Global.GameProperties
 {
-    public class CharacterLayout
+    public class CharacterVisualLayout
     {
         public readonly VisualType Type;
 
-        public CharacterLayout(VisualType vtype)
+        public CharacterVisualLayout(VisualType vtype)
         {
             this.Type = vtype;
         }
 
         public enum VisualType
         {
-            Null
+            Basic
         }
     }
 }

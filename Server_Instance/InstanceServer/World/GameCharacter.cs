@@ -17,7 +17,7 @@ namespace InstanceServer.World
 
         private int id = ID_NULL;
         private String name;
-        private CharacterLayout layout;
+        private CharacterVisualLayout visualLayout;
 
         private Position2D position;
         private Queue<MovePoint> movePoints = new Queue<MovePoint>();
@@ -34,7 +34,7 @@ namespace InstanceServer.World
         /// Creates a character to be used in a game map.
         /// </summary>
         /// <param name="id">ID of the character.</param>
-        public GameCharacter(String name, CharacterLayout layout)
+        public GameCharacter(String name, CharacterVisualLayout visualLayout)
         {
             Log = new DebugLogger("Char:" + name);
             Log.MessageLogged += Console.WriteLine;
@@ -44,7 +44,7 @@ namespace InstanceServer.World
             this.charsInView = new List<GameCharacter>();
             this.charsSeenBy = new List<GameCharacter>();
 
-            this.layout = layout;
+            this.visualLayout = visualLayout;
             this.SetID(ID_NULL);
         }
 
@@ -263,11 +263,11 @@ namespace InstanceServer.World
             }
         }
 
-        public CharacterLayout Layout
+        public CharacterVisualLayout VisualLayout
         {
             get
             {
-                return layout;
+                return visualLayout;
             }
         }
 

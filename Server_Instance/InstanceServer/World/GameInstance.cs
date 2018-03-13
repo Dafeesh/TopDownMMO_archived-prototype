@@ -184,7 +184,7 @@ namespace InstanceServer.World
             players.Add(p);
 
             p.SendPacket(new ClientToInstancePackets.Map_Reset_c(map.Terrain.NumBlocksX, map.Terrain.NumBlocksY));
-            p.SendPacket(new ClientToInstancePackets.Character_Add_c(p.Id, p.Layout, CharacterType.Player));
+            p.SendPacket(new ClientToInstancePackets.Character_Add_c(p.Id, CharacterType.Player, p.Info.Name));
             p.SendPacket(new ClientToInstancePackets.Character_Position_c(p.Id, p.Position.x, p.Position.y));
             p.SendPacket(new ClientToInstancePackets.Player_SetControl_c(p.Id));
             p.SendPacket(new ClientToInstancePackets.Character_UpdateStats_c(p.Id, p.Stats));

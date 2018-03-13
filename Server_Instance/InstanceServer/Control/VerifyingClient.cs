@@ -60,7 +60,7 @@ namespace InstanceServer.Control
         {
             if (receiveTimer.ElapsedMilliseconds > RECEIVE_TIMEOUT)
             {
-                connection.Stop("Timed out while varifying.");
+                Log.Log("Timed out while varifying.");
                 connection.Dispose();
             }
             else if (IsConnected && !IsVerified)
@@ -70,7 +70,6 @@ namespace InstanceServer.Control
                 if (gotPacket && !IsVerified)
                 {
                     Log.Log("Received wrong packet while authenticating.");
-                    connection.Stop("Received wrong packet while authenticating.");
                     connection.Dispose();
                 }
             }
@@ -91,7 +90,7 @@ namespace InstanceServer.Control
         {
             get
             {
-                return (connection != null) && (connection.State == NetConnection.NetworkState.Connected);
+                return (connection != null) && (connection.State == NetConnection.NetworkState.Active);
             }
         }
 

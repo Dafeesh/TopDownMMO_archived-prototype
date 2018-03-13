@@ -18,16 +18,16 @@ namespace MasterServer
     {
         private MasterServerHost host;
 
-        public MasterServerWindow(ClientAcceptor clientAcceptor, InstanceServerLink[] zoneServers, InstanceServerLink[] instanceServers)
+        public MasterServerWindow(ClientAcceptor clientAcceptor, WorldServerLink[] worldServers, InstanceServerLink[] instanceServers)
         {
             InitializeComponent();
 
-            //Zone servers
-            listBox_ZoneSevers.Items.Clear();
-            foreach (var z in zoneServers)
+            //World servers
+            listBox_WorldSevers.Items.Clear();
+            foreach (var w in worldServers)
             {
-                z.OnStateChange += ZoneServerStateChanged;
-                listBox_ZoneSevers.Items.Add(z);
+                w.ServerLink.OnStateChange += WorldServerStateChanged;
+                listBox_WorldSevers.Items.Add(w);
             }
 
             //Instance servers
@@ -39,7 +39,7 @@ namespace MasterServer
             }
 
             //Start host
-            this.host = new MasterServerHost(clientAcceptor, zoneServers, instanceServers);
+            this.host = new MasterServerHost(clientAcceptor, new InstanceServerHub(worldServers, instanceServers));
             this.host.Start();
         }
 
@@ -48,13 +48,13 @@ namespace MasterServer
             host.Stop("Window closed.");
         }
 
-        public void ZoneServerStateChanged(InstanceServerLink zone)
+        public void WorldServerStateChanged(InstanceServerLink world)
         {
             this.Invoke(new MethodInvoker(() =>
             {
-                if (zone == listBox_ZoneSevers.SelectedItem)
+                if (world == listBox_WorldSevers.SelectedItem)
                 {
-                    listBox_ZoneSevers_SelectedIndexChanged(null, null);
+                    listBox_WorldSevers_SelectedIndexChanged(null, null);
                 }
             }));
         }
@@ -88,24 +88,44 @@ namespace MasterServer
             }));
         }
 
-        private void listBox_ZoneSevers_SelectedIndexChanged(object sender, EventArgs e)
+        private void listBox_WorldSevers_SelectedIndexChanged(object sender, EventArgs e)
         {
-            InstanceServerLink zone = listBox_ZoneSevers.SelectedItem as InstanceServerLink;
-            if (zone == null)
-                return;
+            if (listBox_WorldSevers.SelectedItem != null)
+            {
+                listBox_InstServers.SelectedItem = null;
 
-            label_ZoneServerID.Text = zone.ServerId.ToString();
-            label_ZoneName.Text = zone.Name;
+                WorldServerLink world = listBox_WorldSevers.SelectedItem as WorldServerLink;
+                {
+                    label_InstServerID.Text = world.ServerLink.ServerId.ToString();
+                    label_InstName.Text = "World " + world.WorldNumber;
+
+                    listBox_Instances.Items.Clear();
+                    foreach (var gi in world.ServerLink.GetInstances())
+                    {
+                        listBox_Instances.Items.Add(gi);
+                    }
+                }
+            }
         }
 
         private void listBox_InstServers_SelectedIndexChanged(object sender, EventArgs e)
         {
-            InstanceServerLink inst = listBox_InstServers.SelectedItem as InstanceServerLink;
-            if (inst == null)
-                return;
+            if (listBox_InstServers.SelectedItem != null)
+            {
+                listBox_WorldSevers.SelectedItem = null;
 
-            label_InstServerID.Text = inst.ServerId.ToString();
-            label_InstName.Text = inst.Name;
+                InstanceServerLink inst = listBox_InstServers.SelectedItem as InstanceServerLink;
+                {
+                    label_InstServerID.Text = inst.ServerId.ToString();
+                    label_InstName.Text = "Instance Server";
+
+                    listBox_Instances.Items.Clear();
+                    foreach (var gi in inst.GetInstances())
+                    {
+                        listBox_Instances.Items.Add(gi);
+                    }
+                }
+            }
         }
 
         private void listBox_Clients_SelectedIndexChanged(object sender, EventArgs e)

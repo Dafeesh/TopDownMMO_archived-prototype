@@ -141,7 +141,7 @@ namespace InstanceServer.Links
             get
             {
                 if (connection != null)
-                    return connection.State == NetConnection.NetworkState.Connected;
+                    return connection.State == NetConnection.NetworkState.Active;
                 else
                     return false;
             }

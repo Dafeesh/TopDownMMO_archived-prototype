@@ -37,8 +37,8 @@
     <Compile Include="ClientToMasterPackets.cs" />
     <Compile Include="ClientToInstancePackets.cs" />
     <Compile Include="GameProperties\CharacterStats.cs" />
-    <Compile Include="GameProperties\CharacterLayout.cs" />
     <Compile Include="GameProperties\CharacterEnums.cs" />
+    <Compile Include="GameProperties\CharacterVisualLayout.cs" />
     <Compile Include="GameProperties\MapDefaults.cs" />
     <Compile Include="GameProperties\PlayerInfo.cs" />
     <Compile Include="GameProperties\Position2D.cs" />

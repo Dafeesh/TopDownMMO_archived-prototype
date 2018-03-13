@@ -51,7 +51,7 @@ namespace MasterServer.Host
         {
             foreach (var c in connections)
             {
-                c.Connection.Stop("ClientAcceptor finished.");
+                c.Connection.Dispose();
             }
 
             listener.Stop();
@@ -65,7 +65,7 @@ namespace MasterServer.Host
             connections.RemoveAll((c) =>
             {
 
-                if (c.Connection.IsStopped)
+                if (c.Connection.IsClosed)
                 {
                     //Dead connection
                     c.Connection.Dispose();
@@ -74,7 +74,6 @@ namespace MasterServer.Host
                 else if (c.Timer.ElapsedMilliseconds > RECEIVE_TIMEOUT)
                 {
                     //Time out connection
-                    c.Connection.Stop("Timed out while authorizing.");
                     c.Connection.Dispose();
                     return true;
                 }
@@ -100,7 +99,7 @@ namespace MasterServer.Host
                     else //aka -> if (c.IsAuthorized == false)
                     {
                         //Error while authorizing
-                        Log.Log("Client encountered an error while authorizing: " + c.Connection.StopMessage);
+                        Log.Log("Client encountered an error while authorizing.");
                         c.Connection.Dispose();
                         return true;
                     }
@@ -141,10 +140,12 @@ namespace MasterServer.Host
             }
         }
 
-        private class AuthorizingConnection
+        private class AuthorizingConnection : ILogging
         {
             public readonly NetConnection Connection;
             public readonly Stopwatch Timer;
+
+            private DebugLogger _log;
 
             public bool? IsAuthorized
             { get; private set; }
@@ -163,6 +164,7 @@ namespace MasterServer.Host
                 };
 
                 Timer.Start();
+                Log = new DebugLogger("AuthingCon");
             }
 
             public void HandleAuthorization()
@@ -171,7 +173,8 @@ namespace MasterServer.Host
 
                 if (receivedPacket == true && IsAuthorized == null)
                 {
-                    Connection.Stop("Received invalid packet while authorizing.");
+                    //Invalid packet
+                    Connection.Dispose();
                     IsAuthorized = false;
                 }
             }
@@ -192,7 +195,8 @@ namespace MasterServer.Host
                         else
                         {
                             Connection.SendPacket(new ClientToMasterPackets.AccountAuthorize_Response_c(ClientToMasterPackets.AccountAuthorize_Response_c.AuthResponse.InvalidLogin));
-                            Connection.Stop("Login attempt failed.");
+                            Connection.Close();
+                            Log.Log("Client login attempt failed: invalid login.");
                             IsAuthorized = false;
                         }
                     }
@@ -200,8 +204,21 @@ namespace MasterServer.Host
                 else
                 {
                     Connection.SendPacket(new ClientToMasterPackets.AccountAuthorize_Response_c(ClientToMasterPackets.AccountAuthorize_Response_c.AuthResponse.InvalidBuild));
-                    Connection.Stop("Invalid build.");
+                    Connection.Close();
+                    Log.Log("Client login attempt failed: invalid build.");
                     IsAuthorized = false;
+                }
+            }
+
+            public DebugLogger Log
+            {
+                get
+                {
+                    return _log;
+                }
+                private set
+                {
+                    _log = value;
                 }
             }
         }

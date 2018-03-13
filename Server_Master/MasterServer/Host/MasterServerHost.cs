@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 
 using MasterServer.Links;
+using MasterServer.Game;
 
 using Extant;
 using Extant.Networking;
@@ -16,26 +17,22 @@ namespace MasterServer.Host
         public event Delegate_ClientUpdate ClientUpdated;
         public delegate void Delegate_ClientUpdate(ClientLink cLink);
 
+        private GameWorld gameWorld;
         private List<ClientLink> clients = new List<ClientLink>();
         private ClientLink.ActionDispersion clients_ActionDispersion;
 
         private ClientAcceptor clientAcceptor;
-        private InstanceServerLink[] zoneInstanceServers;
-        private InstanceServerLink[] instanceServers;
 
-        public MasterServerHost(ClientAcceptor clientAcceptor, InstanceServerLink[] zoneInstServLinks, InstanceServerLink[] instServerLinks)
+        public MasterServerHost(ClientAcceptor clientAcceptor, InstanceServerHub serverHub)
             : base("MasterServer")
         {
             this.clientAcceptor = clientAcceptor;
-            this.zoneInstanceServers = zoneInstServLinks;
-            this.instanceServers = instServerLinks;
-
-            #region ActionSubscriptions
             this.clients_ActionDispersion = new ClientLink.ActionDispersion()
             {
                 OnAction_CharacterListItem_Select = OnAction_CharListItem_Select
             };
-            #endregion ActionSubscriptions
+
+            this.gameWorld = new GameWorld(serverHub);
 
             Log.MessageLogged += Console.WriteLine;
         }
@@ -50,29 +47,31 @@ namespace MasterServer.Host
 
         protected override void RunLoop()
         {
+            gameWorld.PollServers();
+
+            HandleClients();
             HandleNewClients();
-            PollConnections();
-            HandleReceivedActions();
         }
 
         protected override void Finish(bool success)
         {
             clientAcceptor.Stop("MasterServerHost finished.");
+            gameWorld.Dispose();
+
             foreach (var c in clients)
             {
                 c.Dispose();
             }
-            foreach (var i in zoneInstanceServers)
-            {
-                i.Dispose();
-            }
-
-            foreach (var i in instanceServers)
-            {
-                i.Dispose();
-            }
 
             Log.Log("Finish.");
+        }
+
+        private void HandleClients()
+        {
+            foreach (ClientLink cl in clients)
+            {
+                cl.BroadcastActions();
+            }
         }
 
         private void HandleNewClients()
@@ -111,32 +110,11 @@ namespace MasterServer.Host
                     }
                     else
                     {
-                        newAuthorizedClient.Connection.Stop("Client already connected.");
                         newAuthorizedClient.Connection.Dispose();
 
                         Log.Log("Client already connected: " + newAuthorizedClient.Info.Name);
                     }
                 }
-            }
-        }
-
-        private void PollConnections()
-        {
-            foreach (InstanceServerLink z in zoneInstanceServers)
-            {
-                z.PollConnection();
-            }
-            foreach (InstanceServerLink i in instanceServers)
-            {
-                i.PollConnection();
-            }
-        }
-
-        private void HandleReceivedActions()
-        {
-            foreach (ClientLink cl in clients)
-            {
-                cl.BroadcastActions();
             }
         }
 

@@ -22,8 +22,8 @@ namespace InstanceServer.World.Map.Character
             private PlayerInfo info;
             private Int32 passwordToken;
 
-            public Player(PlayerInfo info, CharacterLayout layout, Int32 passwordToken)
-                : base("Player:" + info.Name, layout)
+            public Player(PlayerInfo info, CharacterVisualLayout visualLayout, Int32 passwordToken)
+                : base("Player:" + info.Name, visualLayout)
             {
                 this.info = info;
                 this.passwordToken = passwordToken;
@@ -45,7 +45,7 @@ namespace InstanceServer.World.Map.Character
 
             public override void Inform_AddCharacterInView(GameCharacter newChar)
             {
-                this.SendPacket(new ClientToInstancePackets.Character_Add_c(newChar.Id, newChar.Layout, CharacterType.Player));
+                this.SendPacket(new ClientToInstancePackets.Character_Add_c(newChar.Id, CharacterType.Player, info.Name));
                 this.SendPacket(new ClientToInstancePackets.Character_Position_c(newChar.Id, newChar.Position.x, newChar.Position.y));
                 this.SendPacket(new ClientToInstancePackets.Character_UpdateStats_c(newChar.Id, newChar.Stats));
             }
@@ -74,7 +74,6 @@ namespace InstanceServer.World.Map.Character
                 if (IsConnected)
                 {
                     Log.Log("Player connected while already being connected.");
-                    connection.Stop("Client reconnecting while already connected.");
                     connection.Dispose();
                 }
 
@@ -91,7 +90,7 @@ namespace InstanceServer.World.Map.Character
             {
                 get
                 {
-                    return (connection != null) && (connection.State == NetConnection.NetworkState.Connected);
+                    return (connection != null) && (connection.State == NetConnection.NetworkState.Active);
                 }
             }
 

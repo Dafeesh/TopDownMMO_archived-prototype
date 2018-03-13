@@ -12,8 +12,8 @@ namespace InstanceServer.World.Map.Character
     {
         public abstract class Npc : GameCharacter
         {
-            public Npc(String name, CharacterLayout layout)
-                : base("Npc:" + name, layout)
+            public Npc(String name, CharacterVisualLayout vlayout)
+                : base("Npc:" + name, vlayout)
             {
 
             }

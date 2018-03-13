@@ -234,14 +234,14 @@ namespace SharedComponents.Global
         public class Menu_CharacterListItem_c : Packet
         {
             public string Name;
-            public CharacterLayout Layout;
+            public CharacterVisualLayout VisualLayout;
             public int Level;
 
-            public Menu_CharacterListItem_c(string name, CharacterLayout layout, int level)
+            public Menu_CharacterListItem_c(string name, CharacterVisualLayout vlayout, int level)
                 : base((Int32)ClientToMasterPackets.PacketType.Menu_CharacterListItem_c)
             {
                 this.Name = name;
-                this.Layout = layout;
+                this.VisualLayout = vlayout;
                 this.Level = level;
             }
 
@@ -252,7 +252,7 @@ namespace SharedComponents.Global
                     buffer.AddRange(GetBytes_Int32((Int32)type));
 
                     buffer.AddRange(GetBytes_String_Unicode(Name));
-                    buffer.AddRange(GetBytes_Int32((int)Layout.Type));
+                    buffer.AddRange(GetBytes_Int32((int)VisualLayout.Type));
                     buffer.AddRange(GetBytes_Int32(Level));
                 }
                 buffer.Add(END_PACKET);
@@ -263,7 +263,7 @@ namespace SharedComponents.Global
             public static Menu_CharacterListItem_c ReadPacket(ref List<byte> buffer)
             {
                 string name = TakeString(ref buffer);
-                CharacterLayout layout = new CharacterLayout((CharacterLayout.VisualType)TakeInt32(ref buffer));
+                CharacterVisualLayout layout = new CharacterVisualLayout((CharacterVisualLayout.VisualType)TakeInt32(ref buffer));
                 int level = TakeInt32(ref buffer);
 
                 return new Menu_CharacterListItem_c(name, layout, level);

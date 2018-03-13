@@ -65,9 +65,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Database\DBConnection.cs" />
+    <Compile Include="Game\GameInstance.cs" />
+    <Compile Include="Game\GameWorld.cs" />
+    <Compile Include="Game\PlayerCharacter.cs" />
     <Compile Include="Host\ClientAcceptor.cs" />
     <Compile Include="Links\ClientLink.cs" />
     <Compile Include="Host\MasterServerHost.cs" />
+    <Compile Include="Host\InstanceServerHub.cs" />
+    <Compile Include="Links\WorldServerLink.cs" />
     <Compile Include="MasterServerWindow.cs">
       <SubType>Form</SubType>
     </Compile>

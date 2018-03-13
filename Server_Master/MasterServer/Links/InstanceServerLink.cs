@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using System.Net;
 using System.Diagnostics;
 
-using SharedComponents.Server;
-using SharedComponents.Global;
+using MasterServer.Game;
 
 using Extant;
 using Extant.Networking;
+
+using SharedComponents.Server;
+using SharedComponents.Global;
+using SharedComponents.Server.World;
 
 namespace MasterServer.Links
 {
@@ -20,14 +23,14 @@ namespace MasterServer.Links
 
         public Int32 ServerId
         { get; private set; }
-        public string Name
-        { get; private set; }
         public IPEndPoint RemoteEndPoint
         { get; private set; }
         public IPEndPoint BroadcastEndPoint
         { get; private set; }
         public List<AccountInfo> ActiveCharacters
         { get; private set; }
+
+        private List<GameInstance> instances = new List<GameInstance>();
 
         private NetConnection connection;
         private InstanceToMasterPackets.Distribution connection_distribution;
@@ -38,7 +41,6 @@ namespace MasterServer.Links
         private DebugLogger _log;
 
         public InstanceServerLink(Int32 serverId,
-                                  string name,
                                   IPEndPoint remoteEndPoint,
                                   IPEndPoint broadcastEndPoint)
         {
@@ -46,7 +48,6 @@ namespace MasterServer.Links
             this.Log.MessageLogged += Console.WriteLine;
 
             this.ServerId = serverId;
-            this.Name = name;
             this.RemoteEndPoint = remoteEndPoint;
             this.BroadcastEndPoint = broadcastEndPoint;
             this.ActiveCharacters = new List<AccountInfo>();
@@ -70,12 +71,24 @@ namespace MasterServer.Links
             }
         }
 
+        public void AddInstance(GameInstance instance)
+        {
+            instances.Add(instance);
+
+            //connection.SendPacket(new InstanceToMasterPackets.PacketType. <<New Instance>> )'
+        }
+
+        public IEnumerable<GameInstance> GetInstances()
+        {
+            return instances.ToArray();
+        }
+
         private void RestartConnection()
         {
             if (connection != null)
                 connection.Dispose();
 
-            connection = new NetConnection(RemoteEndPoint, 5000);
+            connection = new NetConnection(RemoteEndPoint);
             connection.Start();
         }
 
@@ -92,7 +105,7 @@ namespace MasterServer.Links
             }
             else
             {
-                if (connection.State == NetConnection.NetworkState.Connected)
+                if (connection.State == NetConnection.NetworkState.Active)
                 {
                     Log.Log("Connected!");
                     IsConnected = true;
@@ -161,7 +174,7 @@ namespace MasterServer.Links
 
         public override string ToString()
         {
-            return Name;
+            return "InstanceServer" + ServerId;
         }
 
         #region OnPacketReceive
