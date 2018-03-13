@@ -2,7 +2,8 @@
 *.[Tt][Mm][Pp]
 *.[Tt][Ee][Mm][Pp]
 .vs/
-Debug/
+*/bin/Debug/*
+*/obj/Debug/*
 *.suo
 *.meta
 Library/

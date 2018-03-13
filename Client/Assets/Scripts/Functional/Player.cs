@@ -1,11 +1,9 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-using Extant.GameServerShared;
+using SharedComponents.GameProperties;
 
 public class Player
 {
     public string Name { set; get; }
-    public string Clan { set; get; }
-    public TeamColor TeamColor { set; get; }
 }
