@@ -17,9 +17,9 @@ namespace GameServer.Networking
     {
         private NetConnection connection;
 
-        private String verifyVersion;
+        private Int32 verifyBuild;
         private String verifyUsername;
-        private String verifyPassword;
+        private Int32 verifyPassword;
         private Stopwatch lifeTimeTimer = new Stopwatch();
 
         private ClientState state;
@@ -59,17 +59,23 @@ namespace GameServer.Networking
                         //Read Packet and see if it varification
                         if ((p = connection.GetPacket()) != null)
                         {
-                            if (p.Type == Packet.PacketType.VerifyInfo_s)
+                            if (p.Type == Packet.PacketType.Verify_Details_g)
                             {
-                                verifyVersion = (p as VerifyInfo_s).gameVersion;
-                                verifyUsername = (p as VerifyInfo_s).username;
-                                verifyPassword = (p as VerifyInfo_s).password;
+                                verifyBuild = (p as Packets.Verify_Details_g).build;
+                                verifyUsername = (p as Packets.Verify_Details_g).username;
+                                verifyPassword = (p as Packets.Verify_Details_g).password;
 
                                 //Check if gameversion is correct
-                                if (verifyVersion == GameVersion.Version)
+                                if (verifyBuild == GameVersion.Build)
+                                {
                                     state = ClientState.Connected;
+                                    connection.SendPacket(new Packets.Verify_Result_c(Packets.Verify_Result_c.VerifyReturnCode.Success));
+                                }
                                 else
+                                {
+                                    connection.SendPacket(new Packets.Verify_Result_c(Packets.Verify_Result_c.VerifyReturnCode.IncorrectVersion));
                                     this.Stop();
+                                }
                             }
                             else
                             {
@@ -122,7 +128,7 @@ namespace GameServer.Networking
         /// <summary>
         /// Returns the password received as verification.
         /// </summary>
-        public String VerifyPassword
+        public Int32 VerifyPassword
         {
             get
             {

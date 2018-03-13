@@ -49,10 +49,12 @@
   <ItemGroup>
     <Compile Include="GameHandler.cs" />
     <Compile Include="HostGame\Game.cs" />
+    <Compile Include="HostGame\GameTime.cs" />
     <Compile Include="HostGame\Game_Types.cs" />
     <Compile Include="HostGame\Map.cs" />
     <Compile Include="HostGame\MapObjects\Character.cs" />
     <Compile Include="HostGame\MapObjects\Dynamics\CharacterMovement.cs" />
+    <Compile Include="HostGame\MapObjects\Dynamics\MovementRecorder.cs" />
     <Compile Include="HostGame\MapObjects\MapObject.cs" />
     <Compile Include="Networking\Client.cs" />
     <Compile Include="Networking\HostServer.cs" />

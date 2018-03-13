@@ -12,8 +12,8 @@ namespace GameServer
         {
             DebugLogger.GlobalDebug.MessageLogged += PostConsole;
 
-            DebugLogger.GlobalDebug.LogBlank("Untitled Game Server\n" +
-                                             "Pre-Alpha Stage v" + GameServer.Shared.GameVersion.Version + "\n" + 
+            DebugLogger.GlobalDebug.LogBlank(GameServer.Shared.GameVersion.Title + " - Server\n" +
+                                             "Pre-Alpha Stage - Build:" + GameServer.Shared.GameVersion.Build + "\n" + 
                                              GameServer.Shared.GameVersion.VersionDescription + "\n" +
                                              "Created by Blake Scherschel\n" + 
                                              "-----------------------------");

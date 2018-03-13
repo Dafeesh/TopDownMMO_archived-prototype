@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GameServer.Shared;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,6 +13,7 @@ namespace GameServer.HostGame.MapObjects
     public class Character : MapObject
     {
         private String name;
+        private TeamColor team;
         private bool isDamageable;
         private bool isStationary;
 

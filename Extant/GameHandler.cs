@@ -30,11 +30,11 @@ namespace GameServer
         protected override void Begin()
         {
             //TESTING
-            games[0] = new Game_Survival("test1", new Player[]{ new Player("Player1", "plr1", "Extant", 1, Player.TeamColor.Blue) ,
-                                                                new Player("Player2", "plr2", "Extant", 2, Player.TeamColor.Blue) ,
-                                                                new Player("Player3", "plr3", "Bullstrikers", 2, Player.TeamColor.Red) ,
-                                                                new Player("Player4", "plr4", "Bullstrikers", 2, Player.TeamColor.Red) ,
-                                                                new Player("Player5", "plr5", "Other", 2, Player.TeamColor.Spectator) });
+            games[0] = new Game_Survival("TEST1", new Player[]{ new Player("Player1", 111, "Extant", 1, 0, TeamColor.Blue) ,
+                                                                new Player("Player2", 222, "Extant", 2, 0, TeamColor.Blue) ,
+                                                                new Player("Player3", 333, "Bullstriker", 2, 0, TeamColor.Red) ,
+                                                                new Player("Player4", 444, "Bullstriker", 2, 0, TeamColor.Red) ,
+                                                                new Player("Player5", 555, "Other", 2, 0, TeamColor.Spectator) });
             games[0].Start();
         }
 
@@ -72,12 +72,12 @@ namespace GameServer
                                 if (p.Password == varifiedClient.VerifyPassword)
                                 {
                                     p.SetClient(varifiedClient);
-                                    p.NewlyConnected = true;
+                                    p.IsNewlyConnected = true;
                                     DebugLogger.GlobalDebug.LogNetworking("Sorted verified client <" + varifiedClient.VerifyUsername + "> to game [" + g.GameID + "].");
                                 }
                                 else
                                 {
-                                    varifiedClient.SendPacket(new Ping_sp(Ping_sp.WRONG_INFO));
+                                    varifiedClient.SendPacket(new Packets.Verify_Result_c(Packets.Verify_Result_c.VerifyReturnCode.IncorrectPassword));
                                     varifiedClient.Stop();
                                     DebugLogger.GlobalDebug.LogNetworking("Client did not have correct password: " + varifiedClient.VerifyUsername + ".");
                                 }
@@ -89,7 +89,7 @@ namespace GameServer
 
                 if (!found)
                 {
-                    varifiedClient.SendPacket(new Ping_sp(Ping_sp.INCORRECT_ACTION));
+                    varifiedClient.SendPacket(new Packets.Verify_Result_c(Packets.Verify_Result_c.VerifyReturnCode.DoesNotExist));
                     varifiedClient.Stop();
                     DebugLogger.GlobalDebug.LogCatch("Varified client not found in any game: " + varifiedClient.VerifyUsername + ".");
                 }

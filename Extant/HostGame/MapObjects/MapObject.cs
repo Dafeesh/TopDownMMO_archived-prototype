@@ -11,12 +11,6 @@ namespace GameServer.HostGame.MapObjects
         public double x;
         public double y;
 
-        public Vec2()
-        {
-            this.x = 0.0f;
-            this.y = 0.0f;
-        }
-
         public Vec2(double x, double y)
         {
             this.x = x;
@@ -32,10 +26,15 @@ namespace GameServer.HostGame.MapObjects
             return ((o.x == this.x) && (o.y == this.y));
         }
 
+        public override int GetHashCode()
+        {
+            return (int)(x + y + 1);
+        }
+
         public static readonly Vec2 Zero = new Vec2(0.0f, 0.0f);
     }
 
-    class MapObject
+    public class MapObject
     {
         private Vec2 position;
 

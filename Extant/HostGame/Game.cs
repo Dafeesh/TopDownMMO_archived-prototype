@@ -18,7 +18,7 @@ namespace GameServer.HostGame
         private List<Player> players = new List<Player>();
 
         private GameState gameState;
-        private Stopwatch gameTime = new Stopwatch();
+        private GameTime gameTime = new GameTime();
         private Game_Presets presets;
         private DayPhase phase;
         private Stopwatch phaseTime = new Stopwatch();
@@ -32,7 +32,7 @@ namespace GameServer.HostGame
 
             this.players.AddRange(players);
 
-            DebugLogger.GlobalDebug.LogGame(gameId, (int)gameTime.Elapsed.TotalMilliseconds, "Game created: " + players);
+            DebugLogger.GlobalDebug.LogGame(gameId, gameTime.ElapsedMilliseconds, "Game created: " + gameId + " - " + (players.Length).ToString() + "p");
         }
 
         /// Triggered when phase changes in the game.
@@ -64,7 +64,7 @@ namespace GameServer.HostGame
         protected override void Finish()
         {
             OnFinish();
-            DebugLogger.GlobalDebug.LogGame(gameId, (int)gameTime.Elapsed.TotalMilliseconds, "Game stopped. (" + this.RunningID + ")");
+            DebugLogger.GlobalDebug.LogGame(gameId, gameTime.ElapsedMilliseconds, "Game stopped. (" + gameId + ")");
         }
 
         private void HandleDayPhase()
@@ -95,12 +95,21 @@ namespace GameServer.HostGame
             foreach (Player p in players)
             {
                 //Check if newly connected
-                if (p.NewlyConnected)
+                if (p.IsNewlyConnected)
                 {
-                    p.SendPacket(new GameInfo_p(0));
-                    p.SendPacket(new DayPhase_p((int)phase, (int)phaseTime.Elapsed.TotalMilliseconds, (int)gameTime.Elapsed.TotalMilliseconds));
-                    p.NewlyConnected = false;
-                    DebugLogger.GlobalDebug.LogGame(gameId, (int)gameTime.Elapsed.TotalMilliseconds, "Sent gameinfo");
+                    //Send GameInfo
+                    p.SendPacket(new Packets.Game_Info_c(0, gameTime.ElapsedMilliseconds));
+                    p.SendPacket(new Packets.Game_DayPhase_c((int)phase));
+                    //Inform of all the current players
+                    foreach (Player op in players)
+                    {
+                        p.SendPacket(new Packets.Player_Add_c(op.Username, op.Clan, op.Level, op.ModelNumber));
+                    }
+                    //Inform which player client is in control of
+                    //p.SendPacket(new Packets.Player_SetControl_c());
+
+                    p.IsNewlyConnected = false;
+                    DebugLogger.GlobalDebug.LogGame(gameId, gameTime.ElapsedMilliseconds, "Sent gameinfo");
                 }
 
                 //HandlePackages
@@ -109,22 +118,15 @@ namespace GameServer.HostGame
                 {
                     switch (newPacket.Type)
                     {
-                        case (Packet.PacketType.Ping_sp):
+                        case (Packet.PacketType.Player_Movement_g):
                             {
-                                DebugLogger.GlobalDebug.LogGame(gameId, (int)gameTime.Elapsed.TotalMilliseconds, "Ping (" + (newPacket as Ping_sp).num + ")");
-                                p.SendPacket(new Ping_sp(Ping_sp.ECHO));
-
-                                break;
-                            }
-                        case (Packet.PacketType.Player_Movement_s):
-                            {
-                                DebugLogger.GlobalDebug.LogGame(gameId, (int)gameTime.Elapsed.TotalMilliseconds, "Player_Movement_s");
+                                DebugLogger.GlobalDebug.LogGame(gameId, gameTime.ElapsedMilliseconds, "Player_Movement_s");
 
                                 break;
                             }
                         default:
                             {
-                                DebugLogger.GlobalDebug.LogGame(gameId, (int)gameTime.Elapsed.TotalMilliseconds, "Player sent incorrect packet: " + newPacket.Type.ToString());
+                                DebugLogger.GlobalDebug.LogGame(gameId, gameTime.ElapsedMilliseconds, "Player sent unsupported packet: " + newPacket.Type.ToString());
                                 p.Disconnect();
 
                                 break;
@@ -139,14 +141,10 @@ namespace GameServer.HostGame
             set
             {
                 gameState = value;
-                DebugLogger.GlobalDebug.LogGame(gameId, (int)gameTime.Elapsed.TotalMilliseconds, "GameState set to " + gameState.ToString() + ".");
+                DebugLogger.GlobalDebug.LogGame(gameId, gameTime.ElapsedMilliseconds, "GameState set to " + gameState.ToString() + ".");
 
                 if (gameState == GameState.Play)
                 {
-                    if (gameTime.IsRunning)
-                    {
-                        gameTime.Reset();
-                    }
                     gameTime.Start();
                     OnBegin();
                 }
@@ -164,7 +162,7 @@ namespace GameServer.HostGame
         {
             get
             {
-                return (Int32)gameTime.Elapsed.TotalMilliseconds;
+                return (Int32)gameTime.ElapsedMilliseconds;
             }
         }
 
@@ -178,12 +176,12 @@ namespace GameServer.HostGame
             {
                 phase = value;
                 phaseTime.Restart();
-                Packet dpPacket = new DayPhase_p((Int32)phase, (Int32)phaseTime.Elapsed.TotalMilliseconds, (Int32)gameTime.Elapsed.TotalMilliseconds);
+                Packet dpPacket = new Packets.Game_DayPhase_c((Int32)phase);
                 foreach (Player p in Players)
                 {
                     p.SendPacket(dpPacket);
                 }
-                //DebugLogger.GlobalDebug.LogGame(gameId, (int)gameTime.Elapsed.TotalMilliseconds, "Phase set to " + phase.ToString() + ".");
+
                 OnPhaseChange(phase);
             }
 
@@ -202,6 +200,20 @@ namespace GameServer.HostGame
             {
                 return players.AsReadOnly();
             }
+        }
+
+        /// <summary>
+        /// Adds a player to the game and informs the other players.
+        /// </summary>
+        public void AddPlayer(Player player)
+        {
+            players.Add(player);
+            Packet newPlayerPacket = new Packets.Player_Add_c(player.Username, player.Clan, player.Level, player.ModelNumber);
+            foreach (Player p in players)
+            {
+                p.SendPacket(newPlayerPacket);
+            }
+            DebugLogger.GlobalDebug.LogGame(this.gameId, gameTime.ElapsedMilliseconds, "Player added to game: " + player.Username);
         }
 
         /// <summary>

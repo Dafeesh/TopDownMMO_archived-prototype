@@ -3,3 +3,4 @@
 *.[Tt][Ee][Mm][Pp]
 .vs/
 Debug/
+*.suo

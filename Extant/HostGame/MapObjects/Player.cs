@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 using GameServer.Networking;
 using GameServer.Shared;
+using Extant;
 
 namespace GameServer.HostGame
 {
@@ -14,19 +15,21 @@ namespace GameServer.HostGame
         private Client client;
         private Boolean newlyConnected;
 
+        private Int32 modelNumber;
         private String username;
-        private String password;
+        private Int32 password;
         private String clan;
         private Int32 level;
 
         private TeamColor teamColor;
 
-        public Player(String name, String password, String clan, Int32 level, TeamColor teamColor)
+        public Player(String name, Int32 password, String clan, Int32 level, Int32 modelNumber, TeamColor teamColor)
         {
             this.username = name;
             this.password = password;
             this.clan = clan;
             this.level = level;
+            this.modelNumber = modelNumber;
             this.teamColor = teamColor;
         }
 
@@ -36,6 +39,11 @@ namespace GameServer.HostGame
         /// <param name="c">The client to be assigned.</param>
         public void SetClient(Client c)
         {
+            if (client != null)
+            {
+                DebugLogger.GlobalDebug.LogCatch("Player connected while already being connected: " + this.username);
+                client.Stop();
+            }
             client = c;
         }
 
@@ -82,7 +90,7 @@ namespace GameServer.HostGame
         /// <summary>
         /// Set and gets the value for if this is a newly connected player that needs game data.
         /// </summary>
-        public Boolean NewlyConnected
+        public Boolean IsNewlyConnected
         {
             set
             {
@@ -94,9 +102,13 @@ namespace GameServer.HostGame
             }
         }
 
-        /// <summary>
-        /// Gets the username of the player.
-        /// </summary>
+        public Int32 ModelNumber
+        {
+            get
+            {
+                return modelNumber;
+            }
+        }
         public String Username
         {
             get
@@ -104,23 +116,33 @@ namespace GameServer.HostGame
                 return username;
             }
         }
-
-        /// <summary>
-        /// Gets the password of the player.
-        /// </summary>
-        public String Password
+        public Int32 Password
         {
             get
             {
                 return password;
             }
         }
-
-        public enum TeamColor
+        public String Clan
         {
-            Spectator,
-            Blue,
-            Red
+            get
+            {
+                return clan;
+            }
+        }
+        public Int32 Level
+        {
+            get
+            {
+                return level;
+            }
+        }
+        public TeamColor TeamColor
+        {
+            get
+            {
+                return teamColor;
+            }
         }
     }
 }
