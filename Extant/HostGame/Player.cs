@@ -19,16 +19,15 @@ namespace GameServer.HostGame
         private String clan;
         private Int32 level;
 
-        private const Int32 TEAMNUM_DEFAULT = 0;
-        private Int32 teamNum;
+        private TeamColor teamColor;
 
-        public Player(String name, String password, String clan, Int32 level, Int32 teamNum = TEAMNUM_DEFAULT)
+        public Player(String name, String password, String clan, Int32 level, TeamColor teamColor)
         {
             this.username = name;
             this.password = password;
             this.clan = clan;
             this.level = level;
-            this.teamNum = teamNum;
+            this.teamColor = teamColor;
         }
 
         /// <summary>
@@ -115,6 +114,13 @@ namespace GameServer.HostGame
             {
                 return password;
             }
+        }
+
+        public enum TeamColor
+        {
+            Spectator,
+            Blue,
+            Red
         }
     }
 }

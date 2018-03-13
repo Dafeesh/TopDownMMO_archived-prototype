@@ -25,9 +25,16 @@ namespace GameServer
 
             hostServer = new Networking.HostServer(ip, port);
             hostServer.Start();
+        }
 
+        protected override void Begin()
+        {
             //TESTING
-            games[0] = new Game_Survival("test1", new Player("Player1", "plr1", "Extant", 7));
+            games[0] = new Game_Survival("test1", new Player[]{ new Player("Player1", "plr1", "Extant", 1, Player.TeamColor.Blue) ,
+                                                                new Player("Player2", "plr2", "Extant", 2, Player.TeamColor.Blue) ,
+                                                                new Player("Player3", "plr3", "Bullstrikers", 2, Player.TeamColor.Red) ,
+                                                                new Player("Player4", "plr4", "Bullstrikers", 2, Player.TeamColor.Red) ,
+                                                                new Player("Player5", "plr5", "Other", 2, Player.TeamColor.Spectator) });
             games[0].Start();
         }
 
@@ -54,30 +61,27 @@ namespace GameServer
             while ((varifiedClient = hostServer.GetVarifiedClient()) != null)
             {
                 found = false;
-                if (varifiedClient != null)
+                foreach (Game g in games)
                 {
-                    foreach (Game g in games)
+                    if (g != null)
                     {
-                        if (g != null)
+                        foreach (Player p in g.Players)
                         {
-                            foreach (Player p in g.Players)
+                            if (p.Username == varifiedClient.VerifyUsername)
                             {
-                                if (p.Username == varifiedClient.VerifyUsername)
+                                if (p.Password == varifiedClient.VerifyPassword)
                                 {
-                                    if (p.Password == varifiedClient.VerifyPassword)
-                                    {
-                                        p.SetClient(varifiedClient);
-                                        p.NewlyConnected = true;
-                                        DebugLogger.GlobalDebug.LogNetworking("Sorted varified client: " + varifiedClient.VerifyUsername + ".");
-                                    }
-                                    else
-                                    {
-                                        varifiedClient.SendPacket(new Ping_sp(Ping_sp.WRONG_INFO));
-                                        varifiedClient.Stop();
-                                        DebugLogger.GlobalDebug.LogNetworking("Client did not have correct password: " + varifiedClient.VerifyUsername + ".");
-                                    }
-                                    found = true;
+                                    p.SetClient(varifiedClient);
+                                    p.NewlyConnected = true;
+                                    DebugLogger.GlobalDebug.LogNetworking("Sorted verified client <" + varifiedClient.VerifyUsername + "> to game [" + g.GameID + "].");
                                 }
+                                else
+                                {
+                                    varifiedClient.SendPacket(new Ping_sp(Ping_sp.WRONG_INFO));
+                                    varifiedClient.Stop();
+                                    DebugLogger.GlobalDebug.LogNetworking("Client did not have correct password: " + varifiedClient.VerifyUsername + ".");
+                                }
+                                found = true;
                             }
                         }
                     }
@@ -87,7 +91,7 @@ namespace GameServer
                 {
                     varifiedClient.SendPacket(new Ping_sp(Ping_sp.INCORRECT_ACTION));
                     varifiedClient.Stop();
-                    DebugLogger.GlobalDebug.LogNetworking("Varified client not found in any game: " + varifiedClient.VerifyUsername + ".");
+                    DebugLogger.GlobalDebug.LogCatch("Varified client not found in any game: " + varifiedClient.VerifyUsername + ".");
                 }
             }
         }

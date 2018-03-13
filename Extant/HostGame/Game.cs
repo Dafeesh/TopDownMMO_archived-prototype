@@ -15,43 +15,43 @@ namespace GameServer.HostGame
     public abstract partial class Game : ThreadRun
     {
         protected readonly String gameId;
-
-        private Stopwatch gameTime = new Stopwatch();
         private List<Player> players = new List<Player>();
-        private GameState gameState;
-        private Game_Presets presets;
 
+        private GameState gameState;
+        private Stopwatch gameTime = new Stopwatch();
+        private Game_Presets presets;
         private DayPhase phase;
         private Stopwatch phaseTime = new Stopwatch();
 
-        protected Game(String gameId, Player gameOwner, Game_Presets presets)
-            : base("<Game>")
+        protected Game(String gameId, Player[] players, Game_Presets presets)
+            : base("Game")
         {
             this.gameId = gameId;
             this.presets = presets;
-            phase = presets.startingDayPhase;
-            phaseTime.Start();
+            this.phase = presets.startingDayPhase;
 
-            players.Add(gameOwner);
+            this.players.AddRange(players);
 
             DebugLogger.GlobalDebug.LogGame(gameId, (int)gameTime.Elapsed.TotalMilliseconds, "Game created. (" + this.RunningID + ")");
+        }
 
-            //TESTING
 
+        /// Triggered when phase changes in the game.
+        protected abstract void OnPhaseChange(DayPhase newPhase);
+        /// Triggered when game goes into Play state.
+        protected abstract void OnBegin();
+        /// Triggered once every cycle while in Play state.
+        protected abstract void OnUpdate();
+        /// Triggered when game was terminated.
+        protected abstract void OnFinish();
+
+        protected override void Begin()
+        {
             //GameState = GameState.Waiting;
             GameState = GameState.Play; //This will be changed later because the hub server will dictate when it is ready.
 
-            //~TESTING
+            this.phaseTime.Start();
         }
-
-        /// Triggered when game goes into Play state.
-        protected abstract void OnBegin();
-
-        /// Triggered once every cycle while in Play state.
-        protected abstract void OnUpdate();
-
-        /// Triggered when game was terminated.
-        protected abstract void OnFinish();
 
         protected override void RunLoop()
         {
@@ -92,26 +92,6 @@ namespace GameServer.HostGame
             }
         }
 
-        private DayPhase Phase
-        {
-            set
-            {
-                phase = value;
-                phaseTime.Restart();
-                Packet dpPacket = new DayPhase_p((Int32)phase, (Int32)phaseTime.Elapsed.TotalMilliseconds, (Int32)gameTime.Elapsed.TotalMilliseconds);
-                foreach (Player p in Players)
-                {
-                    p.SendPacket(dpPacket);
-                }
-                DebugLogger.GlobalDebug.LogGame(gameId, (int)gameTime.Elapsed.TotalMilliseconds, "Phase set to " + phase.ToString() + ".");
-            }
-
-            get
-            {
-                return phase;
-            }
-        }
-
         private void HandlePlayers()
         {
             foreach (Player p in players)
@@ -133,8 +113,8 @@ namespace GameServer.HostGame
                     {
                         case (Packet.PacketType.Ping_sp):
                             {
-                                DebugLogger.GlobalDebug.LogGame(gameId, (int)gameTime.Elapsed.TotalMilliseconds, "Ping");
-                                p.SendPacket(new Ping_sp(Ping_sp.NULL));
+                                DebugLogger.GlobalDebug.LogGame(gameId, (int)gameTime.Elapsed.TotalMilliseconds, "Ping (" + (newPacket as Ping_sp).num + ")");
+                                p.SendPacket(new Ping_sp(Ping_sp.ECHO));
 
                                 break;
                             }
@@ -191,6 +171,31 @@ namespace GameServer.HostGame
         }
 
         /// <summary>
+        /// Sets the game's DayPhase.
+        /// </summary>
+        /// <param name="p"></param>
+        protected DayPhase Phase
+        {
+            set
+            {
+                phase = value;
+                phaseTime.Restart();
+                Packet dpPacket = new DayPhase_p((Int32)phase, (Int32)phaseTime.Elapsed.TotalMilliseconds, (Int32)gameTime.Elapsed.TotalMilliseconds);
+                foreach (Player p in Players)
+                {
+                    p.SendPacket(dpPacket);
+                }
+                //DebugLogger.GlobalDebug.LogGame(gameId, (int)gameTime.Elapsed.TotalMilliseconds, "Phase set to " + phase.ToString() + ".");
+                OnPhaseChange(phase);
+            }
+
+            get
+            {
+                return phase;
+            }
+        }
+
+        /// <summary>
         /// Returns a readonly reference to the list of players.
         /// </summary>
         public System.Collections.ObjectModel.ReadOnlyCollection<Player> Players
@@ -198,6 +203,17 @@ namespace GameServer.HostGame
             get
             {
                 return players.AsReadOnly();
+            }
+        }
+
+        /// <summary>
+        /// Returns the string identification of the game.
+        /// </summary>
+        public String GameID
+        {
+            get
+            {
+                return gameId;
             }
         }
     }

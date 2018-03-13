@@ -12,7 +12,7 @@ namespace GameServer
         {
             DebugLogger.GlobalDebug.MessageLogged += PostConsole;
 
-            DebugLogger.GlobalDebug.LogNetworking("Untitled Game Server\nPre-Alpha Stage\nCreated by Blake Scherschel\n-----------------------------");
+            DebugLogger.GlobalDebug.LogBlank("Untitled Game Server\nPre-Alpha Stage v" + GameServer.Shared.GameVersion.Version + "\nCreated by Blake Scherschel\n-----------------------------");
 
             GameHandler handler = new GameHandler("127.0.0.1",3000,5);
             handler.Start();

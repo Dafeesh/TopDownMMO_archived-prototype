@@ -13,23 +13,29 @@ namespace GameServer.Networking
     class HostServer : ThreadRun
     {
         private static readonly Int32 TCPLISTENER_MAX_BACKLOG = 10;
+        private static readonly Int32 NEWCLIENT_TIMEOUT = 5000;
 
         private TcpListener listener;
         private List<Client> newClients;
 
-        private List<Client> varifiedClients;
-        private object       varifiedClients_lock = new object();
+        private List<Client> verifiedClients;
+        private object       verifiedClients_lock = new object();
 
         public HostServer(String ip, Int32 port)
-            : base("<HostServer>")
+            : base("HostServer")
         {
             listener = new TcpListener(IPAddress.Parse(ip), port);
             newClients = new List<Client>();
-            varifiedClients = new List<Client>();
+            verifiedClients = new List<Client>();
+        }
 
+        protected override void Begin()
+        {
             listener.Start(TCPLISTENER_MAX_BACKLOG);
 
-            DebugLogger.GlobalDebug.LogNetworking("Started HostServer on: " + ip + "/" + port.ToString());
+            DebugLogger.GlobalDebug.LogNetworking("Started HostServer on: " 
+                                                  + (listener.Server.LocalEndPoint as IPEndPoint).Address 
+                                                  + "/" + (listener.Server.LocalEndPoint as IPEndPoint).Port);
         }
 
         protected override void RunLoop()
@@ -47,12 +53,12 @@ namespace GameServer.Networking
                 if (!c.IsStopped)
                     c.Stop();
             newClients = null;
-            lock (varifiedClients_lock)
+            lock (verifiedClients_lock)
             {
-                foreach (Client c in varifiedClients)
+                foreach (Client c in verifiedClients)
                     if (!c.IsStopped)
                         c.Stop();
-                varifiedClients = null;
+                verifiedClients = null;
             }
         }
 
@@ -72,13 +78,17 @@ namespace GameServer.Networking
             //See if state of client has changed.
             for (int i = 0; i < newClients.Count; i++)
             {
-                if (newClients[i].IsStopped)
-                    newClients.Remove(newClients[i]);
-                else if (newClients[i].IsConnected)
+                //Stopped or timed out?
+                if (newClients[i].IsStopped || newClients[i].LifeTime > NEWCLIENT_TIMEOUT)
                 {
-                    lock (varifiedClients_lock)
+                    newClients[i].Stop();
+                    newClients.Remove(newClients[i]);
+                }
+                else if (newClients[i].IsConnected) //Connected and verified, add to verified list.
+                {
+                    lock (verifiedClients_lock)
                     {
-                        varifiedClients.Add(newClients[i]);
+                        verifiedClients.Add(newClients[i]);
                     }
                     newClients.Remove(newClients[i]);
                 }
@@ -87,19 +97,16 @@ namespace GameServer.Networking
 
         private void HandleVerifiedClients()
         {
-            //See if state of client has changed.
-            if (varifiedClients.Count > 0)
+            //See if any verified clients have disconnected.
+            if (verifiedClients.Count > 0)
             {
-                lock (varifiedClients_lock)
+                lock (verifiedClients_lock)
                 {
-                    if (varifiedClients.Count > 0)
+                    for (int i = 0; i < verifiedClients.Count; i++)
                     {
-                        for (int i = 0; i < varifiedClients.Count; i++)
+                        if (verifiedClients[i].IsStopped)
                         {
-                            if (varifiedClients[i].IsStopped)
-                            {
-                                varifiedClients.Remove(varifiedClients[i]);
-                            }
+                            verifiedClients.Remove(verifiedClients[i]);
                         }
                     }
                 }
@@ -113,14 +120,14 @@ namespace GameServer.Networking
         public Client GetVarifiedClient()
         {
             Client c = null;
-            if (varifiedClients.Count > 0)
+            if (verifiedClients.Count > 0)
             {
-                lock (varifiedClients_lock)
+                lock (verifiedClients_lock)
                 {
-                    if (varifiedClients.Count > 0)
+                    if (verifiedClients.Count > 0)
                     {
-                        c = varifiedClients[0];
-                        varifiedClients.Remove(c);
+                        c = verifiedClients[0];
+                        verifiedClients.Remove(c);
                     }
                 }
             }

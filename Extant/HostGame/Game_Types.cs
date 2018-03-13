@@ -15,28 +15,28 @@ namespace GameServer.HostGame
     /// </summary>
     public partial class Game_Survival : Game
     {
-        private Stopwatch stateTime = new Stopwatch();
+        public Game_Survival(String gameId, Player[] players)
+            : base(gameId, players, new Game_Presets(100, DayPhase.Day, 10000, 10000))
+        { }
 
-        public Game_Survival(String gameId, Player gameOwner)
-            : base(gameId, gameOwner, new Game_Presets(100, DayPhase.Day, 10000, 10000))
+        protected override void OnPhaseChange(DayPhase newPhase)
         {
-
+            DebugLogger.GlobalDebug.LogGame(this.gameId, this.GameTime, "DayPhase has changed to " + newPhase.ToString() + ".");
         }
 
         protected override void OnBegin()
         {
-            stateTime.Start();
             DebugLogger.GlobalDebug.LogGame(this.gameId, this.GameTime, "Game has begun!");
         }
 
         protected override void OnUpdate()
         {
-            //REMOVED DAYPHASE TIME CHECK
+            
         }
 
         protected override void OnFinish()
         {
-            DebugLogger.GlobalDebug.LogGame(this.gameId, this.GameTime, "Game has ended.");
+            DebugLogger.GlobalDebug.LogGame(this.gameId, this.GameTime, "Game has ended!");
         }
     }
 }

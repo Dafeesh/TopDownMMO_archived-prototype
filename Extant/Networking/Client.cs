@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Net.Sockets;
+using System.Diagnostics;
 
 using Extant;
 using Extant.Networking;
@@ -19,12 +20,9 @@ namespace GameServer.Networking
         private String verifyVersion;
         private String verifyUsername;
         private String verifyPassword;
+        private Stopwatch lifeTimeTimer = new Stopwatch();
 
         private ClientState state;
-
-        private List<Byte> receiveBuffer = new List<byte>();
-        private Queue<Packet> packets = new Queue<Packet>();
-        private object packets_lock = new object();
 
         public Client(TcpClient tcpClient)
             : base("Client")
@@ -32,15 +30,18 @@ namespace GameServer.Networking
             connection = new NetConnection(tcpClient);
             connection.Start();
             state = ClientState.Varifying;
+        }
 
-            DebugLogger.GlobalDebug.LogNetworking("Client started. (" + this.RunningID + ")");
+        protected override void Begin()
+        {
+            lifeTimeTimer.Start();
         }
 
         protected override void RunLoop()
         {
+            //Check connection
             if (connection.State == NetConnection.NetworkState.Failed)
             {
-                DebugLogger.GlobalDebug.LogNetworking("Client disconnected: " + this.RunningID);
                 this.Stop();
                 return;
             }
@@ -49,98 +50,51 @@ namespace GameServer.Networking
             {
                 case (ClientState.Disconnected):
                     {
-
+                        this.Stop();
                         break;
                     }
                 case (ClientState.Varifying):
                     {
+                        Packet p = null;
                         //Read Packet and see if it varification
-                        if (packets.Count > 0)
+                        if ((p = connection.GetPacket()) != null)
                         {
-                            Packet varifyPacket = null;
-                            lock (packets_lock)
+                            if (p.Type == Packet.PacketType.VerifyInfo_s)
                             {
-                                varifyPacket = packets.Dequeue();
-                            }
+                                verifyVersion = (p as VerifyInfo_s).gameVersion;
+                                verifyUsername = (p as VerifyInfo_s).username;
+                                verifyPassword = (p as VerifyInfo_s).password;
 
-                            if (varifyPacket.Type == Packet.PacketType.VarifyInfo_s)
-                            {
-                                DebugLogger.GlobalDebug.LogNetworking("Client received varification!");
-                                verifyVersion = (varifyPacket as VarifyInfo_s).gameVersion;
-                                verifyUsername = (varifyPacket as VarifyInfo_s).username;
-                                verifyPassword = (varifyPacket as VarifyInfo_s).password;
-                                state = ClientState.Connected;
+                                //Check if gameversion is correct
+                                if (verifyVersion == GameVersion.Version)
+                                    state = ClientState.Connected;
+                                else
+                                    this.Stop();
                             }
                             else
                             {
-                                DebugLogger.GlobalDebug.LogNetworking("Client received wrong packet when trying to varify: " + this.RunningID + "/" + varifyPacket.Type.ToString());
+                                DebugLogger.GlobalDebug.LogCatch("Client received wrong packet when trying to verify: " + this.RunningID + "/" + p.Type.ToString());
                                 this.Stop();
                                 return;
                             }
                         }
-                        //             |
-                        //Fall through v
-                        goto case (ClientState.Connected);
+                        break;
                     }
                     
                 case (ClientState.Connected):
                     {
-                        //Check connection
-                        if (connection.IsStopped)
-                        {
-                            this.Stop();
-                            state = ClientState.Disconnected;
-                            break;
-                        }
-
-                        //Get data from connection
-                        UpdateAndInterpretData();
 
                         break;
                     }
-            }
-        }
-
-        private void UpdateAndInterpretData()
-        {
-            //Read data from connection
-            IEnumerable<byte> receivedBytes;
-            while ((receivedBytes = connection.TakeData()) != null)
-            {
-                receiveBuffer.AddRange(receivedBytes);
-            }
-
-            if (receiveBuffer.Count > 0)
-            {
-                //Interpret data as a Packet
-                Packet newPacket = null;
-                try
-                {
-                    newPacket = Packet.ReadBuffer(ref receiveBuffer);
-                }
-                catch (InvalidPacketRead e)
-                {
-                    DebugLogger.GlobalDebug.LogNetworking("Client received invalid packet. (" + this.RunningID + ")\n" + e.ToString());
-                }
-
-                //Add packet to queue to be grabbed via GetPacket().
-                if (newPacket != null)
-                {
-                    lock (packets_lock)
-                    {
-                        DebugLogger.GlobalDebug.LogNetworking("Received packet: " + newPacket.Type.ToString());
-                        packets.Enqueue(newPacket);
-                    }
-                }
             }
         }
 
         protected override void Finish()
         {
-            DebugLogger.GlobalDebug.LogNetworking("Client closed. (" + this.RunningID + ")");
+            DebugLogger.GlobalDebug.LogNetworking("Client disconnected. (" + this.RunningID + ")");
+            connection.Stop();
+            lifeTimeTimer.Stop();
             state = ClientState.Disconnected;
-            if (!connection.IsStopped)
-                connection.Stop();
         }
 
         /// <summary>
@@ -177,23 +131,23 @@ namespace GameServer.Networking
         }
 
         /// <summary>
+        /// Returns the time in milliseconds of how long the client has been active.
+        /// </summary>
+        public Int32 LifeTime
+        {
+            get
+            {
+                return (Int32)lifeTimeTimer.ElapsedMilliseconds;
+            }
+        }
+
+        /// <summary>
         /// Dequeues the oldest received packet.
         /// </summary>
         /// <returns>The dequeued packet.</returns>
         public Packet GetPacket()
         {
-            Packet toReturn = null;
-            if (packets.Count > 0)
-            {
-                lock (packets_lock)
-                {
-                    if (packets.Count > 0)
-                    {
-                        toReturn = packets.Dequeue();
-                    }
-                }
-            }
-            return toReturn;
+            return connection.GetPacket();
         }
 
         /// <summary>
@@ -202,8 +156,7 @@ namespace GameServer.Networking
         /// <param name="p">The packet being sent.</param>
         public void SendPacket(Packet p)
         {
-            if (state == ClientState.Connected)
-                connection.SendData(p.CreateSendBuffer());
+            connection.SendPacket(p);
         }
     }
 
