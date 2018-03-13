@@ -2,8 +2,10 @@
 *.[Tt][Mm][Pp]
 *.[Tt][Ee][Mm][Pp]
 .vs/
-*/bin/Debug/*
-*/obj/Debug/*
+bin/
+obj/
 *.suo
 *.meta
 Library/
+/Client/*.sln
+/Client/*.csproj
