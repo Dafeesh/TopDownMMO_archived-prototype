@@ -65,22 +65,19 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Database\DBConnection.cs" />
-    <Compile Include="Game\GameInstance.cs" />
-    <Compile Include="Game\PlayerCharacter.cs" />
     <Compile Include="Host\ClientAcceptor.cs" />
     <Compile Include="Links\ClientLink.cs" />
-    <Compile Include="Host\MasterServerHost.cs" />
+    <Compile Include="Host\MasterHost.cs" />
     <Compile Include="Host\ServerHub.cs" />
     <Compile Include="Links\GeneralServer.cs" />
     <Compile Include="Links\WorldServer.cs" />
-    <Compile Include="Links\WorldServerLink.cs" />
     <Compile Include="MasterServerWindow.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="MasterServerWindow.Designer.cs">
       <DependentUpon>MasterServerWindow.cs</DependentUpon>
     </Compile>
-    <Compile Include="Links\InstanceServerLink.cs" />
+    <Compile Include="Links\ServerLink.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="MasterServerWindow.resx">

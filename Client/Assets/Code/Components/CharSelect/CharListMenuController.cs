@@ -7,62 +7,74 @@ using SharedComponents.Global.GameProperties;
 
 public class CharListMenuController : MonoComponent
 {
-    //
-    public static CharListMenuController Main = null;
-    //
+	//
+	public static CharListMenuController Main = null;
+	//
 
-    [SerializeField]
-    GameObject CharListPanel = null;
-    [SerializeField]
-    GameObject WaitingPanel = null;
+	[SerializeField]
+	GameObject CharListPanel = null;
+	[SerializeField]
+	GameObject WaitingPanel = null;
 
-    List<CharListMenuItemButton> charListItems = new List<CharListMenuItemButton>();
-    MasterServerConnection msConnection;
+	List<CharListMenuItemButton> charListItems = new List<CharListMenuItemButton>();
+	MasterServerConnection msConnection = null;
 
-    void Awake()
-    {
-        Main = this;
-    }
+	void Awake()
+	{
+		Main = this;
+	}
 
-    void Start()
-    {
-        msConnection = MasterServerConnection.Main;
-        if (msConnection == null)
-            Debug.LogError("CharacterListController could not find MasterServerConnection.");
+	void Start()
+	{
+		msConnection = MasterServerConnection.Main;
+		if (msConnection == null)
+			Debug.LogError("CharacterListController could not find MasterServerConnection.");
+		msConnection.StateChanged += OnStateChanged_MSConnection;
 
-        Log.MessageLogged += Debug.Log;
-    }
+		Log.MessageLogged += Debug.Log;
+	}
 
-    void OnDestroy()
-    {
-        Main = null;
-    }
+	void OnDestroy()
+	{
+		Main = null;
+		msConnection.StateChanged -= OnStateChanged_MSConnection;
+	}
 
-    void Update()
-    {
+	void Update()
+	{
 
-    }
+	}
 
-    public void OnButton_SelectCharacter(CharListMenuItemButton sender)
-    {
-        msConnection.OnAction_SelectCharacter(sender.Name);
+	public void OnStateChanged_MSConnection(ConnectionState state)
+	{
+		if (state == ConnectionState.NoConnection)
+		{
+			Log.Log("Lost connection while in Character Selection.");
 
-        CharListPanel.SetActive(false);
-        WaitingPanel.SetActive(true);
-    }
+			Application.LoadLevel(ResourceList.Scenes.LoginPage);
+		}
+	}
 
-    public void AddCharacterListItem(string name, CharacterVisualLayout layout, int level)
-    {
-        Log.Log("Create selection: " + name);
+	public void OnButton_SelectCharacter(CharListMenuItemButton sender)
+	{
+		msConnection.OnAction_SelectCharacter(sender.Name, 1);
 
-        GameObject obj = (GameObject)Instantiate(Resources.Load(ResourceList.UI.CharacterListItem));
-        obj.transform.SetParent(GameObject.Find("CharList").transform);
-        CharListMenuItemButton button = obj.GetComponent<CharListMenuItemButton>();
+		CharListPanel.SetActive(false);
+		WaitingPanel.SetActive(true);
+	}
 
-        button.Name = name;
-        button.Type = layout.Type;
-        button.Level = level;
+	public void AddCharacterListItem(string name, CharacterVisualLayout layout, int level)
+	{
+		//Log.Log("Create selection: " + name);
 
-        charListItems.Add(button);
-    }
+		GameObject obj = (GameObject)Instantiate(Resources.Load(ResourceList.UI.CharacterListItem));
+		obj.transform.SetParent(GameObject.Find("CharList").transform);
+		CharListMenuItemButton button = obj.GetComponent<CharListMenuItemButton>();
+
+		button.Name = name;
+		button.Type = layout.Type;
+		button.Level = level;
+
+		charListItems.Add(button);
+	}
 }

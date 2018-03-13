@@ -9,12 +9,12 @@ public class LoginMenuController : MonoComponent
     GameObject canvas_Main = null;
     [SerializeField]
     GameObject canvas_Waiting = null;
+
     [SerializeField]
-    GameObject canvas_Waiting_text_Active = null;
-    [SerializeField]
-    GameObject canvas_Waiting_text_FailedToConnect = null;
-    [SerializeField]
-    GameObject canvas_Waiting_text_InvalidLogin = null;
+    Text text_Waiting = null;
+    private const string waitingText_Connecting = "Connecting...";
+    private const string waitingText_Authorizing = "Authorizing...";
+    private const string waitingText_Failed = "Failed to connect.";
 
     [SerializeField]
     Text text_IPAddress = null;
@@ -95,9 +95,6 @@ public class LoginMenuController : MonoComponent
                             canvas_Main.SetActive(true);
 
                             canvas_Waiting.SetActive(false);
-                            canvas_Waiting_text_Active.SetActive(true);
-                            canvas_Waiting_text_FailedToConnect.SetActive(false);
-                            canvas_Waiting_text_InvalidLogin.SetActive(false);
                         }
                         break;
 
@@ -106,15 +103,13 @@ public class LoginMenuController : MonoComponent
                             canvas_Main.SetActive(false);
 
                             canvas_Waiting.SetActive(true);
-                            canvas_Waiting_text_Active.SetActive(true);
-                            canvas_Waiting_text_FailedToConnect.SetActive(false);
-                            canvas_Waiting_text_InvalidLogin.SetActive(false);
+                            text_Waiting.text = waitingText_Connecting;
                         }
                         break;
 
                     case (ConnectionState.Authorizing):
                         {
-
+                            text_Waiting.text = waitingText_Authorizing;
                         }
                         break;
 
@@ -126,18 +121,7 @@ public class LoginMenuController : MonoComponent
 
                     case (ConnectionState.NoConnection):
                         {
-                            canvas_Main.SetActive(false);
-
-                            canvas_Waiting.SetActive(true);
-                            canvas_Waiting_text_Active.SetActive(false);
-                            canvas_Waiting_text_FailedToConnect.SetActive
-                                (
-                                    _currentConnectionStep == ConnectionState.Connecting
-                                );
-                            canvas_Waiting_text_InvalidLogin.SetActive
-                                (
-                                    _currentConnectionStep == ConnectionState.Authorizing
-                                );
+                            text_Waiting.text = waitingText_Failed;
                         }
                         break;
                 }

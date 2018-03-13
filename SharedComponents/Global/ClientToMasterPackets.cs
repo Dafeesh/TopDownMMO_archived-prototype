@@ -7,6 +7,7 @@ using Extant;
 using Extant.Networking;
 
 using SharedComponents.Global.GameProperties;
+using System.Net;
 
 namespace SharedComponents.Global
 {
@@ -22,7 +23,9 @@ namespace SharedComponents.Global
             AccountAuthorize_Response_c,
 
             Menu_CharacterListItem_c,
-            Menu_CharacterListItem_Select_m
+            Menu_CharacterListItem_Select_m,
+
+            Connection_WorldServerInfo_c
         }
 
         public class Distribution : IPacketDistributor
@@ -35,6 +38,8 @@ namespace SharedComponents.Global
             public Delegate_PacketDistribute<Menu_CharacterListItem_c> out_Menu_CharacterListItem_c = null;
             public Delegate_PacketDistribute<Menu_CharacterListItem_Select_m> out_Menu_CharacterListItem_Select_m = null;
 
+            public Delegate_PacketDistribute<Connection_WorldServerInfo_c> out_Connection_WorldServerInfo_c = null;
+
             public void Dispose()
             {
                 out_ErrorCode_c = null;
@@ -44,6 +49,8 @@ namespace SharedComponents.Global
 
                 out_Menu_CharacterListItem_c = null;
                 out_Menu_CharacterListItem_Select_m = null;
+
+                out_Connection_WorldServerInfo_c = null;
             }
 
             /// <returns>If a packet was distributed.</returns>
@@ -84,6 +91,11 @@ namespace SharedComponents.Global
                                     out_Menu_CharacterListItem_Select_m(Menu_CharacterListItem_Select_m.ReadPacket(ref buffer));
                                 break;
 
+                            case (PacketType.Connection_WorldServerInfo_c):
+                                if (out_Connection_WorldServerInfo_c != null)
+                                    out_Connection_WorldServerInfo_c(Connection_WorldServerInfo_c.ReadPacket(ref buffer));
+                                break;
+
                             default:
                                 DebugLogger.Global.Log("Invalid packet header: " + packetType + "/" + ((PacketType)packetType).ToString());
                                 throw new Packet.InvalidPacketRead("Invalid packet header: " + ((PacketType)packetType).ToString());
@@ -112,7 +124,8 @@ namespace SharedComponents.Global
             public enum ErrorCode
             {
                 InternalError,
-                InvalidPacket
+                InvalidPacket,
+                InvalidOperation
             }
 
             public ErrorCode error;
@@ -276,11 +289,13 @@ namespace SharedComponents.Global
         public class Menu_CharacterListItem_Select_m : Packet
         {
             public string CharName;
+            public int WorldNumber;
 
-            public Menu_CharacterListItem_Select_m(string charName)
+            public Menu_CharacterListItem_Select_m(string charName, int worldNumber)
                 : base((Int32)ClientToMasterPackets.PacketType.Menu_CharacterListItem_Select_m)
             {
                 this.CharName = charName;
+                this.WorldNumber = worldNumber;
             }
 
             public override Byte[] CreateSendBuffer()
@@ -290,6 +305,7 @@ namespace SharedComponents.Global
                     buffer.AddRange(GetBytes_Int32((Int32)type));
 
                     buffer.AddRange(GetBytes_String_Unicode(CharName));
+                    buffer.AddRange(GetBytes_Int32(WorldNumber));
                 }
                 buffer.Add(END_PACKET);
 
@@ -299,8 +315,49 @@ namespace SharedComponents.Global
             public static Menu_CharacterListItem_Select_m ReadPacket(ref List<byte> buffer)
             {
                 string charName = TakeString(ref buffer);
+                int worldNum = TakeInt32(ref buffer);
 
-                return new Menu_CharacterListItem_Select_m(charName);
+                return new Menu_CharacterListItem_Select_m(charName, worldNum);
+            }
+        }
+
+        /// <summary>
+        /// Informs the client to which WorldServer it should connect to.
+        /// </summary>
+        public class Connection_WorldServerInfo_c : Packet
+        {
+            public IPEndPoint EndPoint;
+            public string CharName;
+
+            public Connection_WorldServerInfo_c(IPEndPoint endPoint, string charName)
+                : base((Int32)ClientToMasterPackets.PacketType.Connection_WorldServerInfo_c)
+            {
+                this.EndPoint = endPoint;
+                this.CharName = charName;
+            }
+
+            public override Byte[] CreateSendBuffer()
+            {
+                List<Byte> buffer = new List<Byte>();
+                {
+                    buffer.AddRange(GetBytes_Int32((Int32)type));
+
+                    buffer.AddRange(GetBytes_String_Unicode(EndPoint.Address.ToString()));
+                    buffer.AddRange(GetBytes_Int32(EndPoint.Port));
+                    buffer.AddRange(GetBytes_String_Unicode(CharName));
+                }
+                buffer.Add(END_PACKET);
+
+                return buffer.ToArray();
+            }
+
+            public static Connection_WorldServerInfo_c ReadPacket(ref List<byte> buffer)
+            {
+                string ip = TakeString(ref buffer);
+                int port = TakeInt32(ref buffer);
+                string charName = TakeString(ref buffer);
+
+                return new Connection_WorldServerInfo_c(new IPEndPoint(IPAddress.Parse(ip), port), charName);
             }
         }
 

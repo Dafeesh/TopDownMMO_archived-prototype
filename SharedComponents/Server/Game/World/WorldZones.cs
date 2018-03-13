@@ -3,7 +3,10 @@ using System.Collections.Generic;
 
 using SharedComponents.Global.GameProperties;
 
-namespace SharedComponents.Server.World
+using SharedComponents.Server.Game.Map;
+using SharedComponents.Server.Game.Character;
+
+namespace SharedComponents.Server.Game.World
 {
     public static class WorldZones
     {
@@ -44,20 +47,6 @@ namespace SharedComponents.Server.World
             {
                 throw new InvalidOperationException("Zone not initialized: " + zID.ToString());
             }
-        }
-    }
-
-    public class WorldLocation
-    {
-        public readonly UInt32 WorldNumber;
-        public readonly ZoneID ZoneId;
-        public readonly Position2D Position;
-
-        public WorldLocation(UInt32 worldNumber, ZoneID zid, Position2D pos)
-        {
-            this.WorldNumber = worldNumber;
-            this.ZoneId = zid;
-            this.Position = pos;
         }
     }
 }

@@ -37,7 +37,9 @@ public class MasterServerConnection : MonoComponent
 
             out_AccountAuthorize_Response_c = OnReceive_AccountAuthorize_Response_c,
 
-            out_Menu_CharacterListItem_c = OnReceive_Menu_CharacterListItem_c
+            out_Menu_CharacterListItem_c = OnReceive_Menu_CharacterListItem_c,
+
+            out_Connection_WorldServerInfo_c = OnReceive_Connection_WorldServerInfo_c
         };
         this.Log.MessageLogged += Debug.Log;
     }
@@ -53,8 +55,7 @@ public class MasterServerConnection : MonoComponent
     {
         if (connection != null)
         {
-            connection.Dispose();
-            connection = null;
+            connection.Close();
             State = ConnectionState.NoConnection;
         }
     }
@@ -73,6 +74,7 @@ public class MasterServerConnection : MonoComponent
     void OnDestroy()
     {
         CloseConnection();
+        connection.Dispose();
 
         //Flush events
         StateChanged = null;
@@ -143,12 +145,12 @@ public class MasterServerConnection : MonoComponent
 
     #region OnAction
 
-    public void OnAction_SelectCharacter(string name)
+    public void OnAction_SelectCharacter(string name, int worldNumber)
     {
         if (State == ConnectionState.Connected)
         {
             Log.Log("Sent selection: " + name);
-            connection.SendPacket(new ClientToMasterPackets.Menu_CharacterListItem_Select_m(name));
+            connection.SendPacket(new ClientToMasterPackets.Menu_CharacterListItem_Select_m(name, worldNumber));
         }
         else
         {
@@ -212,6 +214,11 @@ public class MasterServerConnection : MonoComponent
         {
             CharListMenu.AddCharacterListItem(p.Name, p.VisualLayout, p.Level);
         }
+    }
+
+    private void OnReceive_Connection_WorldServerInfo_c(ClientToMasterPackets.Connection_WorldServerInfo_c p)
+    {
+        Log.Log("WorldServer info: " + p.CharName + "/" + p.EndPoint.ToString());
     }
 
     #endregion OnReceive

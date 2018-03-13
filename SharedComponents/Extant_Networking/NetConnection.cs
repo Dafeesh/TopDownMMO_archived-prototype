@@ -12,6 +12,9 @@ namespace Extant.Networking
 {
     public class NetConnection : IDisposable, ILogging
     {
+        public event StateChanged OnStateChange;
+        public delegate void StateChanged(NetworkState newState);
+
         private TcpClient tcpClient;
 
         private NetworkState _state;
@@ -112,6 +115,7 @@ namespace Extant.Networking
 
             if (!IsDisposed)
             {
+                OnStateChange = null;
                 Log.Log("Disposed.");
             }
         }
@@ -130,6 +134,9 @@ namespace Extant.Networking
         {
             if (!IsDisposed)
             {
+                if (tcpClient == null)
+                    return;
+
                 if (tcpClient.Connected)
                 {
                     this.stream = tcpClient.GetStream();
@@ -244,7 +251,13 @@ namespace Extant.Networking
 
             private set
             {
-                _state = value;
+                if (value != _state)
+                {
+                    _state = value;
+
+                    if (OnStateChange != null)
+                        OnStateChange(_state);
+                }
             }
         }
 

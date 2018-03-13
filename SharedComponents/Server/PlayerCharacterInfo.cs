@@ -1,12 +1,15 @@
 ﻿using System;
 
 using SharedComponents.Global.GameProperties;
+using SharedComponents.Server.Game.World;
 
 namespace SharedComponents.Server
 {
     public class PlayerCharacterInfo
     {
         public readonly string Name;
+
+        public WorldLocation Location;
 
         public CharacterVisualLayout VisualLayout;
         public Int32 Level;

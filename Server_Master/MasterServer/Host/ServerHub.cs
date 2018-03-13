@@ -3,26 +3,33 @@ using System.Collections.Generic;
 
 using Extant;
 
-using SharedComponents.Server.World;
-
 using MasterServer.Links;
 
 namespace MasterServer.Host
 {
     public class ServerHub : IDisposable, ILogging
     {
-        private WorldServerLink[] worlds;
-        private InstanceServerLink[] instances;
+        private Dictionary<int, WorldServer> worldServers = new Dictionary<int,WorldServer>();
+        private Dictionary<int, GeneralServer> generalServers = new Dictionary<int,GeneralServer>();
 
         private DebugLogger _log = new DebugLogger("InstHub");
         private bool _isDisposed = false;
 
-        public ServerHub(WorldServerLink[] worldServers, InstanceServerLink[] instanceServers)
+        public ServerHub(WorldServer[] ws, GeneralServer[] gs)
         {
             this.Log.MessageLogged += Console.WriteLine;
 
-            this.worlds = worldServers;
-            this.instances = instanceServers;
+            //World Servers
+            foreach (WorldServer w in ws)
+            {
+                worldServers.Add(w.WorldNumber, w);
+            }
+
+            //General Servers
+            foreach (GeneralServer g in gs)
+            {
+                generalServers.Add(g.ServerNumber, g);
+            }
 
             Log.Log("Start.");
         }
@@ -33,28 +40,47 @@ namespace MasterServer.Host
             {
                 IsDisposed = true;
 
-                foreach (var w in worlds)
+                foreach (var w in worldServers)
                 {
-                    w.Dispose();
+                    w.Value.Dispose();
                 }
-                foreach (var i in instances)
+                foreach (var i in generalServers)
                 {
-                    i.Dispose();
+                    i.Value.Dispose();
                 }
 
                 Log.Log("Disposed.");
             }
         }
 
-        public void PollServers()
+        public ServerState GetWorldServerStatus(int worldNumber)
         {
-            foreach (var w in worlds)
+            if (worldServers.ContainsKey(worldNumber))
             {
-                w.ServerLink.PollConnection();
+                if (worldServers[worldNumber].IsConnected)
+                {
+                    return ServerState.Online;
+                }
+                else
+                {
+                    return ServerState.WorldOffline;
+                }
             }
-            foreach (var i in instances)
+            else
             {
-                i.PollConnection();
+                return ServerState.InvalidServerNumber;
+            }
+        }
+
+        public WorldServer GetWorldServer(int worldNumber)
+        {
+            if (worldServers.ContainsKey(worldNumber))
+            {
+                return worldServers[worldNumber];
+            }
+            else
+            {
+                throw new InvalidOperationException("GetWorldServer was directed to an unknown world number: " + worldNumber);
             }
         }
 
@@ -76,6 +102,13 @@ namespace MasterServer.Host
             {
                 _isDisposed = value;
             }
+        }
+
+        public enum ServerState
+        {
+            Online,
+            WorldOffline,
+            InvalidServerNumber
         }
     }
 }

@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 
 using SharedComponents.Global.GameProperties;
+using SharedComponents.Server.Game.Map;
 
-namespace SharedComponents.Server.World
+namespace SharedComponents.Server.Game.World
 {
     public class ZoneInfo
     {

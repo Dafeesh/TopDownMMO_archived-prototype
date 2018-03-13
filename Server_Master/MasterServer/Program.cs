@@ -28,22 +28,22 @@ namespace MasterServer
             ClientAcceptor clientAcceptor = new ClientAcceptor(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 3000));
 
             //World servers
-            WorldServerLink[] worldServers = new WorldServerLink[]
+            WorldServer[] worldServers = new WorldServer[]
             {
-                   new WorldServerLink(1, new InstanceServerLink(1, new IPEndPoint(IPAddress.Parse("127.0.0.1"), 4000), new IPEndPoint(IPAddress.Parse("127.0.0.1"), 4000))),
-                   new WorldServerLink(2, new InstanceServerLink(2, new IPEndPoint(IPAddress.Parse("127.0.0.1"), 4001), new IPEndPoint(IPAddress.Parse("127.0.0.1"), 4001)))
+                   new WorldServer(1, new IPEndPoint(IPAddress.Parse("127.0.0.1"), 4000), new IPEndPoint(IPAddress.Parse("127.0.0.1"), 4000)),
+                   new WorldServer(2, new IPEndPoint(IPAddress.Parse("127.0.0.1"), 4001), new IPEndPoint(IPAddress.Parse("127.0.0.1"), 4001))
             };
 
-            //Instance servers
-            InstanceServerLink[] instanceServers = new InstanceServerLink[]
+            //General servers
+            GeneralServer[] generalServers = new GeneralServer[]
             {
-                   new InstanceServerLink(3, new IPEndPoint(IPAddress.Parse("127.0.0.1"), 4500), new IPEndPoint(IPAddress.Parse("127.0.0.1"), 4500)),
-                   new InstanceServerLink(4, new IPEndPoint(IPAddress.Parse("127.0.0.1"), 4501), new IPEndPoint(IPAddress.Parse("127.0.0.1"), 4501))
+                   new GeneralServer(1, new IPEndPoint(IPAddress.Parse("127.0.0.1"), 4500), new IPEndPoint(IPAddress.Parse("127.0.0.1"), 4500)),
+                   new GeneralServer(2, new IPEndPoint(IPAddress.Parse("127.0.0.1"), 4501), new IPEndPoint(IPAddress.Parse("127.0.0.1"), 4501))
             };
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new MasterServerWindow(clientAcceptor, worldServers, instanceServers));
+            Application.Run(new MasterServerWindow(clientAcceptor, worldServers, generalServers));
         }
     }
 }

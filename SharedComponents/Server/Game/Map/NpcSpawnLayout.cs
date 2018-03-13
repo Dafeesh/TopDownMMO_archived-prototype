@@ -5,8 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 
 using SharedComponents.Global.GameProperties;
+using SharedComponents.Server.Game.Character;
 
-namespace SharedComponents.Server.World
+namespace SharedComponents.Server.Game.Map
 {
     public class NpcSpawnLayout
     {

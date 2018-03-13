@@ -1,12 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Net;
+
+using Extant;
+
+using SharedComponents.Global.GameProperties;
 
 namespace MasterServer.Links
 {
-    class WorldServer
+    public class WorldServer : ServerLink
     {
+        public Int32 WorldNumber
+        { get; private set; }
+
+        public WorldServer(Int32 worldNumber, IPEndPoint remoteEndPoint, IPEndPoint broadcastEndPoint)
+            : base("World-" + worldNumber, remoteEndPoint, broadcastEndPoint)
+        {
+            this.WorldNumber = worldNumber;
+
+            Log.Log("Start.");
+        }
     }
 }

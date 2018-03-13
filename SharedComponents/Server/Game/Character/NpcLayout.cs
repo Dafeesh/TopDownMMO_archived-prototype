@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 using SharedComponents.Global.GameProperties;
 
-namespace SharedComponents.Server.World
+namespace SharedComponents.Server.Game.Character
 {
     public class NpcLayout
     {

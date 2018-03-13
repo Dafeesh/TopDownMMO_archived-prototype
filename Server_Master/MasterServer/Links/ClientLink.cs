@@ -11,19 +11,20 @@ using SharedComponents.Global.GameProperties;
 using Extant;
 using Extant.Networking;
 
-using MasterServer.Game;
-
 namespace MasterServer.Links
 {
-    public class ClientLink : IDisposable , ILogging
+    public class ClientLink : IDisposable, ILogging
     {
-        private AccountInfo accountInfo;
+        public AccountInfo AccountInfo
+        { get; private set; }
+        public PlayerCharacterInfo ActiveCharacter
+        { get; set; }
+
         private NetConnection connection;
         private IPacketDistributor connection_distribution;
         private ActionDispersion actionDispersion;
 
-        private PlayerCharacter activeCharacter = null;
-
+        private ClientState _state = ClientState.CharSelect;
         private bool _disposed = false;
         private DebugLogger _log;
 
@@ -33,6 +34,7 @@ namespace MasterServer.Links
 
             public void Dispose()
             {
+                Console.WriteLine("Dispose)");
                 OnAction_CharacterListItem_Select = null;
             }
         }
@@ -45,17 +47,19 @@ namespace MasterServer.Links
             };
 
             this.actionDispersion = actionDispersion;
-            this.accountInfo = accountInfo;
+            this.AccountInfo = accountInfo;
             this.connection = clientConnection;
 
-            this._log = new DebugLogger("CLink:" + accountInfo.Name);
-            this._log.MessageLogged += Console.WriteLine;
+            this.Log = new DebugLogger("ClLink:" + accountInfo.Name);
+            this.Log.MessageLogged += Console.WriteLine;
         }
 
         public void Dispose()
         {
-            if (!_disposed)
+            if (!IsDisposed)
             {
+                IsDisposed = true;
+
                 connection_distribution.Dispose();
 
                 connection.Dispose();
@@ -72,12 +76,12 @@ namespace MasterServer.Links
 
         public override string ToString()
         {
-            return accountInfo.Name;
+            return AccountInfo.Name;
         }
 
         public void SetConnection(NetConnection con)
         {
-            if (this.HasConnection)
+            if (this.IsConnected)
             {
                 connection.Dispose();
             }
@@ -85,24 +89,11 @@ namespace MasterServer.Links
             connection = con;
         }
 
-        public void SetActiveCharacter(PlayerCharacter ch)
-        {
-            activeCharacter = ch;
-        }
-
-        public bool HasConnection
+        public bool IsConnected
         {
             get
             {
                 return (connection.State == NetConnection.NetworkState.Active);
-            }
-        }
-
-        public AccountInfo AccountInfo
-        {
-            get
-            {
-                return accountInfo;
             }
         }
 
@@ -112,13 +103,48 @@ namespace MasterServer.Links
             {
                 return _log;
             }
+
+            private set
+            {
+                _log = value;
+            }
+        }
+
+        public bool IsDisposed
+        {
+            get
+            {
+                return _disposed;
+            }
+
+            private set
+            {
+                _disposed = value;
+            }
+        }
+
+        public ClientState State
+        {
+            get
+            {
+                return _state;
+            }
+            set
+            {
+                _state = value;
+            }
         }
 
         #region SendPackets
 
+        public void Send_ErrorCode(ClientToMasterPackets.ErrorCode_c.ErrorCode code)
+        {
+            connection.SendPacket(new ClientToMasterPackets.ErrorCode_c(code));
+        }
+
         public void Send_CharacterList()
         {
-            foreach (PlayerCharacterInfo charInfo in accountInfo.Characters)
+            foreach (PlayerCharacterInfo charInfo in AccountInfo.Characters)
             {
                 connection.SendPacket(new ClientToMasterPackets.Menu_CharacterListItem_c(
                     charInfo.Name,
@@ -127,18 +153,31 @@ namespace MasterServer.Links
             }
         }
 
+        public void Send_WorldServerInfo(WorldServer ws)
+        {
+            connection.SendPacket(new ClientToMasterPackets.Connection_WorldServerInfo_c(
+                ws.BroadcastEndPoint,
+                ActiveCharacter.Name
+                ));
+        }
+
         #endregion SendPackets
 
         #region OnReceivePackets
 
-        public delegate void Delegate_OnAction_CharacterListItem_Select(ClientLink client, string selectedCharName);
+        public delegate void Delegate_OnAction_CharacterListItem_Select(ClientLink client, string selectedCharName, int selectedWorld);
         private void OnReceive_Menu_CharacterListItem_Select_m(ClientToMasterPackets.Menu_CharacterListItem_Select_m packet)
         {
-            Console.WriteLine("Received selection: " + packet.CharName);
             if (actionDispersion.OnAction_CharacterListItem_Select != null)
-                actionDispersion.OnAction_CharacterListItem_Select(this, packet.CharName);
+                actionDispersion.OnAction_CharacterListItem_Select(this, packet.CharName, packet.WorldNumber);
         }
 
         #endregion OnReceivePackets
+
+        public enum ClientState
+        {
+            CharSelect,
+            InWorld
+        }
     }
 }

@@ -3,19 +3,23 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 
-using MasterServer.Links;
-using MasterServer.Game;
-
 using Extant;
 using Extant.Networking;
 
+using SharedComponents.Global;
+
+using MasterServer.Links;
+using MasterServer.Database;
+
 namespace MasterServer.Host
 {
-    public class MasterServerHost : ThreadRun
+    public class MasterHost : ThreadRun
     {
-        public event Delegate_ClientUpdate ClientAdded;
+        //<events>
         public event Delegate_ClientUpdate ClientUpdated;
+        public event Delegate_ClientUpdate ClientRemoved;
         public delegate void Delegate_ClientUpdate(ClientLink cLink);
+        //</events>
 
         private ServerHub serverHub;
         private List<ClientLink> clients = new List<ClientLink>();
@@ -23,7 +27,7 @@ namespace MasterServer.Host
 
         private ClientAcceptor clientAcceptor;
 
-        public MasterServerHost(ClientAcceptor clientAcceptor, ServerHub serverHub)
+        public MasterHost(ClientAcceptor clientAcceptor, ServerHub serverHub)
             : base("MasterServer")
         {
             this.clientAcceptor = clientAcceptor;
@@ -39,7 +43,6 @@ namespace MasterServer.Host
 
         protected override void Begin()
         {
-            clients_ActionDispersion.Dispose();
             clientAcceptor.Start();
 
             Log.Log("Start.");
@@ -47,10 +50,8 @@ namespace MasterServer.Host
 
         protected override void RunLoop()
         {
-            serverHub.PollServers();
-
             HandleClients();
-            HandleNewClients();
+            GetNewClients();
         }
 
         protected override void Finish(bool success)
@@ -68,13 +69,25 @@ namespace MasterServer.Host
 
         private void HandleClients()
         {
-            foreach (ClientLink cl in clients)
+            for (int i = clients.Count - 1; i >= 0; i--)
             {
+                ClientLink cl = clients[i];
+
                 cl.BroadcastActions();
+
+                if (!cl.IsConnected && cl.State == ClientLink.ClientState.CharSelect)
+                {
+                    clients.Remove(cl);
+
+                    if (ClientRemoved != null)
+                        ClientRemoved(cl);
+
+                    Log.Log("Client removed: " + cl.AccountInfo.Name);
+                }
             }
         }
 
-        private void HandleNewClients()
+        private void GetNewClients()
         {
             ClientAcceptor.AuthorizedLoginAttempt newAuthorizedClient = null;
             while ((newAuthorizedClient = clientAcceptor.GetAuthorizedLoginAttempt()) != null)
@@ -91,15 +104,15 @@ namespace MasterServer.Host
                     ClientLink newLink = new ClientLink(clients_ActionDispersion, newAuthorizedClient.Info, newAuthorizedClient.Connection);
 
                     clients.Add(newLink);
-                    if (ClientAdded != null)
-                        ClientAdded(newLink);
+                    if (ClientUpdated != null)
+                        ClientUpdated(newLink);
 
                     newLink.Send_CharacterList();
                     Log.Log("New client: " + newLink.AccountInfo.Name);
                 }
                 else //Else, it is an already existing client.
                 {
-                    if (!foundClient.HasConnection)
+                    if (!foundClient.IsConnected)
                     {
                         foundClient.SetConnection(newAuthorizedClient.Connection);
                         if (ClientUpdated != null)
@@ -120,9 +133,47 @@ namespace MasterServer.Host
 
         #region ReceivedActions
 
-        void OnAction_CharListItem_Select(ClientLink sender, string selectedCharacter)
+        void OnAction_CharListItem_Select(ClientLink sender, string selectedCharacter, int selectedWorld)
         {
-            Console.WriteLine("CharListSelect: " + selectedCharacter);
+            if (sender.State == ClientLink.ClientState.CharSelect)
+            {
+                var foundChar = (sender.AccountInfo.Characters.FirstOrDefault((c) =>
+                {
+                    return c.Name == selectedCharacter;
+                }));
+
+                if (foundChar != null)
+                {
+                    sender.ActiveCharacter = foundChar;
+
+                    var serverStatus = serverHub.GetWorldServerStatus(selectedWorld);
+                    switch (serverStatus)
+                    {
+                        case (ServerHub.ServerState.Online):
+                            Log.Log("Client entering world: " + selectedCharacter + "/" + selectedWorld);
+                            sender.Send_WorldServerInfo(serverHub.GetWorldServer(selectedWorld));
+                            break;
+
+                        case (ServerHub.ServerState.WorldOffline):
+                            Log.Log("Client could not connect because world is offline: " + selectedWorld);
+                            sender.Send_ErrorCode(ClientToMasterPackets.ErrorCode_c.ErrorCode.InternalError);
+                            break;
+
+                        default:
+                            sender.Send_ErrorCode(ClientToMasterPackets.ErrorCode_c.ErrorCode.InvalidOperation);
+                            break;
+                    }
+                }
+                else
+                {
+                    sender.Send_ErrorCode(ClientToMasterPackets.ErrorCode_c.ErrorCode.InvalidOperation);
+                }
+            }
+            else
+            {
+                Log.Log("[ERROR] Client selected character while not in the proper state.");
+                sender.Send_ErrorCode(ClientToMasterPackets.ErrorCode_c.ErrorCode.InvalidOperation);
+            }
         }
 
         #endregion ReceivedActions
