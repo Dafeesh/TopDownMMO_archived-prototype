@@ -43,6 +43,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Control\InstanceItems\GameTime.cs" />
     <Compile Include="InstanceWatcher.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -52,6 +53,7 @@
     <Compile Include="Networking\ExpectedPlayer.cs" />
     <Compile Include="Networking\ClientConnection.cs" />
     <Compile Include="Networking\ClientAccepter.cs" />
+    <Compile Include="Networking\MasterServerLink.cs" />
     <Compile Include="Networking\WorldHost.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -60,7 +62,6 @@
     <Compile Include="Control\Zone.cs" />
     <Compile Include="World\Characters\NPCs\RandomTeleportingWizard.cs" />
     <Compile Include="World\Characters\Npc.cs" />
-    <Compile Include="World\Characters\PlayerCommand.cs" />
     <Compile Include="World\MapItems\MapLayoutBuilder.cs" />
     <Compile Include="Control\WorldController.cs" />
     <Compile Include="World\Character.cs" />
@@ -85,6 +86,10 @@
     <ProjectReference Include="..\..\SharedComponents\ExtantLibrary\ExtantLibrary.csproj">
       <Project>{598bb5ef-795b-478c-ad1f-323be7077beb}</Project>
       <Name>ExtantLibrary</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\SharedComponents\ServerToServer\ServerToServer.csproj">
+      <Project>{6831c8ae-d11a-499d-b2ba-c095ab29959e}</Project>
+      <Name>ServerToServer</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />

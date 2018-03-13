@@ -21,10 +21,8 @@ namespace WorldServer.Control
                 this.id = id;
             }
 
-            public override void Tick()
+            public override void Tick(float diffTime)
             {
-                base.Tick();
-
 
             }
 

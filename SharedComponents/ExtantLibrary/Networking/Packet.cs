@@ -11,9 +11,6 @@ namespace Extant.Networking
     /// <summary>
     /// Packets are containers of information to be sent over the network.
     /// Names are based on this convention: (Topic)_(Action)_(Target)
-    /// Targets are as follows:
-    ///     c = Player Client
-    ///     g = GameServer
     /// </summary>
     public abstract class Packet
     {
@@ -24,14 +21,12 @@ namespace Extant.Networking
         public static readonly Byte BYTE_FALSE = (Byte)0;
 
         protected Int32 type;
-        private ProtocolType protocol;
 
         public abstract Byte[] CreateSendBuffer();
 
-        protected Packet(Int32 t, ProtocolType p)
+        protected Packet(Int32 t)
         {
             type = t;
-            protocol = p;
         }
 
         public Int32 Type
@@ -39,14 +34,6 @@ namespace Extant.Networking
             get
             {
                 return type;
-            }
-        }
-
-        public ProtocolType Protocol
-        {
-            get
-            {
-                return protocol;
             }
         }
 

@@ -17,11 +17,7 @@ namespace WorldServer
 {
     public partial class InstanceWatcher : Form
     {
-        private Dictionary<string, Characters.Player> players = new Dictionary<string, Characters.Player>();
-        //private Characters.Player selectedPlayer = null;
-
-        private Dictionary<string, Instance> instances = new Dictionary<string, Instance>();
-        private Instance selectedInstance = null;
+        private Instance selectedInstance;
 
         private LogItem[] logItems = new LogItem[0];
         private object logItems_lock = new object();
@@ -44,12 +40,9 @@ namespace WorldServer
             var insts = wc.GetInstances();
 
             listBox_Instances.Items.Clear();
-            instances.Clear();
-
             foreach (var i in insts)
             {
-                listBox_Instances.Items.Add(i.Name);
-                instances.Add(i.Name, i);
+                listBox_Instances.Items.Add(i);
             }
         }
 
@@ -57,7 +50,7 @@ namespace WorldServer
         {
             if (listBox_Instances.SelectedItem.ToString() != String.Empty)
             {
-                selectedInstance = instances[listBox_Instances.SelectedItem.ToString()];
+                selectedInstance = (Instance)listBox_Instances.SelectedItem;
                 label_InstanceName.Text = selectedInstance.Name;
 
                 if (workerThread != null)
@@ -139,12 +132,10 @@ namespace WorldServer
 
         private void button_RefreshPlayerList_Click(object sender, EventArgs e)
         {
-            players.Clear();
             listBox_Players.Items.Clear();
             foreach (var p in wc.GetPlayerList())
             {
-                players.Add(p.Info.Name, p);
-                listBox_Players.Items.Add(p.Info.Name);
+                listBox_Players.Items.Add(p);
             }
         }
 

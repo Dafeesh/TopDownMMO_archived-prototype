@@ -193,7 +193,10 @@ public class WorldServerConnection : MonoBehaviour , ILogging
     {
         if (packets.Count > 0)
         {
-            return packets.Dequeue();
+            Packet p = packets.Dequeue();
+            //if (p.Type != (int)ClientToWorldPackets.PacketType.Character_Position_c)
+                log.Log("Got packet: " + (ClientToWorldPackets.PacketType)p.Type);
+            return p;
         }
         else
             return null;

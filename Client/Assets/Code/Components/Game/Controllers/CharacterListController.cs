@@ -41,9 +41,9 @@ public class CharacterListController : MonoBehaviour
 
         GameObject newChar;
         if (modelNum == 1)
-            newChar = (GameObject)GameObject.Instantiate(Resources.Load("Character"));
+            newChar = (GameObject)GameObject.Instantiate(Resources.Load("Character_Robot"));
         else
-            newChar = (GameObject)GameObject.Instantiate(Resources.Load("Character"));
+            newChar = (GameObject)GameObject.Instantiate(Resources.Load("Character_Robot"));
         newChar.transform.parent = this.transform;
 
         characters.Add(id, newChar.GetComponent<GameCharacterController>());
@@ -66,7 +66,7 @@ public class CharacterListController : MonoBehaviour
         }
     }
 
-    public void SetCharacterPosition(int id, float x, float y)
+    public void SetCharacter_Position(int id, float x, float y)
     {
         if (characters.ContainsKey(id))
         {
@@ -77,6 +77,30 @@ public class CharacterListController : MonoBehaviour
         else
         {
             Debug.LogError("CharacterListController failed to move character. Does not exist: " + id);
+        }
+    }
+
+    public void SetCharacter_Stats(int id, CharacterStats stats)
+    {
+        if (characters.ContainsKey(id))
+        {
+            characters[id].Stats = stats;
+        }
+        else
+        {
+            Debug.LogError("CharacterListController failed to update stats for character. Does not exist: " + id);
+        }
+    }
+
+    public void SetCharacter_MovePoint(int id, MovePoint mp)
+    {
+        if (characters.ContainsKey(id))
+        {
+            characters[id].SetMovePoint(mp);
+        }
+        else
+        {
+            Debug.LogError("CharacterListController failed to update stats for character. Does not exist: " + id);
         }
     }
 

@@ -6,10 +6,11 @@ using System.Threading.Tasks;
 
 using Extant;
 
-using SharedComponents;
-using SharedComponents.GameProperties;
 using WorldServer.World;
 using WorldServer.World.MapItems;
+using WorldServer.Control.InstanceItems;
+using SharedComponents;
+using SharedComponents.GameProperties;
 using Extant.Networking;
 
 namespace WorldServer.Control
@@ -19,8 +20,9 @@ namespace WorldServer.Control
         private string name;
         private Map map;
         private List<Character> characters; //Contains all characters
-        private List<Characters.Player> players; //Contains just player characters
-        private int characterID_counter = 1;
+        private List<Characters.Player> players; //Contains just characters that are a player
+        private int characterID_iterator = 1;
+        private GameTime gameTime = new GameTime();
 
         public Instance(String name, MapLayout mapLayout)
             : base("Instance-" + name)
@@ -37,12 +39,37 @@ namespace WorldServer.Control
         sealed protected override void Begin()
         {
             Log.Log("Instance started.");
+            gameTime.Start();
         }
 
         sealed protected override void RunLoop()
         {
-            this.Tick();
+            float frameDiff = gameTime.DiffTime() / 1000.0f;
+
+            //Do all Character actions
+            for (int i = characters.Count - 1; i >= 0; i--)
+            {
+                Character c = characters[i];
+
+                c.Tick(frameDiff);
+            }
+
+            //Handle players
+            for (int i = players.Count - 1; i >= 0; i--)
+            {
+                Characters.Player plr = players[i];
+
+                ReceiveAndProcessPlayerPackets(plr);
+
+                if (plr.IsLoggingOut)
+                {
+                    RemovePlayer(plr);
+                }
+            }
         }
+
+        public abstract void Tick(float frameDiff);
+
 
         sealed protected override void Finish(bool success)
         {
@@ -53,46 +80,33 @@ namespace WorldServer.Control
             Log.Log("Instance finished.");
         }
 
-        public virtual void Tick()
+        public override string ToString()
         {
-            //Do all Character actions
-            for (int i = characters.Count - 1; i >= 0; i--)
-            {
-                Character c = characters[i];
-
-                c.Tick();
-            }
-
-            //Handle players
-            for (int i = players.Count - 1; i >= 0; i--)
-            {
-                Characters.Player plr = players[i];
-
-                ProcessPlayerCommands(plr);
-
-                if (plr.IsLoggingOut)
-                {
-                    RemovePlayer(plr);
-                }
-            }
+            return name;
         }
 
         /////////// Private ///////////
-        private void ProcessPlayerCommands(Characters.Player p)
+        private void ReceiveAndProcessPlayerPackets(Characters.Player plr)
         {
-            PlayerCommand command = null;
-            while ((command = p.GetCommand()) != null)
+            Packet p = null;
+            while ((p = plr.GetPacket()) != null)
             {
-                if (command is PlayerCommand.MoveTo)
+                switch ((ClientToWorldPackets.PacketType)p.Type)
                 {
-                    PlayerCommand.MoveTo cmd = (PlayerCommand.MoveTo)command;
+                    case (ClientToWorldPackets.PacketType.Player_MovementRequest_w):
+                        {
+                            ClientToWorldPackets.Player_MovementRequest_w pp = p as ClientToWorldPackets.Player_MovementRequest_w;
 
-                    //log.Log(plr.Info.Name + " moved to (" + cmd.point.x + "," + cmd.point.y + ")");
-                    //plr.TeleportTo(cmd.point.x, cmd.point.y);
+                            MovePoint[] mps = map.CalculatePath(plr.Position, new Position2D(pp.posx, pp.posy));
+                            if (mps.Length > 0)
+                                plr.SetMovePointsPath(mps);
+                        }
+                        break;
 
-                    MovePoint[] mps = map.CalculatePath(p.Position, cmd.point);
-                    if (mps.Length > 0)
-                        p.SetMovePointsPath(mps);
+                    default:
+                        Log.Log("Received invalid packet from player: " + plr.Info.Name);
+                        plr.SendPacket(new ClientToWorldPackets.Error_c(ClientToWorldPackets.Error_c.ErrorCode.InvalidPacket));
+                        break;
                 }
             }
         }
@@ -101,7 +115,7 @@ namespace WorldServer.Control
         {
             get
             {
-                return characterID_counter++;
+                return characterID_iterator++;
             }
         }
 
@@ -166,6 +180,7 @@ namespace WorldServer.Control
             p.SendPacket(new ClientToWorldPackets.Character_Add_c(p.Id, CharacterType.Player, 1));
             p.SendPacket(new ClientToWorldPackets.Character_Position_c(p.Id, p.Position.x, p.Position.y));
             p.SendPacket(new ClientToWorldPackets.Player_SetControl_c(p.Id));
+            p.SendPacket(new ClientToWorldPackets.Character_UpdateStats_c(p.Id, p.Stats));
 
             UpdatePlayerMapView(p);
             UpdateCharacterView(p);

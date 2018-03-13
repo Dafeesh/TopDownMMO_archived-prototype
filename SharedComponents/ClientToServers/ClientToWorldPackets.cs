@@ -20,6 +20,7 @@ namespace SharedComponents
             Null,
 
             Ping_c,
+            Error_c,
 
             Map_Reset_c,
             Map_TerrainBlock_c,
@@ -34,7 +35,8 @@ namespace SharedComponents
             Character_Add_c,
             Character_Remove_c,
             Character_Position_c,
-            Character_Movement_c
+            Character_Movement_c,
+            Character_UpdateStats_c
         }
 
         /// <summary>
@@ -103,6 +105,10 @@ namespace SharedComponents
                                 returnPacket = Character_Position_c.ReadPacket(ref buffer);
                                 break;
 
+                            case (PacketType.Character_UpdateStats_c):
+                                returnPacket = Character_UpdateStats_c.ReadPacket(ref buffer);
+                                break;
+
                             default:
                                 DebugLogger.Global.Log("Invalid packet header: " + packetType + "/" + ((PacketType)packetType).ToString());
                                 throw new Packet.InvalidPacketRead("Invalid packet header: " + ((PacketType)packetType).ToString());
@@ -130,7 +136,7 @@ namespace SharedComponents
         public class Ping_c : Packet
         {
             public Ping_c()
-                : base((Int32)PacketType.Ping_c, ProtocolType.Tcp)
+                : base((Int32)PacketType.Ping_c)
             {
 
             }
@@ -157,6 +163,49 @@ namespace SharedComponents
         }
 
         /// <summary>
+        /// Inform the client of an error.
+        /// </summary>
+        public class Error_c : Packet
+        {
+            public ErrorCode error;
+
+            public Error_c(ErrorCode error)
+                : base((Int32)PacketType.Error_c)
+            {
+                this.error = error;
+            }
+
+            public override Byte[] CreateSendBuffer()
+            {
+                List<Byte> buffer = new List<Byte>();
+                {
+                    buffer.AddRange(GetBytes_Int32((Int32)type));
+
+                    buffer.AddRange(GetBytes_Int32((Int32)error));
+                }
+                buffer.Add(END_PACKET);
+
+                return buffer.ToArray();
+            }
+
+            public static Packet ReadPacket(ref List<byte> buffer)
+            {
+                ErrorCode error = (ErrorCode)TakeInt32(ref buffer);
+
+#if DEBUG_PACKETS
+                DebugLogger.Global.Log("Packet In: ErrorCode");
+#endif
+
+                return new Error_c(error);
+            }
+
+            public enum ErrorCode
+            {
+                InvalidPacket
+            }
+        }
+
+        /// <summary>
         /// Inform the client to reset the map.
         /// </summary>
         public class Map_Reset_c : Packet
@@ -165,7 +214,7 @@ namespace SharedComponents
             public int newNumBlocksY;
 
             public Map_Reset_c(int newNumBlocksX, int newNumBlocksY)
-                : base((Int32)PacketType.Map_Reset_c, ProtocolType.Tcp)
+                : base((Int32)PacketType.Map_Reset_c)
             {
                 this.newNumBlocksX = newNumBlocksX;
                 this.newNumBlocksY = newNumBlocksY;
@@ -208,7 +257,7 @@ namespace SharedComponents
             public Single[,] heightMap;
 
             public Map_TerrainBlock_c(int blockX, int blockY, Single[,] heightMap)
-                : base((Int32)PacketType.Map_TerrainBlock_c, ProtocolType.Tcp)
+                : base((Int32)PacketType.Map_TerrainBlock_c)
             {
                 this.blockX = blockX;
                 this.blockY = blockY;
@@ -268,7 +317,7 @@ namespace SharedComponents
             public Int32 id;
 
             public Player_SetControl_c(Int32 id)
-                : base((Int32)PacketType.Player_SetControl_c, ProtocolType.Tcp)
+                : base((Int32)PacketType.Player_SetControl_c)
             {
                 this.id = id;
             }
@@ -306,7 +355,7 @@ namespace SharedComponents
             public Single posx, posy;
 
             public Player_MovementRequest_w(Single posx, Single posy)
-                : base((Int32)PacketType.Player_MovementRequest_w, ProtocolType.Tcp)
+                : base((Int32)PacketType.Player_MovementRequest_w)
             {
                 this.posx = posx;
                 this.posy = posy;
@@ -349,7 +398,7 @@ namespace SharedComponents
             public Int32 modelNumber;
 
             public Character_Add_c(Int32 charId, CharacterType charType, Int32 modelNumber)
-                : base((Int32)PacketType.Character_Add_c, ProtocolType.Tcp)
+                : base((Int32)PacketType.Character_Add_c)
             {
                 this.charId = charId;
                 this.charType = charType;
@@ -393,7 +442,7 @@ namespace SharedComponents
             public Int32 charId;
 
             public Character_Remove_c(Int32 charId)
-                : base((Int32)PacketType.Character_Remove_c, ProtocolType.Tcp)
+                : base((Int32)PacketType.Character_Remove_c)
             {
                 this.charId = charId;
             }
@@ -440,7 +489,7 @@ namespace SharedComponents
 
             public Character_Position_c(Int32 charId,
                                         Single newx, Single newy)
-                : base((Int32)PacketType.Character_Position_c, ProtocolType.Tcp)
+                : base((Int32)PacketType.Character_Position_c)
             {
                 this.charId = charId;
                 this.newx = newx;
@@ -487,7 +536,7 @@ namespace SharedComponents
 
             public Character_Movement_c(Int32 charId,
                                         MovePoint movePoint)
-                : base((Int32)PacketType.Character_Movement_c, ProtocolType.Tcp)
+                : base((Int32)PacketType.Character_Movement_c)
             {
                 this.charId = charId;
                 this.movePoint = movePoint;
@@ -527,6 +576,49 @@ namespace SharedComponents
         }
 
         /// <summary>
+        /// Character has a change in stats.
+        /// </summary>
+        public class Character_UpdateStats_c : Packet
+        {
+            public Int32 charId;
+            public CharacterStats stats;
+
+            public Character_UpdateStats_c(Int32 charId,
+                                           CharacterStats stats)
+                : base((Int32)PacketType.Character_UpdateStats_c)
+            {
+                this.charId = charId;
+                this.stats = stats;
+            }
+
+            public override Byte[] CreateSendBuffer()
+            {
+                List<Byte> buffer = new List<Byte>();
+                {
+                    buffer.AddRange(GetBytes_Int32((Int32)type));
+
+                    buffer.AddRange(GetBytes_Int32(charId));
+                    buffer.AddRange(GetBytes_Single(stats.MoveSpeed));
+                }
+                buffer.Add(END_PACKET);
+
+                return buffer.ToArray();
+            }
+
+            public static Packet ReadPacket(ref List<byte> buffer)
+            {
+                Int32 charId = TakeInt32(ref buffer);
+                Single moveSpeed = TakeSingle(ref buffer);
+
+#if DEBUG_PACKETS
+                DebugLogger.Global.Log("Packet In: Character_UpdateStats_c");
+#endif
+
+                return new Character_UpdateStats_c(charId, new CharacterStats() { MoveSpeed = moveSpeed });
+            }
+        }
+
+        /// <summary>
         /// Updates the player's info.
         /// </summary>
         public class Player_Info_c : Packet
@@ -535,7 +627,7 @@ namespace SharedComponents
             public Int32 level;
 
             public Player_Info_c(String username, Int32 level)
-                : base((Int32)PacketType.Player_Info_c, ProtocolType.Tcp)
+                : base((Int32)PacketType.Player_Info_c)
             {
                 this.username = username;
                 this.level = level;
@@ -578,7 +670,7 @@ namespace SharedComponents
             public Int32 password;
 
             public Verify_Details_g(Int32 build, String username, Int32 password)
-                : base((Int32)PacketType.Verify_Details_w, ProtocolType.Tcp)
+                : base((Int32)PacketType.Verify_Details_w)
             {
                 this.build = build;
                 this.username = username;
@@ -622,7 +714,7 @@ namespace SharedComponents
             public VerifyReturnCode returnCode;
 
             public Verify_Result_c(VerifyReturnCode errorCode)
-                : base((Int32)PacketType.Verify_Result_c, ProtocolType.Tcp)
+                : base((Int32)PacketType.Verify_Result_c)
             {
                 this.returnCode = errorCode;
             }

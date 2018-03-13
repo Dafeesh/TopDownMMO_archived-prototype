@@ -19,7 +19,7 @@ namespace WorldServer.World
         public class Player : Character
         {
             private ClientConnection client;
-            private Queue<PlayerCommand> commands = new Queue<PlayerCommand>();
+            private Queue<Packet> receivePackets = new Queue<Packet>();
             private PlayerInfo info;
             private Int32 password;
             private bool newlyConnected = false;
@@ -45,9 +45,14 @@ namespace WorldServer.World
                     client.Dispose();
             }
 
-            public override void Tick()
+            public override string ToString()
             {
-                base.Tick();
+                return info.Name;
+            }
+
+            public override void Tick(float frameDiff)
+            {
+                base.Tick(frameDiff);
 
                 if (client != null)
                 {
@@ -58,28 +63,6 @@ namespace WorldServer.World
                         client = null;
                         loggingOut = true;
                     }
-                    else
-                    {
-                        ReceiveCommands();
-                    }
-                }
-            }
-
-            private void ReceiveCommands()
-            {
-                Packet p = null;
-                while ((p = client.GetPacket()) != null)
-                {
-                    switch ((ClientToWorldPackets.PacketType)p.Type)
-                    {
-                        case (ClientToWorldPackets.PacketType.Player_MovementRequest_w):
-                            {
-                                ClientToWorldPackets.Player_MovementRequest_w pp = (ClientToWorldPackets.Player_MovementRequest_w)p;
-
-                                commands.Enqueue(new PlayerCommand.MoveTo(new Position2D(pp.posx, pp.posy)));
-                            }
-                            break;
-                    }
                 }
             }
 
@@ -87,11 +70,11 @@ namespace WorldServer.World
             {
                 this.SendPacket(new ClientToWorldPackets.Character_Add_c(newChar.Id, CharacterType.Player, 0));
                 this.SendPacket(new ClientToWorldPackets.Character_Position_c(newChar.Id, newChar.Position.x, newChar.Position.y));
+                this.SendPacket(new ClientToWorldPackets.Character_UpdateStats_c(newChar.Id, newChar.Stats));
             }
 
             public override void Inform_CharacterMovePoint(Character charFrom, MovePoint mp)
             {
-                this.SendPacket(new ClientToWorldPackets.Character_Position_c(charFrom.Id, mp.start.x, mp.start.y));
                 this.SendPacket(new ClientToWorldPackets.Character_Movement_c(charFrom.Id, mp));
             }
 
@@ -113,7 +96,7 @@ namespace WorldServer.World
             {
                 if (client != null)
                 {
-                    if (client.IsConnectedAndVerified)
+                    if (client.IsAlive)
                         Log.Log("Player connected while already being connected.");
                     else
                         Log.Log("Player reconnected.");
@@ -123,10 +106,6 @@ namespace WorldServer.World
                 newlyConnected = true;
             }
 
-            /// <summary>
-            /// Sends a packet to the player if a connection exists.
-            /// </summary>
-            /// <param name="p"></param>
             public void SendPacket(Packet p)
             {
                 if (client != null)
@@ -135,22 +114,12 @@ namespace WorldServer.World
                 }
             }
 
-            /*
             public Packet GetPacket()
             {
                 if (client == null)
                     return null;
                 else
                     return client.GetPacket();
-            }
-            * */
-
-            public PlayerCommand GetCommand()
-            {
-                if (commands.Count > 0)
-                    return commands.Dequeue();
-                else
-                    return null;
             }
 
             public bool IsLoggingOut

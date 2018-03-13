@@ -61,6 +61,15 @@ public class GameController : MonoBehaviour , ILogging
         {
             switch ((ClientToWorldPackets.PacketType)p.Type)
             {
+                case (ClientToWorldPackets.PacketType.Error_c):
+                    {
+                        ClientToWorldPackets.Error_c pp = p as ClientToWorldPackets.Error_c;
+
+                        Debug.LogError("ERROR from WorldServer: " + pp.error.ToString());
+                        log.Log("ERROR: " + pp.error.ToString());
+                    }
+                    break;
+
                 case (ClientToWorldPackets.PacketType.Player_Info_c):
                     {
                         ClientToWorldPackets.Player_Info_c pp = p as ClientToWorldPackets.Player_Info_c;
@@ -119,7 +128,7 @@ public class GameController : MonoBehaviour , ILogging
                     {
                         ClientToWorldPackets.Character_Position_c pp = p as ClientToWorldPackets.Character_Position_c;
 
-                        charListController.SetCharacterPosition(pp.charId, pp.newx, pp.newy);
+                        charListController.SetCharacter_Position(pp.charId, pp.newx, pp.newy);
 
                         log.Log("Character position: " + pp.charId);
                     }
@@ -129,7 +138,7 @@ public class GameController : MonoBehaviour , ILogging
                     {
                         ClientToWorldPackets.Character_Movement_c pp = p as ClientToWorldPackets.Character_Movement_c;
 
-                        //charListController.SetCharacterPosition(pp.charId, pp.newx, pp.newy);
+                        charListController.SetCharacter_MovePoint(pp.charId, pp.movePoint);
 
                         log.Log("Character movement: " + pp.charId + "- " + pp.movePoint.start.ToString() + "->" + pp.movePoint.end.ToString());
                     }
@@ -142,6 +151,16 @@ public class GameController : MonoBehaviour , ILogging
                         charListController.RemoveCharacter(pp.charId);
 
                         log.Log("Remove Character: " + pp.charId);
+                    }
+                    break;
+
+                case (ClientToWorldPackets.PacketType.Character_UpdateStats_c):
+                    {
+                        ClientToWorldPackets.Character_UpdateStats_c pp = p as ClientToWorldPackets.Character_UpdateStats_c;
+
+                        charListController.SetCharacter_Stats(pp.charId, pp.stats);
+
+                        log.Log("Character stats: " + pp.charId);
                     }
                     break;
 

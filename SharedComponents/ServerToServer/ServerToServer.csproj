@@ -38,9 +38,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AccountItems.cs" />
-    <Compile Include="ChatToMainPackets.cs" />
-    <Compile Include="GameToMainPackets.cs" />
+    <Compile Include="AccountInfo.cs" />
+    <Compile Include="StaticFields\Build.cs" />
+    <Compile Include="WorldToMasterPackets.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

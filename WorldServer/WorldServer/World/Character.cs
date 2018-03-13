@@ -7,6 +7,7 @@ using SharedComponents.GameProperties;
 
 using Extant.Networking;
 using WorldServer.Control;
+using System.Threading;
 
 namespace WorldServer.World
 {
@@ -55,9 +56,31 @@ namespace WorldServer.World
         }
 
         //Private
+        private void HandleMovement(float frameDiff)
+        {
+            float unitsToMove = stats.MoveSpeed * frameDiff;
+            while (!float.IsNaN(unitsToMove))
+            {
+                this.position = CalculateMove(position, currentMovePoint.end, ref unitsToMove);
+                if (!float.IsNaN(unitsToMove))
+                {
+                    if (movePoints.Count != 0)
+                    {
+                        SetCurrentMovePoint(movePoints.Dequeue());
+                    }
+                    else
+                    {
+                        unitsToMove = float.NaN;
+                        currentMovePoint = null;
+                    }
+                }
+            }
+        }
+
         private void SetCurrentMovePoint(MovePoint mp)
         {
             currentMovePoint = mp;
+            position = currentMovePoint.start;
             this.Inform_CharacterMovePoint(this, currentMovePoint);
             foreach (Character c in this.CharsSeenBy)
             {
@@ -65,10 +88,46 @@ namespace WorldServer.World
             }
         }
 
+        private Position2D CalculateMove(Position2D old, Position2D target, ref float unitsToMove)
+        {
+            float x = (target.x - old.x);
+            float y = (target.y - old.y);
+            float angle = (float)Math.Atan2(y, x);
+            float d = (float)Math.Sqrt(x * x + y * y);
+            float deltaX = (float)(unitsToMove * Math.Cos(angle));
+            float deltaY = (float)(unitsToMove * Math.Sin(angle));
+
+            if (unitsToMove > d)
+            {
+                unitsToMove = unitsToMove - d;
+                return target;
+            }
+            else
+            {
+                unitsToMove = float.NaN;
+                return new Position2D(old.x + deltaX, old.y + deltaY);
+            }
+        }
+
         //Protected
 
 
         //Public
+        public virtual void Tick(float frameDiff)
+        {
+            if (currentMovePoint != null)
+            {
+                HandleMovement(frameDiff);
+            }
+            else
+            {
+                if (movePoints.Count != 0)
+                {
+                    SetCurrentMovePoint(movePoints.Dequeue());
+                }
+            }
+        }
+
         public void Dispose()
         {
             this.Dispose(false);
@@ -137,17 +196,6 @@ namespace WorldServer.World
             }
         }
 
-        public virtual void Tick()
-        {
-            if (currentMovePoint == null)
-            {
-                if (movePoints.Count > 0)
-                {
-                    SetCurrentMovePoint(movePoints.Dequeue());
-                }
-            }
-        }
-
         #region Overrides
 
         public abstract void Inform_CharacterTeleport(Character charFrom, Position2D pos);
@@ -173,6 +221,30 @@ namespace WorldServer.World
             get
             {
                 return position;
+            }
+        }
+
+        public MovePoint CurrentMovePoint
+        {
+            get
+            {
+                return currentMovePoint;
+            }
+        }
+
+        public IReadOnlyCollection<MovePoint> MovePoints
+        {
+            get
+            {
+                return movePoints.ToArray();
+            }
+        }
+
+        public CharacterStats Stats
+        {
+            get
+            {
+                return stats;
             }
         }
 

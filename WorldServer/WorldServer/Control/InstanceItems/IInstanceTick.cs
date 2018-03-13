@@ -8,6 +8,6 @@ namespace WorldServer.Control
 {
     public interface IInstanceTick
     {
-        void Tick();
+        void Tick(float frameDiff);
     }
 }

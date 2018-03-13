@@ -79,7 +79,7 @@ namespace WorldServer.Networking
                     newClients[i].Stop("Client timed out.");
                     newClients.Remove(newClients[i]);
                 }
-                else if (newClients[i].IsConnectedAndVerified)
+                else if (newClients[i].IsAlive)
                 {
                     lock (verifiedClients_lock)
                     {

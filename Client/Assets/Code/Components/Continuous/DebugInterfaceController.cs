@@ -7,11 +7,15 @@ class DebugInterfaceController : MonoBehaviour
 {
     [SerializeField]
     Text text_WSConnection = null;
+    [SerializeField]
+    WorldServerConnection wsCon = null;
 
     void Start()
     {
         if (text_WSConnection == null)
             Debug.LogError("DebugInterface has no reference to WSConnection text.");
+        if (wsCon == null)
+            Debug.LogError("DebugInterface has no reference to WorldServerConnection.");
 
         //StartCoroutine(ClearConsoleAsync());
 
@@ -26,6 +30,11 @@ class DebugInterfaceController : MonoBehaviour
     void OnDestroy()
     {
 
+    }
+
+    public void OnClick_Disconnect()
+    {
+        wsCon.ClearConnection();
     }
 
     public string Text_WSConnextion

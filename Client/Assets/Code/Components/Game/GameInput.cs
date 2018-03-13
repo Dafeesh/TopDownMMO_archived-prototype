@@ -4,7 +4,7 @@ using System;
 class GameInput : MonoBehaviour
 {
     [SerializeField]
-    Camera camera = null;
+    MainCameraController camera = null;
     [SerializeField]
     GameController gameController = null;
 
@@ -25,7 +25,7 @@ class GameInput : MonoBehaviour
         if (Input.GetMouseButtonUp(0))
         {
             RaycastHit hit;
-            Ray ray = camera.ScreenPointToRay(Input.mousePosition);
+            Ray ray = camera.Camera.ScreenPointToRay(Input.mousePosition);
 
             if (Physics.Raycast(ray, out hit))
             {
@@ -34,6 +34,11 @@ class GameInput : MonoBehaviour
                 moveCursor.transform.position = hit.point;
                 gameController.Command_MoveTo(hit.point.x, hit.point.z);
             }
+        }
+
+        if (Input.GetAxis("Mouse ScrollWheel") != 0.0f)
+        {
+            camera.CameraFollowDistance += Input.GetAxis("Mouse ScrollWheel")*(-5.0f);
         }
     }
 }

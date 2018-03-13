@@ -99,8 +99,8 @@ namespace WorldServer.Control
             Instances.Zone testZone = new Instances.Zone(Instances.Zone.ZoneIDs.TestZone, maps[MapID.TestMap]);
 
 
-            Character c1 = new Characters.RandomTeleportingWizard(40, 20);
-            Character c2 = new Characters.RandomTeleportingWizard(30, 20);
+            Character c1 = new Characters.RandomTeleportingWizard(15, 15);
+            Character c2 = new Characters.RandomTeleportingWizard(15, 10);
             testZone.AddCharacterToInstance(c1);
             testZone.AddCharacterToInstance(c2);
 

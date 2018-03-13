@@ -18,11 +18,11 @@ namespace WorldServer.Networking
         private const Int32 RECEIVE_TIMEOUT = 180000;
 
         private NetConnection connection;
+        private Stopwatch lifeTimeTimer = new Stopwatch();
 
         private Int32 verifyBuild;
         private String verifyUsername;
-        private Int32 verifyPassword;
-        private Stopwatch lifeTimeTimer = new Stopwatch();
+        private Int32 verifyPasswordToken;
 
         private ClientState state = ClientState.Null;
 
@@ -30,7 +30,7 @@ namespace WorldServer.Networking
             : base("Client")
         {
             connection = new NetConnection(ClientToWorldPackets.ReadBuffer, tcpClient, RECEIVE_TIMEOUT);
-            //connection.Log.MessageLogged += Console.WriteLine;
+            //Log.MessageLogged += Console.WriteLine;
             connection.Start();
             state = ClientState.Varifying;
         }
@@ -67,24 +67,13 @@ namespace WorldServer.Networking
                             {
                                 verifyBuild = (p as ClientToWorldPackets.Verify_Details_g).build;
                                 verifyUsername = (p as ClientToWorldPackets.Verify_Details_g).username;
-                                verifyPassword = (p as ClientToWorldPackets.Verify_Details_g).password;
+                                verifyPasswordToken = (p as ClientToWorldPackets.Verify_Details_g).password;
 
-                                //Check if gameversion is correct
-                                if (verifyBuild == GameVersion.Build)
-                                {
-                                    state = ClientState.Connected;
-                                    //connection.SendPacket(new ClientToGamePackets.Verify_Result_c(ClientToGamePackets.Verify_Result_c.VerifyReturnCode.Success));
-                                }
-                                else
-                                {
-                                    connection.SendPacket(new ClientToWorldPackets.Verify_Result_c(ClientToWorldPackets.Verify_Result_c.VerifyReturnCode.IncorrectVersion));
-                                    this.Stop("Client had incorrect version.");
-                                }
+                                state = ClientState.Connected;
                             }
                             else
                             {
-                                DebugLogger.Global.Log("Client sent wrong packet when trying to verify: " + this.RunningID + "/" + p.Type.ToString());
-                                this.Stop("Client sent wrong packet when trying to verify.");
+                                this.Stop("Client sent wrong packet when trying to verify: " + p.Type.ToString());
                                 return;
                             }
                         }
@@ -101,20 +90,33 @@ namespace WorldServer.Networking
 
         protected override void Finish(bool success)
         {
-            //DebugLogger.Global.Log("Client disconnected. (" + this.RunningID + ")");
-            connection.Stop("ClientConnection finished.");
             lifeTimeTimer.Stop();
+
+            Log.Log("Client finished.");
+            connection.Stop("Client finished.");
+
             state = ClientState.Disconnected;
         }
 
         /// <summary>
-        /// Returns if the Client is currently connected and verified.
+        /// Returns if the Client is currently connected and received verification data.
         /// </summary>
-        public Boolean IsConnectedAndVerified
+        public Boolean IsAlive
         {
             get
             {
                 return (state == ClientState.Connected);
+            }
+        }
+
+        /// <summary>
+        /// Returns the time in milliseconds of how long the client has been active.
+        /// </summary>
+        public Int32 LifeTime
+        {
+            get
+            {
+                return (Int32)lifeTimeTimer.ElapsedMilliseconds;
             }
         }
 
@@ -132,22 +134,11 @@ namespace WorldServer.Networking
         /// <summary>
         /// Returns the password received as verification.
         /// </summary>
-        public Int32 VerifyPassword
+        public Int32 VerifyPasswordToken
         {
             get
             {
-                return verifyPassword;
-            }
-        }
-
-        /// <summary>
-        /// Returns the time in milliseconds of how long the client has been active.
-        /// </summary>
-        public Int32 LifeTime
-        {
-            get
-            {
-                return (Int32)lifeTimeTimer.ElapsedMilliseconds;
+                return verifyPasswordToken;
             }
         }
 
@@ -166,6 +157,7 @@ namespace WorldServer.Networking
         /// <param name="p">The packet being sent.</param>
         public void SendPacket(Packet p)
         {
+            Console.WriteLine("Packet -> " + (ClientToWorldPackets.PacketType)p.Type);
             connection.SendPacket(p);
         }
     }

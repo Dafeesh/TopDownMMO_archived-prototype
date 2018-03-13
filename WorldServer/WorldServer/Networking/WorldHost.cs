@@ -66,7 +66,7 @@ namespace WorldServer.Networking
                     if (c.VerifyUsername == expectedPlayers[i].PlayerInfo.Info.Name)
                     {
                         found = true;
-                        if (c.VerifyPassword == expectedPlayers[i].PlayerInfo.Password)
+                        if (c.VerifyPasswordToken == expectedPlayers[i].PlayerInfo.Password)
                         {
                             c.SendPacket(new ClientToWorldPackets.Verify_Result_c(ClientToWorldPackets.Verify_Result_c.VerifyReturnCode.Success));
                             worldController.AddPlayer(expectedPlayers[i].PlayerInfo, c);

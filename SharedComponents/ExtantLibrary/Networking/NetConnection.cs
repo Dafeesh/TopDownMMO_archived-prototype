@@ -10,6 +10,8 @@ namespace Extant.Networking
 {
     public class NetConnection : ThreadRun
     {
+        private const int RECEIVETIMEOUT_INFINITY = 0;
+
         private NetworkState state;
         private IPEndPoint remoteEndPoint;
         private readonly Stopwatch connectTimeoutTimer = new Stopwatch();
@@ -41,7 +43,7 @@ namespace Extant.Networking
         /// <param name="remoteEndPoint">Endpoint to connect to.</param>
         /// <param name="connectTimeout">How long connecting should try. (mSec)</param>
         /// <param name="readTimeout">How long it should wait for a packet. (mSec)</param>
-        public NetConnection(ReadBufferFunc func, IPEndPoint remoteEndPoint, Int32 connectTimeout, Int32 receiveTimeout)
+        public NetConnection(ReadBufferFunc func, IPEndPoint remoteEndPoint, Int32 connectTimeout, Int32 receiveTimeout = RECEIVETIMEOUT_INFINITY)
             : base("NetConnection-c")
         {
             ReadBuffer = func;
@@ -57,7 +59,7 @@ namespace Extant.Networking
         /// <summary>
         /// If connection is already established.
         /// </summary>
-        public NetConnection(ReadBufferFunc func, TcpClient tcpClient, Int32 receiveTimeout)
+        public NetConnection(ReadBufferFunc func, TcpClient tcpClient, Int32 receiveTimeout = RECEIVETIMEOUT_INFINITY)
             : base("NetConnection")
         {
             ReadBuffer = func;
@@ -79,7 +81,7 @@ namespace Extant.Networking
                 // Start connection attempt
                 try
                 {
-                    //DebugLogger.Global.LogNetworking("NetConnection: Attempting to connect to " + remoteEndPoint.Address.ToString() + "/" + remoteEndPoint.Port);
+                    Log.Log("Attempting to connect to " + remoteEndPoint.Address.ToString() + "/" + remoteEndPoint.Port);
                     connectResult = this.tcpClient.BeginConnect(remoteEndPoint.Address.ToString(), remoteEndPoint.Port, new AsyncCallback(ConnectCallback), null);
                     connectTimeoutTimer.Start();
                     state = NetworkState.Connecting;
@@ -105,13 +107,12 @@ namespace Extant.Networking
                     }
                 case (NetworkState.Connected):
                     {
-                        if (receiveTimeoutTimer.ElapsedMilliseconds > receiveTimeout)
+                        if (receiveTimeout != RECEIVETIMEOUT_INFINITY)
                         {
-                            this.Stop("Receive timed out.");
-                        }
-                        else if (!tcpClient.Connected)
-                        {
-                            this.Stop("Disconnected.");
+                            if (receiveTimeoutTimer.ElapsedMilliseconds > receiveTimeout)
+                                this.Stop("Receive timed out.");
+                            else if (!tcpClient.Connected)
+                                this.Stop("Disconnected.");
                         }
                         break;
                     }
