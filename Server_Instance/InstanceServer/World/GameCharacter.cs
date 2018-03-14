@@ -3,11 +3,12 @@ using System.Collections.Generic;
 
 using Extant;
 using SharedComponents.Global;
-using SharedComponents.Global.GameProperties;
 
 using Extant.Networking;
 using InstanceServer.Control;
 using System.Threading;
+using SharedComponents.Global.Game;
+using SharedComponents.Global.Game.Character;
 
 namespace InstanceServer.World
 {

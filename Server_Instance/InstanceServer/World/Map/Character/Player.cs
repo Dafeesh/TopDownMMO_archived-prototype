@@ -8,9 +8,10 @@ using Extant;
 using Extant.Networking;
 
 using SharedComponents.Global;
-using SharedComponents.Global.GameProperties;
 
 using InstanceServer.Control;
+using SharedComponents.Global.Game;
+using SharedComponents.Global.Game.Character;
 
 namespace InstanceServer.World.Map.Character
 {

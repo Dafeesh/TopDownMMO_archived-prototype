@@ -8,7 +8,6 @@ using System.Net;
 using Extant;
 
 using SharedComponents.Global;
-using SharedComponents.Global.GameProperties;
 using InstanceServer.World;
 using InstanceServer.Control;
 using InstanceServer.Links;

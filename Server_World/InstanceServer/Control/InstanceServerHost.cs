@@ -9,6 +9,7 @@ using Extant;
 
 using SharedComponents.Global;
 using SharedComponents.Global.Game;
+using SharedComponents.Server.Game.Instance;
 using InstanceServer.Control;
 using InstanceServer.Links;
 
@@ -48,7 +49,7 @@ namespace InstanceServer.Control
 
             foreach (GameInstance i in instances)
             {
-                i.Dispose();
+                i.Stop();
             }
 
             Log.Log("Finished.");

@@ -1,10 +1,9 @@
-﻿using System;
+﻿using SharedComponents.Global.Game;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
-using SharedComponents.Global.GameProperties;
 
 namespace InstanceServer.World.Map
 {

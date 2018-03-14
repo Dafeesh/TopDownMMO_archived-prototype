@@ -5,8 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using InstanceServer.World.Map;
-
-using SharedComponents.Global.GameProperties;
+using SharedComponents.Global.Game;
 
 namespace InstanceServer.World
 {

@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Diagnostics;
 
-using SharedComponents.Global.GameProperties;
-
 using Extant;
+using SharedComponents.Global.Game;
+using SharedComponents.Global.Game.Character;
 
 namespace InstanceServer.World.Map.Character
 {

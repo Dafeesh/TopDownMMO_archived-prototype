@@ -31,7 +31,8 @@ namespace MasterServer.Database
             private static readonly string Column_Characters_Credits = "credits";
             //~Static
 
-            SQLiteConnection connection;
+            //SQLiteConnection connection;
+
             public bool IsDisposed
             { get; private set; }
 
@@ -39,8 +40,8 @@ namespace MasterServer.Database
             {
                 IsDisposed = false;
 
-                connection = new SQLiteConnection(ConnectionString);
-                connection.Open();
+                //connection = new SQLiteConnection(ConnectionString);
+                //connection.Open();
             }
 
             public void Dispose()
@@ -49,7 +50,7 @@ namespace MasterServer.Database
                 {
                     IsDisposed = true;
 
-                    connection.Close();
+                    //connection.Close();
                 }
             }
 
@@ -67,8 +68,8 @@ namespace MasterServer.Database
                         (int)info.Type + " " +
                         ");";
 
-                    SQLiteCommand cmd = new SQLiteCommand(commandString, connection);
-                    cmd.ExecuteNonQuery();
+                    //SQLiteCommand cmd = new SQLiteCommand(commandString, connection);
+                    //cmd.ExecuteNonQuery();
                 }
                 catch (SQLiteException e)
                 {
@@ -81,16 +82,17 @@ namespace MasterServer.Database
                 try
                 {
                     string commandString = "SELECT " + Column_Accounts_Password + " FROM " + Table_Accounts + " WHERE UPPER(" + Column_Accounts_Name + ")=UPPER('" + name + "');";
-                    SQLiteCommand cmd = new SQLiteCommand(commandString, connection);
-                    SQLiteDataReader reader = cmd.ExecuteReader();
+                    //SQLiteCommand cmd = new SQLiteCommand(commandString, connection);
+                    //SQLiteDataReader reader = cmd.ExecuteReader();
 
-                    if (!reader.HasRows)
-                        return false;
+                    //if (!reader.HasRows)
+                    //    return false;
 
-                    reader.Read();
-                    string correctPassword = reader[Column_Accounts_Password].ToString();
+                    //reader.Read();
+                    //string correctPassword = reader[Column_Accounts_Password].ToString();
 
-                    return (password.CompareTo(correctPassword) == 0);
+                    //return (password.CompareTo(correctPassword) == 0);
+                    return true;
                 }
                 catch (SQLiteException e)
                 {
@@ -103,21 +105,22 @@ namespace MasterServer.Database
                 try
                 {
                     string commandString = "SELECT * FROM " + Table_Accounts + " WHERE UPPER(" + Column_Accounts_Name + ")=UPPER('" + name + "');";
-                    SQLiteCommand cmd = new SQLiteCommand(commandString, connection);
-                    SQLiteDataReader reader = cmd.ExecuteReader();
+                    //SQLiteCommand cmd = new SQLiteCommand(commandString, connection);
+                    //SQLiteDataReader reader = cmd.ExecuteReader();
 
-                    if (!reader.HasRows)
-                        return null;
+                    //if (!reader.HasRows)
+                    //    return null;
 
-                    reader.Read();
-                    AccountInfo accnt = new AccountInfo(reader[Column_Accounts_Name].ToString(),
-                                            reader[Column_Accounts_Password].ToString(),
-                                            (AccountInfo.AccountType)(Int32)reader[Column_Accounts_Type])
-                    {
-                        Characters = Fetch_Characters(name)
-                    };
+                    //reader.Read();
+                    //AccountInfo accnt = new AccountInfo(reader[Column_Accounts_Name].ToString(),
+                    //                        reader[Column_Accounts_Password].ToString(),
+                    //                        (AccountInfo.AccountType)(Int32)reader[Column_Accounts_Type])
+                    //{
+                    //    Characters = Fetch_Characters(name)
+                    //};
 
-                    return accnt;
+                    //return accnt;
+                    return new AccountInfo("AccountName", "password", AccountInfo.AccountType.Basic);
                 }
                 catch (SQLiteException e)
                 {
@@ -132,22 +135,33 @@ namespace MasterServer.Database
                 try
                 {
                     string commandString = "SELECT * FROM " + Table_Characters + " WHERE UPPER(" + Column_Characters_Owner + ")=UPPER('" + owner + "');";
-                    SQLiteCommand cmd = new SQLiteCommand(commandString, connection);
-                    SQLiteDataReader reader = cmd.ExecuteReader();
+                    //SQLiteCommand cmd = new SQLiteCommand(commandString, connection);
+                    //SQLiteDataReader reader = cmd.ExecuteReader();
 
-                    if (!reader.HasRows)
-                        return new PlayerCharacterInfo[0];
+                    //if (!reader.HasRows)
+                    //    return new PlayerCharacterInfo[0];
 
-                    while (reader.Read())
+                    //while (reader.Read())
+                    //{
+                    //    chars.Add(new PlayerCharacterInfo(reader[Column_Characters_Name].ToString())
+                    //    {
+                    //        VisualLayout = new CharacterVisualLayout((CharacterVisualLayout.VisualType)((Int32)reader[Column_Characters_Type])),
+                    //        Level = (Int32)reader[Column_Characters_Level],
+                    //        Level_Progress = (Int32)reader[Column_Characters_LevelProgress],
+                    //        Credits = (Int32)reader[Column_Characters_Credits]
+                    //    });
+                    //}
+                    return new PlayerCharacterInfo[]
                     {
-                        chars.Add(new PlayerCharacterInfo(reader[Column_Characters_Name].ToString())
+                        new PlayerCharacterInfo("CharacterName")
                         {
-                            VisualLayout = new CharacterVisualLayout((CharacterVisualLayout.VisualType)((Int32)reader[Column_Characters_Type])),
-                            Level = (Int32)reader[Column_Characters_Level],
-                            Level_Progress = (Int32)reader[Column_Characters_LevelProgress],
-                            Credits = (Int32)reader[Column_Characters_Credits]
-                        });
-                    }
+                            Credits = 99,
+                            Level = 1,
+                            Level_Progress = 50,
+                            VisualLayout = new CharacterVisualLayout(CharacterVisualLayout.VisualType.Basic),
+                            Location = new SharedComponents.Server.Game.World.WorldLocation(1, ZoneID.MainTest, new Position2D(5, 5))
+                        }
+                    };
                 }
                 catch (SQLiteException e)
                 {

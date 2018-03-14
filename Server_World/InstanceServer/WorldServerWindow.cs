@@ -11,8 +11,8 @@ using System.Windows.Forms;
 
 using Extant;
 using InstanceServer.Control;
-using InstanceServer.World;
 using InstanceServer.Links;
+using SharedComponents.Server.Game.Instance;
 
 namespace InstanceServer
 {
@@ -76,11 +76,11 @@ namespace InstanceServer
                     //Draw map
                     panel_InstanceView.Invalidate();
 
-                    var npcs = selectedInstance.GetNpcs();
-                    var plrs = selectedInstance.GetPlayers();
+                    var npcs = selectedInstance.Npcs;
+                    var plrs = selectedInstance.Players;
                     this.Invoke(new MethodInvoker(() =>
                     {
-                        label_Players.Text = plrs.Length.ToString();
+                        label_Players.Text = plrs.Count().ToString();
                     }));
                     foreach (var c in npcs)
                     {

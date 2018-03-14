@@ -5,7 +5,6 @@ using System.Windows.Forms;
 
 using Extant;
 
-using SharedComponents.Global.GameProperties;
 using InstanceServer.Control;
 using InstanceServer.Links;
 

@@ -12,8 +12,9 @@ using InstanceServer.World.Map;
 using InstanceServer.World.Map.Character;
 
 using SharedComponents.Global;
-using SharedComponents.Global.GameProperties;
 using InstanceServer.Control;
+using SharedComponents.Global.Game.Character;
+using SharedComponents.Global.Game;
 
 namespace InstanceServer.World
 {
@@ -77,8 +78,9 @@ namespace InstanceServer.World
         private void ReceiveAndProcessPlayerPackets(Characters.Player plr)
         {
             return;
+            /*
             Packet p = null;
-            //while ((p = plr.GetPacket()) != null)
+            while ((p = plr.GetPacket()) != null)
             {
                 switch ((ClientToInstancePackets.PacketType)p.Type)
                 {
@@ -98,6 +100,7 @@ namespace InstanceServer.World
                         break;
                 }
             }
+            */
         }
 
         private void HandleNpcs(float frameDiff)
